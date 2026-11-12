@@ -525,6 +525,44 @@ body.lb-on { overflow: hidden; }
 .lb-x { top: max(12px, env(safe-area-inset-top, 0px)); right: 12px; font-size: 1.15rem; }
 .lb-p { left: 8px; top: 50%; transform: translateY(-50%); }
 .lb-n { right: 8px; top: 50%; transform: translateY(-50%); }
+
+/* Cores e motores */
+.at-cores { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 22px; }
+@media (max-width: 560px) { .at-cores { grid-template-columns: 1fr; } }
+.at-cor-t { margin: 0 0 8px; font-weight: 600; font-size: .92rem; }
+.at-cor-ops { display: flex; gap: 8px; flex-wrap: wrap; }
+.at-cor { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px 8px 8px; border: 1px solid var(--line-strong); border-radius: var(--radius); cursor: pointer; background: var(--surface); font-size: .92rem; }
+.at-cor input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.at-cor-sw { width: 22px; height: 22px; border-radius: 5px; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .18); flex: none; }
+.at-cor:has(input:checked) { border-color: var(--brand-blue); box-shadow: 0 0 0 1px var(--brand-blue); background: #EEF2FA; }
+.at-cor:has(input:focus-visible) { outline: 2px solid var(--brand-blue); outline-offset: 2px; }
+.at-cores-res { margin: 8px 0 0; }
+.at-mais { margin-top: 2px; }
+.at-mais > summary { cursor: pointer; color: var(--brand-blue); font-weight: 600; font-size: .92rem; padding: 8px 2px; }
+.at-mais > .v-opts { margin-top: 6px; }
+.ct-cep-msg { grid-column: span 1; align-self: end; margin: 0 0 10px; }
+.at-sinal { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: -2px; }
+.at-sinal .c-hint { margin: 0 2px 0 0; }
+.at-pg-res { margin: 10px 0 0; }
+
+.at-desc { margin: 14px 0 6px; padding-top: 10px; border-top: 1px solid var(--line-strong); min-height: 8px; }
+.at-desc-add { appearance: none; border: 0; background: none; padding: 2px 0; font: inherit; font-size: .82rem; color: var(--muted); cursor: pointer; }
+.at-desc-add:hover { color: var(--brand-blue); text-decoration: underline; text-underline-offset: 3px; }
+.at-desc-ed { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.at-desc-ed[hidden] { display: none; }
+.at-desc-l { font-weight: 600; margin-right: auto; }
+.at-desc-ctl { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--line-strong); border-radius: var(--radius); padding: 2px; background: var(--bg); }
+.at-desc-b { appearance: none; border: 0; background: var(--surface); width: 30px; height: 30px; border-radius: 6px; font: inherit; font-size: 1.1rem; cursor: pointer; color: var(--ink); }
+.at-desc-b:disabled { opacity: .35; cursor: default; }
+.at-desc-rs { font-size: .85rem; color: var(--muted); padding-left: 4px; }
+#at-desc-in { width: 92px; border: 0; background: transparent; font: inherit; font-weight: 600; text-align: right; color: var(--done); padding: 4px 2px; }
+#at-desc-in:focus { outline: none; }
+.at-desc-ctl:focus-within { box-shadow: 0 0 0 2px var(--brand-blue); }
+.at-desc-x { font-size: .8rem; }
+.at-sinal { display: block; margin-top: -2px; }
+.at-sinal-h { display: flex; justify-content: space-between; align-items: baseline; font-size: .85rem; color: var(--muted); }
+.at-sinal-h b { font-size: 1rem; color: var(--ink); font-variant-numeric: tabular-nums; }
+.at-sinal .v-slider { margin-top: 4px; }
 /* Tela de senha */
 body.gated { overflow: hidden; }
 .gate { position: fixed; inset: 0; z-index: 100; background: var(--bg); display: flex; align-items: center; justify-content: center; padding: max(20px, env(safe-area-inset-top, 0px)) 16px max(20px, env(safe-area-inset-bottom, 0px)); overflow-y: auto; }
@@ -812,7 +850,7 @@ body.gated { overflow: hidden; }
         </div>
         <div class="c-card">
           <h2 class="c-h3">Eletrônica</h2>
-          <label class="v-opt"><input type="checkbox" id="v-gps"><span><b>GPS e sonar</b><small>Fora da planilha de acessórios; custo estimado</small></span><em id="v-gps-preco">–</em></label>
+          <label class="v-opt"><input type="checkbox" id="v-gps"><span><b>GPS</b><small>Fora da planilha de acessórios; custo estimado</small></span><em id="v-gps-preco">–</em></label>
           <label class="c-f v-inline"><span>Custo do GPS (R$)</span><input type="number" id="v-gpscusto" min="0" step="500" data-v="gpsCusto"></label>
         </div>
         <div class="c-card">
@@ -916,7 +954,7 @@ body.gated { overflow: hidden; }
       <div class="at-left">
         <div class="c-card">
           <h2 class="at-h"><span class="at-n">1</span>O barco</h2>
-          <div class="at-fixed"><span><b>Casco Euro Sette com kit básico</b><small>Autêntico RIB de 7,75 m por 3,05 m. Tubos em PVC Sansuy, console, comando, elétrica, itens de segurança e ferragens.</small></span><em id="at-casco">–</em></div>
+          <div class="at-fixed"><span><b>Casco Euro Sette com kit básico</b><small>Autêntico RIB de 7,75 m por 3,05 m, com estofados completos, capota de popa, piso EVA, som e âncora. Tubos em PVC Sansuy.</small></span><em id="at-casco">–</em></div>
           <details class="v-incl"><summary id="at-basico-sum">Ver o que já vem</summary><ul class="v-list" id="at-basico"></ul></details>
         </div>
         <div class="c-card">
@@ -927,15 +965,49 @@ body.gated { overflow: hidden; }
           <h2 class="at-h"><span class="at-n">3</span>Opcionais</h2>
           <div class="v-opts" id="at-opc"></div>
         </div>
+        <div class="c-card">
+          <h2 class="at-h"><span class="at-n">4</span>Cores</h2>
+          <div class="at-cores">
+            <div class="at-cor-g"><p class="at-cor-t">Estofado</p><div class="at-cor-ops" id="at-cor-est" role="radiogroup" aria-label="Cor do estofado"></div></div>
+            <div class="at-cor-g"><p class="at-cor-t">Piso em EVA</p><div class="at-cor-ops" id="at-cor-piso" role="radiogroup" aria-label="Cor do piso"></div></div>
+          </div>
+        </div>
+        <div class="c-card">
+          <h2 class="at-h"><span class="at-n">5</span>Pagamento e entrega</h2>
+          <div class="ct-grid">
+            <label class="c-f"><span>Mês de entrega</span><input type="month" id="ct-entrega"></label>
+            <label class="c-f"><span>Sinal (R$)</span><input type="number" id="ct-sinal" min="0" step="1000"></label>
+            <div class="at-sinal ct-w">
+              <div class="at-sinal-h"><span>Sinal em % do valor total</span><b id="at-sinal-pct">0%</b></div>
+              <input type="range" id="at-sinal-sl" class="v-slider" min="0" max="100" step="5" value="0" aria-label="Sinal em porcentagem do valor total">
+              <div class="at-desc-f"><span>0%</span><span>100%</span></div>
+            </div>
+            <label class="c-f"><span>Vencimento do sinal</span><input type="date" id="ct-sinal-data"></label>
+            <label class="c-f"><span>Parcelas do saldo</span><input type="number" id="ct-parc" min="1" max="12" step="1" value="4"></label>
+            <label class="c-f"><span>Vencimento da 1ª parcela</span><input type="date" id="ct-parc-data"></label>
+            <label class="c-check ct-w"><input type="checkbox" id="ct-ult72" checked> Última parcela vence 72 horas antes da entrega</label>
+            <label class="c-check ct-w"><input type="checkbox" id="ct-cdi"> Parcelas que vencerem depois da entrega têm reajuste pelo CDI + 1% ao mês</label>
+          </div>
+          <p class="c-hint at-pg-res" id="ct-saldo"></p>
+        </div>
       </div>
       <div class="at-right">
         <div class="c-card at-sum">
           <h2 class="at-h">Seu Euro Sette</h2>
           <table class="c-comp"><tbody id="at-lines"></tbody></table>
+          <p class="c-hint at-cores-res" id="at-cores-res"></p>
           <div class="at-desc">
-            <div class="v-close-h"><span>Condição especial</span><b id="at-desc-v">–</b></div>
-            <input type="range" id="at-slider" class="v-slider" min="0" max="0" step="500" value="0" aria-label="Condição especial">
-            <div class="at-desc-f"><span>Sem desconto</span><span>Máxima</span></div>
+            <button class="at-desc-add" type="button" id="at-desc-add">+ condição especial</button>
+            <div class="at-desc-ed" id="at-desc-ed" hidden>
+              <span class="at-desc-l">Condição especial</span>
+              <div class="at-desc-ctl">
+                <button class="at-desc-b" type="button" id="at-desc-menos" aria-label="Diminuir R$ 1.000">−</button>
+                <span class="at-desc-rs" aria-hidden="true">R$</span>
+                <input type="text" inputmode="numeric" id="at-desc-in" aria-label="Valor da condição especial em reais" autocomplete="off" placeholder="0">
+                <button class="at-desc-b" type="button" id="at-desc-mais" aria-label="Aumentar R$ 1.000">+</button>
+              </div>
+              <button class="c-link at-desc-x" type="button" id="at-desc-x">Remover</button>
+            </div>
           </div>
           <table class="c-comp"><tbody id="at-tot"></tbody></table>
           <div class="at-total"><span>Valor total</span><b id="at-total">–</b></div>
@@ -955,29 +1027,17 @@ body.gated { overflow: hidden; }
         <label class="c-f ct-w"><span>Nome completo ou razão social</span><input type="text" id="ct-nome" autocomplete="off"></label>
         <label class="c-f"><span>CPF ou CNPJ</span><input type="text" id="ct-doc" inputmode="numeric" autocomplete="off"></label>
         <label class="c-f"><span>RG (opcional)</span><input type="text" id="ct-rg" autocomplete="off"></label>
-        <label class="c-f ct-w"><span>Endereço completo, com CEP</span><input type="text" id="ct-end" autocomplete="off"></label>
+        <label class="c-f"><span>CEP</span><input type="text" id="ct-cep" inputmode="numeric" autocomplete="off" placeholder="00000-000" maxlength="9"></label>
+        <p class="c-hint ct-cep-msg" id="ct-cep-msg" role="status"></p>
+        <label class="c-f ct-w"><span>Endereço completo</span><input type="text" id="ct-end" autocomplete="off"></label>
         <label class="c-f"><span>E-mail</span><input type="email" id="ct-email" autocomplete="off"></label>
         <label class="c-f"><span>Telefone</span><input type="tel" id="ct-tel" autocomplete="off"></label>
       </div>
-      <h3 class="c-h3" style="margin-top:16px">Condições</h3>
+      <h3 class="c-h3" style="margin-top:16px">Embarcação</h3>
       <div class="ct-grid">
         <label class="c-f"><span>Ano de fabricação</span><input type="number" id="ct-ano" step="1"></label>
-        <label class="c-f"><span>Mês de entrega</span><input type="month" id="ct-entrega"></label>
-        <label class="c-f"><span>Sinal (R$)</span><input type="number" id="ct-sinal" min="0" step="1000"></label>
-        <label class="c-f"><span>Vencimento do sinal</span><input type="date" id="ct-sinal-data"></label>
-        <label class="c-f"><span>Parcelas do saldo</span><input type="number" id="ct-parc" min="1" max="12" step="1" value="4"></label>
-        <label class="c-f"><span>Vencimento da 1ª parcela</span><input type="date" id="ct-parc-data"></label>
-        <label class="c-check ct-w"><input type="checkbox" id="ct-ult72" checked> Última parcela vence 72 horas antes da entrega</label>
-        <label class="c-f"><span>Garantia do casco (anos)</span><input type="number" id="ct-casco" min="1" max="20" step="1"></label>
       </div>
-      <p class="c-hint" id="ct-saldo" style="margin:8px 0 0"></p>
-      <h3 class="c-h3" style="margin-top:16px">Quem assina pela Euronav</h3>
-      <div class="ct-grid">
-        <label class="c-f ct-w"><span>Nome do representante</span><input type="text" id="ct-rep"></label>
-        <label class="c-f"><span>Qualificação</span><input type="text" id="ct-rep-q"></label>
-        <label class="c-f"><span>CPF do representante</span><input type="text" id="ct-rep-cpf" inputmode="numeric"></label>
-      </div>
-      <p class="c-hint" style="margin:8px 0 0">Os dados do representante ficam salvos só neste aparelho.</p>
+      <p class="c-hint" style="margin:8px 0 0">Pagamento e entrega saem do passo 5 do atendimento, como na proposta.</p>
       <div class="ct-actions">
         <button class="ct-go" type="button" id="ct-gerar">Gerar contrato em PDF</button>
         <button class="c-link" type="button" id="ct-fechar">Cancelar</button>
@@ -1082,7 +1142,7 @@ body.gated { overflow: hidden; }
         <h1>Ficha técnica: Euro Sette</h1>
         <p class="sub">Dados e diferenciais do Euro Sette para apresentar ao cliente e divulgar.</p>
       </div>
-      <div class="f-pdf-w"><div class="f-pdf-row"><button class="at-pdf f-pdf" type="button" id="f-cat">Gerar catálogo em PDF</button><button class="at-pdf f-pdf f-pdf2" type="button" id="f-pdf">Gerar PDF da ficha técnica</button></div><p class="c-hint" id="f-pdf-msg" role="status"></p></div>
+      <div class="f-pdf-w"><div class="f-pdf-row"><button class="at-pdf f-pdf" type="button" id="f-cat">Gerar ficha técnica com fotos</button><button class="at-pdf f-pdf f-pdf2" type="button" id="f-pdf">Gerar PDF da ficha técnica</button></div><p class="c-hint" id="f-pdf-msg" role="status"></p></div>
     </div>
 
     <div class="f-board">
@@ -1108,6 +1168,7 @@ body.gated { overflow: hidden; }
             <div><dt>Peso do motor</dt><dd>206 a 215 kg</dd></div>
             <div><dt>Hélice</dt><dd>LH 15x15"</dd></div>
             <div><dt>Volume de combustível</dt><dd>200 L</dd></div>
+            <div><dt>Volume de água doce</dt><dd>60 L</dd></div>
           </dl>
         </div>
         <div class="f-col">
@@ -1136,7 +1197,7 @@ body.gated { overflow: hidden; }
       <div class="f-kpis f-kpis3">
         <div class="c-card"><span class="c-kpi-l">Autêntico RIB</span><b class="f-big">Efeito solo</b><span class="c-hint">A geometria do casco forma um bolsão de ar sob o barco.</span></div>
         <div class="c-card"><span class="c-kpi-l">Segurança e estabilidade</span><b class="f-big">Tubulões</b><span class="c-hint">Redundância de segurança e excelente estabilidade, parado e nas curvas.</span></div>
-        <div class="c-card"><span class="c-kpi-l">Desempenho com 150 hp</span><b class="f-big">34 nós</b><span class="c-hint">Planeia em menos de 8 segundos, com 10 pessoas, 200 L de combustível, 60 L de água e capota fechada.</span></div>
+        <div class="c-card"><span class="c-kpi-l">Autonomia para o dia</span><b class="f-big">200 L</b><span class="c-hint">Tanques de 200 L de combustível e de 60 L de água doce, para até 11 pessoas a bordo.</span></div>
         <div class="c-card"><span class="c-kpi-l">Motorização flexível</span><b class="f-big">150 a 225 hp</b><span class="c-hint">Ou parelha de motores, para quem quer redundância mecânica, como na pesca.</span></div>
         <div class="c-card"><span class="c-kpi-l">Tubulões à escolha</span><b class="f-big">PVC ou Hypalon</b><span class="c-hint">PVC Sansuy ou Hypalon Orca, importado da Bélgica.</span></div>
         <div class="c-card"><span class="c-kpi-l">Calado leve</span><b class="f-big">34 cm</b><span class="c-hint">Chega perto da praia. Carga útil de 1.438 kg.</span></div>
@@ -1834,17 +1895,17 @@ body.gated { overflow: hidden; }
   const DESTAQUES = [
     ["Autêntico RIB", "Navega com efeito solo: a geometria do casco forma um bolsão de ar sob o barco."],
     ["Segurança e estabilidade", "Os tubulões dão redundância de segurança e excelente estabilidade, parado e nas curvas."],
-    ["Desempenho com 150 hp", "Planeia em menos de 8 s e faz 34 nós com 10 pessoas, 200 L de combustível, 60 L de água e capota fechada."],
+    ["Autonomia para o dia", "Tanques de 200 L de combustível e de 60 L de água doce, para até 11 pessoas a bordo."],
     ["Motorização flexível", "Até 225 hp, ou parelha de motores para quem quer redundância mecânica, como na pesca."],
     ["Tubulões à escolha", "PVC Sansuy ou Hypalon Orca, importado da Bélgica."],
     ["Chega perto da praia", "Calado leve de 34 cm e carga útil de 1.438 kg."]
   ];
-  const FAIXA = [["7,75 m", "Comprimento"], ["3,05 m", "Boca"], ["10 pessoas", "A bordo"], ["34 nós", "Vel. máx. com 150 hp"], ["< 8 s", "Para planar"], ["150 a 225 hp", "Motorização"]];
+  const FAIXA = [["7,75 m", "Comprimento"], ["3,05 m", "Boca"], ["11 pessoas", "A bordo"], ["1.438 kg", "Carga útil"], ["200 L", "Combustível"], ["150 a 225 hp", "Motorização"]];
   const KITS = [
-    { key: "basico", nome: "Kit básico", curto: "Básico", desc: "Incluso no casco: combustível, porão, água, elétrica, comando, segurança, ferragens e flutuante.", cor: "#3B5999" },
-    { key: "conforto", nome: "Kit Conforto", curto: "Conforto", desc: "Estofados, capotas de popa e proa, piso EVA e banheiro.", cor: "#7C8088" },
-    { key: "lazer", nome: "Kit Lazer", curto: "Lazer", desc: "Pia e fogão, som marinizado com 4 alto-falantes, bar, mesas e porta-objetos.", cor: "#8FA6D6" },
-    { key: "fundeio", nome: "Kit Fundeio", curto: "Fundeio", desc: "Guincho elétrico, âncora, corrente, lançador e acessórios de fundeio.", cor: "#C9A227" }
+    { key: "basico", nome: "Kit básico", curto: "Básico", desc: "Incluso no casco: estofados completos, capota de popa, piso EVA, som marinizado e âncora, além de combustível, porão, água, elétrica, comando, segurança, ferragens e flutuante.", cor: "#3B5999" },
+    { key: "conforto", nome: "Kit Conforto", curto: "Conforto", desc: "Banheiro com vaso sanitário elétrico e ducha, capota de proa e amortecedores em inox na tampa do painel.", cor: "#7C8088" },
+    { key: "lazer", nome: "Kit Lazer", curto: "Lazer", desc: "Pia e fogão, churrasqueira a gás com tábua e suporte e caixa térmica de 26,5 L.", cor: "#8FA6D6" },
+    { key: "fundeio", nome: "Kit Fundeio", curto: "Fundeio", desc: "Guincho elétrico, corrente inox de 6 mm, trava de corrente e cabo de âncora de 10 m.", cor: "#C9A227" }
   ];
   const KIT_KEYS = KITS.map((k) => k.key);
   const COMP = [
@@ -1857,7 +1918,7 @@ body.gated { overflow: hidden; }
   ];
   const DEFAULT_SC = { nome: "Novo cenário", preco: 380000, ipi: 6.5, lc224: true, icmsAliq: 20.5, icmsLocal: 50, icmsFora: 7, volume: 5, moModo: "terceiro", perda: 10, salario: 5500, horasPessoa: 150, alvo: false, investimento: 0, lote: 30, marketing: 0, garantia: 0, margemAlvo: 15 };
   const NUM_KEYS = ["preco", "ipi", "icmsAliq", "icmsLocal", "icmsFora", "volume", "perda", "salario", "horasPessoa", "investimento", "lote", "marketing", "garantia", "margemAlvo"];
-  const DEFAULT_V = { cenario: "", margemCasco: 18, margemKits: 25, margemMotor: 8, tubo: "pvc", hypalon: 10000, gps: false, gpsCusto: 10000, motor: "", kits: { conforto: true, lazer: true, fundeio: true }, desconto: 0, arred: 1000, fechamento: null, atMargem: 30, atMotor: 10, atMin: 15, propValidade: 15, atendentes: ["Adolpho", "Carlos", "Daniel", "Erick", "Felipe", "Igor", "João Vitor", "Júlio", "Malu", "Robson"] };
+  const DEFAULT_V = { cenario: "", margemCasco: 18, margemKits: 25, margemMotor: 8, tubo: "pvc", hypalon: 10000, gps: false, gpsCusto: 10000, motor: "", kits: { conforto: true, lazer: true, fundeio: true }, desconto: 0, arred: 1000, fechamento: null, atMargem: 35, atMotor: 0, atMin: 15, propValidade: 15, atendentes: ["Adolpho", "Carlos", "Daniel", "Erick", "Felipe", "Igor", "João Vitor", "Júlio", "Malu", "Robson"] };
   const V_NUM = ["margemCasco", "margemKits", "margemMotor", "hypalon", "gpsCusto", "desconto", "arred", "atMargem", "atMotor", "atMin", "propValidade"];
 
   const st = { col: null, scol: null, vref: null, items: new Map(), scen: new Map(), sel: null, v: JSON.parse(JSON.stringify(DEFAULT_V)), vExists: false, loadedI: false, loadedS: false, canWrite: true, q: "" };
@@ -1918,7 +1979,7 @@ body.gated { overflow: hidden; }
     return m.length ? m[0][0] : null;
   }
   function equipOn(id, it) { return !it.motor || id === motorId(); }
-  // Motor que já traz o GPS (ex.: VesselView): o opcional GPS e sonar entra incluído, sem cobrança.
+  // Motor que já traz o GPS (ex.: VesselView): o opcional GPS entra incluído, sem cobrança.
   function motorGps(id) { const it = id ? st.items.get(id) : null; return !!(it && it.incluiGps); }
   // Itens com ICMS de origem próprio (ex.: motor importado comprado em SC, 4%): troca o crédito médio pelo da nota.
   function icmsAjuste(mid, kits, sc, credRate) {
@@ -2773,7 +2834,9 @@ body.gated { overflow: hidden; }
 
   // ---------- Atendimento ao cliente ----------
   const AT_KEY = "euronav-atendimento";
-  const AT_DEF = { motor: "", kits: { conforto: true, lazer: true, fundeio: true }, hyp: false, gps: false, desc: 0 };
+  const AT_DEF = { motor: "", kits: { conforto: false, lazer: false, fundeio: false }, hyp: false, gps: false, desc: 0, corEst: "Branco", corPiso: "Cinza" };
+  const CORES = [["Branco", "#F4F3EF"], ["Bege", "#D8C5A2"], ["Cinza", "#8C9197"]];
+  const corTxt = (c) => String(c || "").toLowerCase();
   st.at = JSON.parse(JSON.stringify(AT_DEF));
   try { const s = localStorage.getItem(AT_KEY); if (s) Object.assign(st.at, JSON.parse(s)); } catch (e) {}
   function atSave() { try { localStorage.setItem(AT_KEY, JSON.stringify(st.at)); } catch (e) {} if (typeof atPersist === "function") atPersist(); }
@@ -2794,8 +2857,8 @@ body.gated { overflow: hidden; }
     lines.push({ key: "motor", nome: mid ? st.items.get(mid).item : "Motor", custo: motCost(mid), m: mm, cred: motCost(mid), cor: "#BCBEC0" });
     KITS.forEach((k) => { if (k.key === "basico" || !(A.kits && A.kits[k.key])) return; lines.push({ key: k.key, nome: k.nome, custo: r.kits[k.key], m: mg, cred: r.kits[k.key], cor: k.cor }); });
     if (A.hyp) lines.push({ key: "hyp", nome: "Tubos em Hypalon", custo: hypCusto(), fixo: hypAdd(), cred: hypCusto(), cor: "#5F636B" });
-    if (motorGps(mid)) lines.push({ key: "gps", nome: "GPS e sonar, incluído no motor", custo: 0, fixo: 0, cred: 0, incluso: true, cor: "#8FA6D6" });
-    else if (A.gps) lines.push({ key: "gps", nome: "GPS e sonar", custo: num(v.gpsCusto), m: mg, cred: num(v.gpsCusto), cor: "#8FA6D6" });
+    if (motorGps(mid)) lines.push({ key: "gps", nome: "GPS, incluído no motor", custo: 0, fixo: 0, cred: 0, incluso: true, cor: "#8FA6D6" });
+    else if (A.gps) lines.push({ key: "gps", nome: "GPS", custo: num(v.gpsCusto), m: mg, cred: num(v.gpsCusto), cor: "#8FA6D6" });
     const custo = lines.reduce((s, l) => s + l.custo, 0);
     const aliq = Math.max(0, num(sc.icmsAliq)) / 100, loc = Math.min(100, Math.max(0, num(sc.icmsLocal))) / 100, fora = Math.max(0, num(sc.icmsFora)) / 100;
     let energia = 0; st.items.forEach((it) => { if (it.grupo === "estrutura" && /energia/i.test(it.item || "")) energia += lineTotal(it, sc); });
@@ -2839,7 +2902,7 @@ body.gated { overflow: hidden; }
     if (bl._n !== basicos.length) { bl.replaceChildren(); basicos.sort((x, y) => String(x).localeCompare(String(y), "pt-BR")).forEach((n) => bl.appendChild(el("li", "", n))); bl._n = basicos.length; }
     setText("at-basico-sum", "Ver os " + basicos.length + " itens que já vêm no barco");
     const mh = $("at-motores"); mh.replaceChildren();
-    q.motorPrices.forEach(([id, it, p]) => {
+    const mkMotor = (host, [id, it, p]) => {
       const lab = el("label", "v-opt"); const inp = document.createElement("input"); inp.type = "radio"; inp.name = "at-motor"; inp.value = id; inp.checked = id === q.mid;
       inp.addEventListener("change", () => {
         const antes = motorGps(q.mid); st.at.motor = id;
@@ -2848,8 +2911,18 @@ body.gated { overflow: hidden; }
         atSave(); renderAtend();
       });
       const sp = el("span"); sp.append(el("b", "", it.item), el("small", "", it.spec ? it.spec + ". Garantia do fabricante." : "Garantia do fabricante"));
-      lab.append(inp, sp, el("em", "", money(p))); mh.appendChild(lab);
-    });
+      lab.append(inp, sp, el("em", "", money(p))); host.appendChild(lab);
+    };
+    const temDest = q.motorPrices.some(([, it]) => it.destaque);
+    const visM = q.motorPrices.filter(([id, it]) => !temDest || it.destaque || id === q.mid);
+    const maisM = q.motorPrices.filter((m) => visM.indexOf(m) < 0);
+    visM.forEach((m) => mkMotor(mh, m));
+    if (maisM.length) {
+      const det = el("details", "at-mais"); det.open = !!st.atMaisMot;
+      det.addEventListener("toggle", () => { st.atMaisMot = det.open; });
+      det.appendChild(el("summary", "", "Ver mais motores (" + maisM.length + ")"));
+      const box = el("div", "v-opts"); maisM.forEach((m) => mkMotor(box, m)); det.appendChild(box); mh.appendChild(det);
+    }
     const oh = $("at-opc"); oh.replaceChildren();
     const opt = (key, nome, desc, price, on, fn, lock) => {
       const lab = el("label", "v-opt"); const inp = document.createElement("input"); inp.type = "checkbox"; inp.checked = !!on || !!lock; inp.disabled = !!lock;
@@ -2860,13 +2933,25 @@ body.gated { overflow: hidden; }
     KITS.forEach((k) => { if (k.key === "basico") return; opt(k.key, k.nome, k.desc, q.optPrice(q.r.kits[k.key]), st.at.kits && st.at.kits[k.key], (c) => { st.at.kits = Object.assign({}, st.at.kits, { [k.key]: c }); }); });
     opt("hyp", "Tubos em Hypalon", "Hypalon Orca, importado da Bélgica: mais resistente a sol, combustível e abrasão. Prazo de entrega maior.", hypAdd(), st.at.hyp, (c) => { st.at.hyp = c; });
     const gpsM = motorGps(q.mid);
-    opt("gps", "GPS e sonar", gpsM ? "Navegação e leitura de fundo no console. Já vem com o motor escolhido, no painel VesselView." : "Navegação e leitura de fundo no console.", q.optPrice(num(st.v.gpsCusto)), st.at.gps, (c) => { st.at.gps = c; st.at.gpsAuto = false; }, gpsM ? "Incluído no motor" : null);
+    opt("gps", "GPS", gpsM ? "Navegação no console. Já vem com o motor escolhido, no painel VesselView." : "Navegação no console.", q.optPrice(num(st.v.gpsCusto)), st.at.gps, (c) => { st.at.gps = c; st.at.gpsAuto = false; }, gpsM ? "Incluído no motor" : null);
+    const corG = (hostId, key) => {
+      const h = $(hostId); if (!h) return; h.replaceChildren();
+      CORES.forEach(([n, hex]) => {
+        const lab = el("label", "at-cor"); const inp = document.createElement("input"); inp.type = "radio"; inp.name = hostId; inp.value = n;
+        inp.checked = (st.at[key] || AT_DEF[key]) === n;
+        inp.addEventListener("change", () => { st.at[key] = n; atSave(); renderAtend(); });
+        const sw = el("span", "at-cor-sw"); sw.style.background = hex; sw.setAttribute("aria-hidden", "true");
+        lab.append(inp, sw, el("span", "", n)); h.appendChild(lab);
+      });
+    };
+    corG("at-cor-est", "corEst"); corG("at-cor-piso", "corPiso");
+    setText("at-cores-res", "Cores: estofado " + corTxt(st.at.corEst || AT_DEF.corEst) + " e piso em EVA " + corTxt(st.at.corPiso || AT_DEF.corPiso) + ", sem custo adicional.");
     const lh = $("at-lines"); lh.replaceChildren();
     q.lines.forEach((l) => atLine(lh, l.nome, l.incluso ? "Incluído" : money(l.preco)));
-    const sl = $("at-slider");
-    sl.max = String(q.maxDesc); sl.disabled = q.maxDesc <= 0;
-    if (sl !== a) sl.value = String(q.desc);
-    setText("at-desc-v", q.desc > 0 ? "− " + money(q.desc) : (q.maxDesc > 0 ? "Arraste para aplicar" : "Melhor condição"));
+    const teto = Math.floor(q.maxDesc / 100) * 100, dAberto = !!st.atDescOpen || q.desc > 0;
+    $("at-desc-add").hidden = dAberto || teto <= 0; $("at-desc-ed").hidden = !dAberto;
+    const dIn = $("at-desc-in"); if (dIn !== a) dIn.value = q.desc > 0 ? fmtN(q.desc, 0) : "";
+    $("at-desc-mais").disabled = q.desc >= teto; $("at-desc-menos").disabled = q.desc <= 0;
     const th = $("at-tot"); th.replaceChildren();
     atLine(th, "Subtotal", money(q.S), "sub");
     if (q.desc > 0) atLine(th, "Condição especial (" + pct(q.desc / q.S) + ")", "− " + money(q.desc));
@@ -2884,9 +2969,14 @@ body.gated { overflow: hidden; }
   }
   function buildAtend() {
     if (!$("view-atendimento")) return;
-    const sl = $("at-slider");
-    sl.addEventListener("input", () => { st.at.desc = num(sl.value); renderAtend(); });
-    sl.addEventListener("change", () => { st.at.desc = num(sl.value); atSave(); renderAtend(); });
+    const setDesc = (v) => { const q = atCompute(); if (!q) return; const teto = Math.floor(q.maxDesc / 100) * 100; st.at.desc = Math.max(0, Math.min(teto, Math.round(num(v)))); atSave(); renderAtend(); };
+    $("at-desc-add").addEventListener("click", () => { st.atDescOpen = true; renderAtend(); $("at-desc-in").focus(); });
+    $("at-desc-mais").addEventListener("click", () => setDesc(num(st.at.desc) + 1000));
+    $("at-desc-menos").addEventListener("click", () => setDesc(num(st.at.desc) - 1000));
+    const dIn = $("at-desc-in");
+    dIn.addEventListener("change", () => setDesc(String(dIn.value).replace(/\D/g, "")));
+    dIn.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); dIn.blur(); } });
+    $("at-desc-x").addEventListener("click", () => { st.atDescOpen = false; setDesc(0); });
     const modo = (on) => { document.body.classList.toggle("cliente", on); $("at-sair").hidden = !on; };
     $("at-modo").addEventListener("click", () => { modo(true); window.scrollTo(0, 0); });
     $("at-sair").addEventListener("click", () => { if (confirm("Sair da tela do cliente?")) modo(false); });
@@ -2899,7 +2989,7 @@ body.gated { overflow: hidden; }
   const ATC_KEY = "euronav-at-atual";
   const STATUS = ["Em negociação", "Fechado", "Perdido"];
   const ST_CLS = { "Em negociação": "neg", "Fechado": "fec", "Perdido": "per" };
-  const CT_FIELDS = [["nome", "ct-nome"], ["doc", "ct-doc"], ["rg", "ct-rg"], ["end", "ct-end"], ["email", "ct-email"], ["tel", "ct-tel"], ["ano", "ct-ano"], ["entrega", "ct-entrega"], ["sinal", "ct-sinal"], ["sinalData", "ct-sinal-data"], ["parc", "ct-parc"], ["parcData", "ct-parc-data"]];
+  const CT_FIELDS = [["nome", "ct-nome"], ["doc", "ct-doc"], ["rg", "ct-rg"], ["cep", "ct-cep"], ["end", "ct-end"], ["email", "ct-email"], ["tel", "ct-tel"], ["ano", "ct-ano"], ["entrega", "ct-entrega"], ["sinal", "ct-sinal"], ["sinalData", "ct-sinal-data"], ["parc", "ct-parc"], ["parcData", "ct-parc-data"]];
   st.ats = new Map(); st.atsLoaded = false; st.acol = null; st.atId = null;
   try { st.atId = localStorage.getItem(ATC_KEY) || null; } catch (e) {}
   const atPending = new Set();
@@ -2908,7 +2998,7 @@ body.gated { overflow: hidden; }
   const dataBR = (iso) => { const d = new Date(iso); return isNaN(d.getTime()) ? "" : d.toLocaleDateString("pt-BR"); };
   function atCur() { return st.atId ? st.ats.get(st.atId) || null : null; }
   function setAtId(id) { st.atId = id || null; try { if (id) localStorage.setItem(ATC_KEY, id); else localStorage.removeItem(ATC_KEY); } catch (e) {} }
-  function atConfig() { return { motor: st.at.motor || "", kits: Object.assign({}, st.at.kits), hyp: !!st.at.hyp, gps: !!st.at.gps, desc: num(st.at.desc) }; }
+  function atConfig() { return { motor: st.at.motor || "", kits: Object.assign({}, st.at.kits), hyp: !!st.at.hyp, gps: !!st.at.gps, desc: num(st.at.desc), corEst: st.at.corEst || AT_DEF.corEst, corPiso: st.at.corPiso || AT_DEF.corPiso }; }
   function atWrite(id, fn) { atPending.add(id); return enqueue("a:" + id, fn).then((ok) => { atPending.delete(id); return ok; }); }
   function atPersist() {
     const id = st.atId; if (!id || !atCur() || !st.acol || !st.canWrite) return;
@@ -2926,6 +3016,7 @@ body.gated { overflow: hidden; }
     const c = {};
     CT_FIELDS.forEach(([k, elId]) => { const e = $(elId); c[k] = e ? String(e.value || "").trim() : ""; });
     c.ult72 = !!($("ct-ult72") && $("ct-ult72").checked);
+    c.cdi = !!($("ct-cdi") && $("ct-cdi").checked);
     return c;
   }
   function ctPersist() {
@@ -2946,6 +3037,7 @@ body.gated { overflow: hidden; }
       else e.value = c[k] || "";
     });
     if ($("ct-ult72")) $("ct-ult72").checked = c.ult72 !== false;
+    if ($("ct-cdi")) $("ct-cdi").checked = !!c.cdi;
     ctFilled = true;
     ctInfo();
   }
@@ -2996,7 +3088,7 @@ body.gated { overflow: hidden; }
     clearTimeout(atTimer); clearTimeout(ctTimer);
     setAtId(id);
     const c = d.config || {};
-    st.at = Object.assign(JSON.parse(JSON.stringify(AT_DEF)), { motor: c.motor || "", kits: Object.assign({}, AT_DEF.kits, c.kits || {}), hyp: !!c.hyp, gps: !!c.gps, desc: num(c.desc) });
+    st.at = Object.assign(JSON.parse(JSON.stringify(AT_DEF)), { motor: c.motor || "", kits: Object.assign({}, AT_DEF.kits, c.kits || {}), hyp: !!c.hyp, gps: !!c.gps, desc: num(c.desc), corEst: c.corEst || AT_DEF.corEst, corPiso: c.corPiso || AT_DEF.corPiso });
     try { localStorage.setItem(AT_KEY, JSON.stringify(st.at)); } catch (e) {}
     ctFill(d.comprador);
     $("at-contrato").hidden = true; $("at-hist").hidden = true; $("at-form").hidden = true;
@@ -3092,6 +3184,8 @@ body.gated { overflow: hidden; }
     buildEquipe();
     CT_FIELDS.forEach(([, elId]) => { const e = $(elId); if (e) e.addEventListener("input", ctPersist); });
     if ($("ct-ult72")) $("ct-ult72").addEventListener("change", ctPersist);
+    if ($("ct-cdi")) $("ct-cdi").addEventListener("change", ctPersist);
+    if ($("ct-cep")) $("ct-cep").addEventListener("input", ctCep);
     $("at-pdf").addEventListener("click", propGerar);
     $("at-fechar").addEventListener("click", () => {
       const cur = atCur(); if (!cur) return;
@@ -3300,6 +3394,7 @@ body.gated { overflow: hidden; }
       else if (kitDesc[l.key]) nome += " (" + kitDesc[l.key].replace(/\.$/, "").replace(/^./, (c) => c.toLowerCase()) + ")";
       row(nome, l.incluso ? "Incluído" : m2(l.preco), { fill: i % 2 === 0 });
     });
+    row("Cores: estofado " + corTxt(st.at.corEst || AT_DEF.corEst) + " e piso em EVA " + corTxt(st.at.corPiso || AT_DEF.corPiso), "Incluído", { fill: q.lines.length % 2 === 0 });
     row("Subtotal", m2(q.S), { bold: true });
     if (q.desc > 0) row("Condição especial", "- " + m2(q.desc));
     row("IPI (" + fmtN(q.ipi * 100, 1) + "%)", m2(P.total - q.base));
@@ -3315,6 +3410,7 @@ body.gated { overflow: hidden; }
       y += 1.6;
     }
     para([["2.3. ", true], ["Os pagamentos têm natureza pro solvendo: a quitação de cada parcela só ocorre com a efetiva compensação do valor na conta da VENDEDORA.", false]], { indent: 6 });
+    para([["2.4. ", true], [f.cdi ? "As parcelas com vencimento posterior à data prevista para a entrega da embarcação serão reajustadas pela variação do CDI (Certificado de Depósito Interbancário), acrescida de 1% (um por cento) ao mês, pro rata die, desde a data prevista para a entrega até o efetivo pagamento." : "Os valores acima não têm juros nem correção, pois o pagamento integral ocorre até a entrega da embarcação.", false]], { indent: 6 });
     para([["CLÁUSULA 3ª. ", true], ["O preço considera os tributos e as alíquotas vigentes nesta data. Havendo criação, extinção ou alteração de tributos ou de alíquotas incidentes sobre esta venda até a emissão da nota fiscal, inclusive em razão da reforma tributária, o preço será ajustado na exata proporção do impacto, para mais ou para menos, mediante comunicação escrita acompanhada do demonstrativo do cálculo.", false]]);
 
     head("Da mora e do inadimplemento");
@@ -3333,7 +3429,7 @@ body.gated { overflow: hidden; }
     para([["CLÁUSULA 10ª. ", true], ["A VENDEDORA não concederá a posse provisória da embarcação antes da quitação integral do preço e da conclusão da entrega.", false]]);
 
     head("Da garantia");
-    para([["CLÁUSULA 11ª. ", true], ["A embarcação tem garantia contratual de " + f.casco + " (" + extInt(f.casco) + ") anos para o casco e de 1 (um) ano para os acessórios fornecidos pela VENDEDORA, esta atendida junto aos respectivos fabricantes. O motor tem a garantia do seu fabricante, condicionada às revisões periódicas previstas no manual do proprietário.", false]]);
+    para([["CLÁUSULA 11ª. ", true], ["A embarcação tem garantia contratual de 2 (dois) anos para o casco e os tubulões, contra defeitos de fabricação estrutural, reduzida a 1 (um) ano quando a embarcação for empregada em uso profissional ou comercial, e de 12 (doze) meses para os demais itens fornecidos pela VENDEDORA, contra vícios de fabricação. O motor tem a garantia do seu fabricante, condicionada às revisões periódicas previstas no manual do proprietário.", false]]);
     para([["Parágrafo 1º. ", true], ["A garantia cobre vícios comprovados de projeto ou de fabricação e observa as seguintes condições:", false]], { indent: 6, after: 1 });
     ["a) vale enquanto forem mantidas as peças originais; alterações feitas depois da entrega não são cobertas;", "b) começa na data da entrega técnica da embarcação;", "c) os pedidos devem ser enviados ao pós-venda da VENDEDORA, com fotos, logo após a constatação;", "d) manutenções periódicas, preventivas, corretivas e de ajuste cabem ao COMPRADOR;", "e) constatado o vício coberto, o reparo ou a substituição ocorrerá em até 30 (trinta) dias, salvo caso fortuito ou força maior."].forEach((t) => para(t, { indent: 12, after: 0.6 }));
     y += 1.6;
@@ -3374,14 +3470,41 @@ body.gated { overflow: hidden; }
     return { nome: g("ct-nome"), doc: g("ct-doc"), rg: g("ct-rg"), end: g("ct-end"), email: g("ct-email"), tel: g("ct-tel"), ano: g("ct-ano"),
       entrega: g("ct-entrega"), entregaTxt: ent.length === 2 ? MESES[num(ent[1]) - 1].toUpperCase() + " de " + ent[0] : "",
       sinal: num(g("ct-sinal")), sinalData: g("ct-sinal-data"), parc: num(g("ct-parc")), parcData: g("ct-parc-data"), ult72: $("ct-ult72").checked,
-      casco: Math.max(1, Math.round(num(g("ct-casco")) || 10)), rep: g("ct-rep"), repQ: g("ct-rep-q"), repCpf: g("ct-rep-cpf"),
+      cdi: !!($("ct-cdi") && $("ct-cdi").checked), rep: "Romero Paes Barretto Mafra", repQ: "sócio administrador", repCpf: "",
       hojeTxt: hoje.getDate() + " de " + MESES[hoje.getMonth()] + " de " + hoje.getFullYear(),
       numero: "ES-" + hoje.getFullYear() + String(hoje.getMonth() + 1).padStart(2, "0") + String(hoje.getDate()).padStart(2, "0") + "-" + String(hoje.getHours()).padStart(2, "0") + String(hoje.getMinutes()).padStart(2, "0") };
+  }
+  let ctCepLast = "";
+  async function ctCep() {
+    const e = $("ct-cep"), msg = $("ct-cep-msg"); const d = String(e.value || "").replace(/\D/g, "");
+    if (d.length !== 8) { ctCepLast = ""; if (msg) msg.textContent = ""; return; }
+    if (d === ctCepLast) return; ctCepLast = d;
+    if (msg) msg.textContent = "Buscando o endereço…";
+    try {
+      const r = await fetch("https://viacep.com.br/ws/" + d + "/json/"); const j = await r.json();
+      if (!j || j.erro) { if (msg) msg.textContent = "CEP não encontrado. Preencha o endereço à mão."; return; }
+      const cepF = d.slice(0, 5) + "-" + d.slice(5);
+      const ini = (j.logradouro ? j.logradouro + ", " : "") + "nº ";
+      const fim = [j.bairro, (j.localidade || "") + (j.uf ? "/" + j.uf : ""), "CEP " + cepF].filter((x) => x && String(x).trim()).join(", ");
+      const end = $("ct-end"); end.value = ini + ", " + fim;
+      e.value = cepF; end.focus(); end.setSelectionRange(ini.length, ini.length);
+      end.dispatchEvent(new Event("input", { bubbles: true })); e.dispatchEvent(new Event("input", { bubbles: true }));
+      if (msg) msg.textContent = "Endereço preenchido. Complete o número e, se houver, o complemento.";
+    } catch (err) { if (msg) msg.textContent = "Não foi possível consultar o CEP aqui. Preencha o endereço à mão."; }
   }
   function ctInfo() {
     const q = atCompute(); if (!q || !$("ct-saldo")) return;
     const P = ctPlan(q, ctRead());
-    $("ct-saldo").textContent = "Valor do contrato: " + m2(P.total) + ". Sinal de " + m2(P.sinal) + " e saldo de " + m2(P.saldo) + (P.parcelas.length ? " em " + P.parcelas.length + (P.parcelas.length === 1 ? " parcela de " : " parcelas de ") + m2(P.parcelas[0].v) + "." : ".");
+    const f = ctRead();
+    const sl = $("at-sinal-sl");
+    if (sl) { const pc = P.total > 0 ? Math.round(P.sinal / P.total * 100) : 0; setText("at-sinal-pct", pc + "%"); if (document.activeElement !== sl) sl.value = String(pc); }
+    let aviso = "";
+    if (!f.cdi && f.entrega) {
+      const [ay, am] = f.entrega.split("-").map(Number); const fim = new Date(ay, am, 0, 23, 59);
+      const depois = P.parcelas.some((p) => { const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(p.venc || ""); return m && new Date(+m[3], +m[2] - 1, +m[1]) > fim; });
+      if (depois) aviso = " Há parcelas depois do mês de entrega: marque o reajuste pelo CDI + 1% ao mês.";
+    }
+    $("ct-saldo").textContent = P.saldo <= 0 && P.sinal > 0 ? "Valor total: " + m2(P.total) + ", pago integralmente no sinal." : "Valor total: " + m2(P.total) + ". Sinal de " + m2(P.sinal) + " e saldo de " + m2(P.saldo) + (P.parcelas.length ? " em " + P.parcelas.length + (P.parcelas.length === 1 ? " parcela de " : " parcelas de ") + m2(P.parcelas[0].v) + "." : ".") + (f.cdi ? " Parcelas depois da entrega com CDI + 1% ao mês." : " Sem juros, com pagamento até a entrega.") + aviso;
   }
   async function ctGerar() {
     const msg = $("ct-msg"), btn = $("ct-gerar"); const q = atCompute(); const f = ctRead();
@@ -3392,7 +3515,6 @@ body.gated { overflow: hidden; }
     if (!q) { msg.textContent = "Os custos ainda não carregaram. Tente de novo em instantes."; return; }
     if (falta.length) { msg.textContent = "Falta preencher: " + falta.join(", ") + "."; return; }
     if (!window.jspdf || !window.jspdf.jsPDF) { msg.textContent = "O gerador de PDF não carregou. Verifique a conexão e recarregue a página."; return; }
-    try { localStorage.setItem(CT_KEY, JSON.stringify({ rep: f.rep, repQ: f.repQ, repCpf: f.repCpf, casco: f.casco })); } catch (e) {}
     btn.disabled = true; msg.textContent = "Gerando o contrato…";
     try {
       const blob = buildPdf(q, f, await logoPng());
@@ -3400,6 +3522,13 @@ body.gated { overflow: hidden; }
       if (!dl) { msg.textContent = "Não foi possível salvar o arquivo. Tente de novo."; return; }
       await dl.save({ filename: "Contrato Euro Sette - " + f.nome.replace(/[^\p{L}\p{N} ]/gu, "").slice(0, 60) + ".pdf", data: blob });
       msg.textContent = "Contrato salvo.";
+      const cid = st.atId, cd = cid ? st.ats.get(cid) : null;
+      if (cd && cd.status !== "Fechado" && st.acol && st.canWrite) {
+        const patch = { status: "Fechado", fechadoEm: nowIso(), perdidoEm: null, atualizadoEm: nowIso() };
+        Object.assign(cd, patch); atWrite(cid, () => st.acol.doc(cid).update(patch));
+        renderAtBar(); renderAtHist(); if (typeof renderCRM === "function") renderCRM();
+        msg.textContent = "Contrato salvo. O atendimento passou para Fechado.";
+      }
     } catch (e) {
       msg.textContent = e && e.code === "declined" ? "O salvamento foi cancelado." : "Não foi possível gerar o contrato. Tente de novo.";
     } finally { btn.disabled = false; }
@@ -3407,10 +3536,6 @@ body.gated { overflow: hidden; }
   function buildContrato() {
     if (!$("at-contrato")) return;
     let saved = {}; try { saved = JSON.parse(localStorage.getItem(CT_KEY) || "{}") || {}; } catch (e) {}
-    $("ct-rep").value = saved.rep || "Romero Paes Barretto Mafra";
-    $("ct-rep-q").value = saved.repQ || "sócio administrador";
-    $("ct-rep-cpf").value = saved.repCpf || "";
-    $("ct-casco").value = String(saved.casco || 10);
     $("ct-ano").value = String(new Date().getFullYear() + 1);
     $("at-fechar").addEventListener("click", () => {
       const q = atCompute(); const sec = $("at-contrato"); sec.hidden = false;
@@ -3418,11 +3543,17 @@ body.gated { overflow: hidden; }
       ctInfo(); sec.scrollIntoView({ behavior: "smooth", block: "start" });
     });
     $("ct-fechar").addEventListener("click", () => { $("at-contrato").hidden = true; });
-    ["ct-sinal", "ct-parc", "ct-parc-data", "ct-ult72"].forEach((id) => $(id).addEventListener("input", ctInfo));
+    ["ct-sinal", "ct-parc", "ct-parc-data", "ct-ult72", "ct-cdi", "ct-entrega"].forEach((id) => $(id).addEventListener("input", ctInfo));
     $("ct-gerar").addEventListener("click", ctGerar);
+    $("at-sinal-sl").addEventListener("input", (ev) => {
+      const q = atCompute(); if (!q) return; const pc = num(ev.target.value);
+      const v = pc >= 100 ? Math.round(q.total * 100) / 100 : Math.round(q.total * pc / 100 / 1000) * 1000;
+      const e = $("ct-sinal"); e.value = v > 0 ? String(v) : ""; setText("at-sinal-pct", pc + "%");
+      e.dispatchEvent(new Event("input", { bubbles: true }));
+    });
   }
   // ---------- Proposta em PDF ----------
-  const PROP_SKIP = /mangueira|mangote|material de instala|conector|u-bolt|tecido|chicote|rel[eé] de|bujão|respiro|agulheiro|grade de ventila|tampa de inspe|dobradi|fecho de press|placa inox|trava de|saída de água|entrada de água|válvula|barbatana|interruptor|suporte da mesa|destorcedor|kit do vaso|alça da tampa|sensor de comb/i;
+  const PROP_SKIP = /mangueira|mangote|material de instala|conector|u-bolt|tecido|chicote|rel[eé] de|bujão|respiro|agulheiro|grade de ventila|tampa de inspe|dobradi|fecho de press|placa inox|trava de (?!corrente)|saída de água|entrada de água|válvula|barbatana|interruptor|suporte da mesa|destorcedor|kit do vaso|alça da tampa|sensor de comb/i;
   function kitItens(key) {
     const out = [];
     st.items.forEach((it) => { if (it.grupo === "acessorios" && kitOf(it) === key && !PROP_SKIP.test(it.item || "")) out.push(it); });
@@ -3437,9 +3568,10 @@ body.gated { overflow: hidden; }
     const out = [];
     q.lines.forEach((l) => {
       if (l.key === "motor") return;
-      if (l.key === "casco") out.push(Object.assign({}, l, { nome: "Euro Sette com motor " + mn, preco: casco.preco + motor.preco, sub: "Autêntico RIB de 7,75 m por 3,05 m, tubos em PVC Sansuy, kit básico de série (combustível, porão, água, elétrica, comando, segurança e ferragens) e motor de popa " + mn + mSpec + ", com garantia do fabricante." }));
+      if (l.key === "casco") out.push(Object.assign({}, l, { nome: "Euro Sette com motor " + mn, preco: casco.preco + motor.preco, sub: "Autêntico RIB de 7,75 m por 3,05 m, tubos em PVC Sansuy, com estofados completos, capota de popa, piso EVA, som e âncora de série, e motor de popa " + mn + mSpec + ", com garantia do fabricante." }));
       else out.push(l);
     });
+    out.push({ key: "cores", nome: "Cores: estofado " + corTxt(st.at.corEst || AT_DEF.corEst) + " e piso em EVA " + corTxt(st.at.corPiso || AT_DEF.corPiso), sub: "Personalização sem custo adicional.", incluso: true });
     return out;
   }
   function propData(q, cur) {
@@ -3447,17 +3579,25 @@ body.gated { overflow: hidden; }
     const hoje = new Date();
     const validade = Math.max(1, Math.round(num(st.v.propValidade) || 15));
     const ent = String(($("ct-entrega") && $("ct-entrega").value) || "").split("-");
-    let pagamento = "A combinar na assinatura do contrato.";
-    if (f.sinal > 0) {
-      const P = ctPlan(q, f);
-      pagamento = "Sinal de " + m2(P.sinal) + " e saldo de " + m2(P.saldo) + (P.parcelas.length ? " em " + P.parcelas.length + (P.parcelas.length === 1 ? " parcela." : " parcelas.") : ".");
+    let pagamento = "Sem juros, com pagamento até a entrega.";
+    const P0 = ctPlan(q, f);
+    if (P0.sinal > 0 && P0.saldo <= 0) pagamento = "Pagamento integral de " + m2(P0.total) + (f.sinalData ? " em " + dBR(f.sinalData) : "") + ".";
+    else if (f.sinal > 0 || f.parcData) {
+      const P = P0;
+      let t = P.sinal > 0 ? "Sinal de " + m2(P.sinal) + (f.sinalData ? " em " + dBR(f.sinalData) : "") + "." : "";
+      if (P.parcelas.length) {
+        const n = P.parcelas.length, iguais = P.parcelas.every((x) => Math.abs(x.v - P.parcelas[0].v) < 1);
+        t += (P.sinal > 0 ? " Saldo de " + m2(P.saldo) : "Valor total") + " em " + n + (n === 1 ? " parcela" : " parcelas") + (iguais ? " de " + m2(P.parcelas[0].v) : "") + (f.parcData && !(n === 1 && f.ult72) ? ", a partir de " + dBR(f.parcData) : "") + (f.ult72 ? ", com a última 72 horas antes da entrega" : "") + ".";
+      }
+      pagamento = t.trim() + " Sem juros, com pagamento até a entrega.";
     }
+    if (f.cdi) pagamento += " Parcelas depois da entrega com reajuste pelo CDI + 1% ao mês.";
     return {
       cliente: cur.nome || "Cliente", hoje, validade, val: new Date(hoje.getTime() + validade * 86400000),
       numero: "PR-" + hoje.getFullYear() + String(hoje.getMonth() + 1).padStart(2, "0") + String(hoje.getDate()).padStart(2, "0") + "-" + String(hoje.getHours()).padStart(2, "0") + String(hoje.getMinutes()).padStart(2, "0"),
       entrega: ent.length === 2 && num(ent[1]) >= 1 ? "Previsão de entrega em " + MESES[num(ent[1]) - 1] + " de " + ent[0] + ", contada a partir do sinal." : "A combinar conforme a agenda de produção.",
       hyp: q.lines.some((l) => l.key === "hyp"),
-      pagamento, garantia: Math.max(1, Math.round(num($("ct-casco") && $("ct-casco").value) || 10)), rep: cur.atendente || f.rep
+      pagamento, rep: cur.atendente || f.rep
     };
   }
   function buildProposta(q, d, logo) {
@@ -3511,10 +3651,10 @@ body.gated { overflow: hidden; }
     head("Sua configuração");
     propLines(q).forEach((l, i) => {
       let sub = l.sub || "";
-      if (sub) { /* texto pronto */ } else if (l.key === "casco") sub = "Autêntico RIB de 7,75 m por 3,05 m, tubos em PVC Sansuy e o kit básico de série: combustível, porão, água, elétrica, comando, segurança e ferragens.";
+      if (sub) { /* texto pronto */ } else if (l.key === "casco") sub = "Autêntico RIB de 7,75 m por 3,05 m, tubos em PVC Sansuy, com estofados completos, capota de popa, piso EVA, som e âncora de série.";
       else if (l.key === "motor") sub = "Motor de popa com garantia do fabricante.";
       else if (l.key === "hyp") sub = "Tubos em Hypalon Orca, importado da Bélgica, no lugar do PVC Sansuy: mais resistentes a sol, combustível e abrasão.";
-      else if (l.key === "gps") sub = l.incluso ? "Navegação e leitura de fundo no console, no painel VesselView que já vem com o motor." : "Navegação e leitura de fundo no console.";
+      else if (l.key === "gps") sub = l.incluso ? "Navegação no painel VesselView, que já vem com o motor." : "Navegação no console.";
       else if (kitDesc[l.key]) sub = kitDesc[l.key];
       font(false, 8.5); const sl = sub ? doc.splitTextToSize(sub, CW - 62) : [];
       font(true, 10.5); const nl = doc.splitTextToSize(l.nome, CW - 62);
@@ -3541,10 +3681,11 @@ body.gated { overflow: hidden; }
     font(false, 8); color(MUT); doc.text("Valores em reais, com impostos incluídos e IPI destacado na nota fiscal.", M, y); y += 12;
 
     // ---- condições ----
-    const cond = [["Validade", "Proposta válida por " + d.validade + " dias, até " + dd(d.val) + "."], ["Entrega", d.entrega + (d.hyp ? " Com tubos em Hypalon, o prazo é maior, porque o material vem da Bélgica." : "")], ["Pagamento", d.pagamento], ["Garantia", "Casco com " + d.garantia + " anos de garantia. Motor com a garantia do fabricante."]];
+    const cond = [["Validade", "Proposta válida por " + d.validade + " dias, até " + dd(d.val) + "."], ["Entrega", d.entrega + (d.hyp ? " Com tubos em Hypalon, o prazo é maior, porque o material vem da Bélgica." : "") + " Valor para retirada no estaleiro da Euronav, em Recife/PE."], ["Pagamento", d.pagamento], ["Garantia", "Casco e tubulões: 2 anos contra defeitos de fabricação estrutural (1 ano em uso profissional ou comercial). Demais itens: 12 meses contra vícios de fabricação. Motor: garantia do fabricante."]];
     const cw2 = (CW - 10) / 2;
     font(false, 9); const c0 = 7 + Math.max(doc.splitTextToSize(cond[0][1], cw2 - 6).length, doc.splitTextToSize(cond[1][1], cw2 - 6).length) * 4.2;
-    head("Condições", c0 + 4);
+    const c1 = 7 + Math.max(doc.splitTextToSize(cond[2][1], cw2 - 6).length, doc.splitTextToSize(cond[3][1], cw2 - 6).length) * 4.2;
+    head("Condições", c0 + c1 + 10);
     for (let i = 0; i < cond.length; i += 2) {
       const pair = cond.slice(i, i + 2);
       font(false, 9); const ls = pair.map(([, b]) => doc.splitTextToSize(b, cw2 - 6));
@@ -3565,7 +3706,7 @@ body.gated { overflow: hidden; }
     q.lines.forEach((l) => { if (kitDesc[l.key] && l.key !== "basico") grupos.push([l.nome, kitItens(l.key)]); });
     const opc = [];
     if (q.lines.some((l) => l.key === "hyp")) opc.push("Tubos em Hypalon Orca no lugar do PVC Sansuy");
-    if (q.lines.some((l) => l.key === "gps")) opc.push("GPS e sonar instalados no console");
+    if (q.lines.some((l) => l.key === "gps")) opc.push("GPS instalado no console");
     if (opc.length) grupos.push(["Opcionais", opc]);
     const NC = 3, colW = CW / NC, IL = 3.9;
     const blocos = grupos.filter(([, its]) => its.length).map(([t, its]) => {
@@ -3706,7 +3847,7 @@ body.gated { overflow: hidden; }
     const smallBand = () => {
       fill([0, 0, 0]); doc.rect(0, 0, W, 14, "F"); fill(BLUE); doc.rect(0, 14, W, 1.2, "F");
       if (logo) doc.addImage(logo, "PNG", M, 4.4, lwOf(5.2), 5.2, "eurologo"); else { font(true, 10); color(WHITE); doc.text("EURONAV", M, 9); }
-      font(false, 7.5); color(PALE); doc.text((comFotos ? "Catálogo" : "Ficha técnica") + "  |  Euro Sette", W - M, 8.6, { align: "right" });
+      font(false, 7.5); color(PALE); doc.text((comFotos ? "Ficha técnica com fotos" : "Ficha técnica") + "  |  Euro Sette", W - M, 8.6, { align: "right" });
       y = 26;
     };
     const need = (h) => { if (y + h > H - 22) { doc.addPage(); smallBand(); } };
@@ -3727,7 +3868,7 @@ body.gated { overflow: hidden; }
     bandaFoto(doc, W, 58); fill(BLUE); doc.rect(0, 58, W, 1.8, "F");
     if (logo) doc.addImage(logo, "PNG", M, 13, lwOf(9), 9, "eurologo"); else { font(true, 18); color(WHITE); doc.text("EURONAV", M, 20); }
     font(true, 30); color(WHITE); doc.text("Euro Sette", M, 40);
-    font(false, 10.5); color(PALE); doc.text((comFotos ? "Catálogo" : "Ficha técnica") + "  |  Bote semirrígido de 7,75 m", M, 48.5);
+    font(false, 10.5); color(PALE); doc.text((comFotos ? "Ficha técnica com fotos" : "Ficha técnica") + "  |  Bote semirrígido de 7,75 m", M, 48.5);
     const qx = W - M - 78;
     font(true, 9); doc.setTextColor(163, 182, 226); doc.text("Quem faz o Euro Sette", qx, 15.5);
     font(false, 7.7); color(PALE); doc.text(doc.splitTextToSize(SOBRE_EURONAV, 78), qx, 21, { lineHeightFactor: 1.32 });
@@ -4005,7 +4146,7 @@ body.gated { overflow: hidden; }
     else {
       const share = (fn) => base.filter(fn).length / base.length;
       const items = KITS.filter((k) => k.key !== "basico").map((k) => [k.nome, share((r) => r.d.config && r.d.config.kits && r.d.config.kits[k.key])]);
-      items.push(["Tubos em Hypalon", share((r) => r.d.config && r.d.config.hyp)], ["GPS e sonar", share((r) => r.d.config && r.d.config.gps)]);
+      items.push(["Tubos em Hypalon", share((r) => r.d.config && r.d.config.hyp)], ["GPS", share((r) => r.d.config && r.d.config.gps)]);
       items.forEach(([t, v]) => { const r = el("div", "f-hb crm-hb"); const b = el("div", "c-bar"); const i = el("i"); i.style.width = (v * 100).toFixed(1) + "%"; b.appendChild(i); r.append(el("span", "", t), b, el("b", "", pct(v))); xh.appendChild(r); });
       const m0 = (motors()[0] || [])[0];
       const mot = {}; base.forEach((r) => { const id = (r.d.config && r.d.config.motor) || m0; const it = id && st.items.get(id); const nm = it ? it.item : "Motor"; mot[nm] = (mot[nm] || 0) + 1; });
@@ -4069,7 +4210,7 @@ body.gated { overflow: hidden; }
       if (e.key === "Escape") lbClose(); else if (e.key === "ArrowLeft") lbShow(lbIdx - 1); else if (e.key === "ArrowRight") lbShow(lbIdx + 1);
     });
   }
-  // ---------- Catálogo em PDF ----------
+  // ---------- Ficha técnica com fotos ----------
   const FOTO_DET = [
     ["d_proa", "Solário de proa", "Estofados em matelassê com costura em diamante e bordado Euronav."],
     ["d_mesa", "Lounge de proa", "Sofás em U e mesa com porta-copos para receber os amigos."],
@@ -4085,15 +4226,15 @@ body.gated { overflow: hidden; }
     const msg = $("f-pdf-msg"), btn = $("f-cat");
     if (!window.jspdf || !window.jspdf.jsPDF) { msg.textContent = "O gerador de PDF não carregou. Verifique a conexão e recarregue a página."; return; }
     if (!st.loadedI) { msg.textContent = "Os itens ainda não carregaram. Tente de novo em instantes."; return; }
-    btn.disabled = true; msg.textContent = "Gerando o catálogo…";
+    btn.disabled = true; msg.textContent = "Gerando a ficha técnica com fotos…";
     try {
       const blob = buildFicha(await logoPng(640), true);
       let dl = null; try { dl = window.claude && window.claude.use ? await window.claude.use("downloads") : null; } catch (e) { dl = null; }
       if (!dl) { msg.textContent = "Não foi possível salvar o arquivo. Tente de novo."; return; }
-      await dl.save({ filename: "Catálogo Euro Sette.pdf", data: blob });
-      msg.textContent = "Catálogo salvo.";
+      await dl.save({ filename: "Ficha técnica com fotos Euro Sette.pdf", data: blob });
+      msg.textContent = "Ficha técnica com fotos salva.";
     } catch (e) {
-      msg.textContent = e && e.code === "declined" ? "O salvamento foi cancelado." : "Não foi possível gerar o catálogo. Tente de novo.";
+      msg.textContent = e && e.code === "declined" ? "O salvamento foi cancelado." : "Não foi possível gerar a ficha técnica com fotos. Tente de novo.";
     } finally { btn.disabled = false; }
   }
   function recalc() { renderResult(); renderCompare(); renderOpps(); renderLabor(); renderGroups(); renderVenda(); renderFicha(); renderAtend(); renderCRM(); }
