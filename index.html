@@ -881,7 +881,6 @@ body.gated { overflow: hidden; }
         <button class="c-chip" type="button" id="at-modo">Tela do cliente</button>
       </div>
     </div>
-    <figure class="at-hero"><img id="at-hero-img" alt="Euro Sette: lounge de proa com sofás em U e mesa"></figure>
     <p class="banner" id="at-banner" hidden></p>
     <div class="at-bar" id="at-bar">
       <div class="at-bar-i">
@@ -4055,7 +4054,6 @@ body.gated { overflow: hidden; }
   function buildFotos() {
     const R = FOTOS.recortes;
     const set = (id, k) => { const im = $(id); if (im && R[k]) { im.src = R[k].src; im.width = R[k].w; im.height = R[k].h; } };
-    set("at-hero-img", "w_lounge");
     const g = $("f-gal"); if (!g || g.childElementCount) return;
     FOTOS.galeria.forEach((p, i) => {
       const b = el("button", "f-gal-it"); b.type = "button"; b.setAttribute("aria-label", "Ampliar: " + p.cap);
