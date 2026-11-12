@@ -564,6 +564,18 @@ body.lb-on { overflow: hidden; }
 .at-sinal-h b { font-size: 1rem; color: var(--ink); font-variant-numeric: tabular-nums; }
 .at-sinal .v-slider { margin-top: 4px; }
 .mo-fixo .mo-nome, .mo-fixo .mo-cat { font-style: italic; }
+
+.at-kit-av { margin: -2px 0 6px 34px; }
+.at-kit-av > summary { cursor: pointer; font-size: .84rem; color: var(--brand-blue); padding: 2px 0 6px; }
+.at-kit-its { display: grid; gap: 4px; padding: 4px 0 6px; }
+.at-kit-it { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; font-size: .9rem; padding: 6px 10px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); cursor: pointer; }
+.at-kit-it em { font-style: normal; color: var(--muted); font-size: .85rem; white-space: nowrap; }
+.at-kit-it:has(input:checked) { border-color: var(--brand-blue); }
+.at-kit-it:has(input:disabled) { cursor: default; opacity: .75; }
+.at-kit-aviso { margin: 4px 0 0; }
+.kit-nomes { margin-top: 14px; }
+.kit-nomes > summary { cursor: pointer; color: var(--muted); font-size: .9rem; }
+.kit-nomes-g { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px 14px; margin-top: 8px; }
 /* Tela de senha */
 body.gated { overflow: hidden; }
 .gate { position: fixed; inset: 0; z-index: 100; background: var(--bg); display: flex; align-items: center; justify-content: center; padding: max(20px, env(safe-area-inset-top, 0px)) 16px max(20px, env(safe-area-inset-bottom, 0px)); overflow-y: auto; }
@@ -799,6 +811,11 @@ body.gated { overflow: hidden; }
         <input class="search" id="c-search" type="search" placeholder="Buscar item ou categoria" aria-label="Buscar item ou categoria">
       </div>
       <div id="c-groups"></div>
+      <details class="kit-nomes" id="kit-nomes">
+        <summary>Nomes dos kits</summary>
+        <p class="c-hint">O nome vale no Atendimento, na proposta, no contrato e na ficha. A descrição de cada kit é montada sozinha com os itens marcados para ele na tabela acima.</p>
+        <div class="kit-nomes-g" id="kit-nomes-g"></div>
+      </details>
     </section>
 
     <section class="c-sec" aria-labelledby="h-fiscal">
@@ -955,7 +972,7 @@ body.gated { overflow: hidden; }
       <div class="at-left">
         <div class="c-card">
           <h2 class="at-h"><span class="at-n">1</span>O barco</h2>
-          <div class="at-fixed"><span><b>Casco Euro Sette com kit básico</b><small>Autêntico RIB de 7,75 m por 3,05 m, com estofados completos, capota de popa, piso EVA, som e âncora. Tubos em PVC Sansuy.</small></span><em id="at-casco">–</em></div>
+          <div class="at-fixed"><span><b>Casco Euro Sette com kit básico</b><small id="at-casco-desc">Autêntico RIB de 7,75 m por 3,05 m. Tubos em PVC Sansuy.</small></span><em id="at-casco">–</em></div>
           <details class="v-incl"><summary id="at-basico-sum">Ver o que já vem</summary><ul class="v-list" id="at-basico"></ul></details>
         </div>
         <div class="c-card">
@@ -1908,6 +1925,44 @@ body.gated { overflow: hidden; }
     { key: "fundeio", nome: "Kit Fundeio", curto: "Fundeio", desc: "Guincho elétrico, corrente inox de 6 mm, trava de corrente e cabo de âncora de 10 m.", cor: "#C9A227" }
   ];
   const KIT_KEYS = KITS.map((k) => k.key);
+  const KIT_PADRAO = {}; KITS.forEach((k) => { KIT_PADRAO[k.key] = { nome: k.nome, curto: k.curto }; });
+  const KIT_FATOR_AVULSO = 1.2; // item avulso custa 20% a mais que dentro do kit completo
+  const MAIUSC = /^(Euronav|Euro|Sette|Bruce|Mercury|Yamaha|Sansuy|Hypalon|Orca|Garmin|Savoretti|Brasil|Jet|Deck)$/;
+  function frase(n) { return String(n || "").trim().split(/\s+/).map((w) => (/[0-9]/.test(w) || /^[A-ZÀ-Ý]{2,}$/.test(w) || MAIUSC.test(w)) ? w : w.charAt(0).toLowerCase() + w.slice(1)).join(" "); }
+  function listaTxt(arr) { arr = (arr || []).filter(Boolean); return arr.length <= 1 ? (arr[0] || "") : arr.slice(0, -1).join(", ") + " e " + arr[arr.length - 1]; }
+  function kitItensOrd(key) { const out = []; st.items.forEach((it, id) => { if (it.grupo === "acessorios" && kitOf(it) === key) out.push([id, it]); }); out.sort((a, b) => num(a[1].ordem) - num(b[1].ordem)); return out; }
+  // Destaques do que vem de série: só entram os que estão de fato no kit básico.
+  const SERIE_DEST = [[/estofado/i, "estofados completos"], [/capota de popa/i, "capota de popa"], [/piso eva/i, "piso EVA"], [/kit de som/i, "som"], [/vaso sanit/i, "banheiro"], [/guincho/i, "guincho elétrico"], [/churrasqueira/i, "churrasqueira"], [/pia e fog/i, "pia e fogão"], [/âncora bruce|^âncora/i, "âncora"]];
+  function serieTxt() {
+    const nomes = kitItensOrd("basico").map(([, it]) => String(it.item || ""));
+    return listaTxt(SERIE_DEST.filter(([re]) => nomes.some((n) => re.test(n))).map(([, t]) => t));
+  }
+  // Itens sem custo não aparecem sozinhos na escolha separada: vão junto de um item correlato.
+  const CORRELATOS = [[/banheiro/i, [/vaso sanit/i, /ducha/i]], [/corrente|âncora|ancora/i, [/corrente/i, /âncora|ancora/i, /guincho/i]], [/mesa/i, [/mesa/i]], [/fog[aã]o|pia/i, [/pia|fog[aã]o/i]], [/churras/i, [/churras/i]], [/capota/i, [/capota/i]]];
+  function gruposAvulsos(its, sc) {
+    const custo = (it) => lineTotal(it, sc);
+    const pr = its.filter(([, it]) => custo(it) > 0), zr = its.filter(([, it]) => custo(it) <= 0);
+    if (!pr.length) return its.length ? [{ ids: its.map(([i]) => i), nomes: its.map(([, it]) => String(it.item || "").trim()), custos: its.map(() => 0) }] : [];
+    const gs = pr.map(([id, it]) => ({ ids: [id], nomes: [String(it.item || "").trim()], custos: [custo(it)] }));
+    zr.forEach(([id, it]) => {
+      let alvo = it.junto ? gs.find((g) => g.ids[0] === it.junto) : null;
+      if (!alvo) { const r = CORRELATOS.find(([re]) => re.test(it.item || "")); if (r) for (const re2 of r[1]) { alvo = gs.find((g) => re2.test(g.nomes[0])); if (alvo) break; } }
+      if (!alvo) alvo = gs.reduce((m, g) => (g.custos[0] > m.custos[0] ? g : m), gs[0]);
+      alvo.ids.push(id); alvo.nomes.push(String(it.item || "").trim()); alvo.custos.push(0);
+    });
+    return gs;
+  }
+  function syncKits() {
+    const nomes = (st.v && st.v.kitNomes) || {};
+    KITS.forEach((k) => {
+      const nm = String(nomes[k.key] || "").trim(), pad = KIT_PADRAO[k.key];
+      k.nome = nm || pad.nome; k.curto = nm ? nm.replace(/^kit\s+/i, "") : pad.curto;
+      if (k.key === "basico") { const t = serieTxt(); k.desc = "Incluso no casco: " + (t ? t + ", além de " : "") + "combustível, porão, água, elétrica, comando, segurança, ferragens e flutuante."; return; }
+      const its = kitItensOrd(k.key).map(([, it]) => frase(it.item));
+      const txt = listaTxt(its);
+      k.desc = its.length ? txt.charAt(0).toUpperCase() + txt.slice(1) + "." : "Sem itens no momento.";
+    });
+  }
   const COMP = [
     { key: "casco", nome: "Casco", cor: "var(--ink)" },
     { key: "maoobra", nome: "Mão de obra", cor: "#3B5999" },
@@ -2003,6 +2058,11 @@ body.gated { overflow: hidden; }
     if (moFixo(it)) return qtyOf(it, s) * unitOf(it, s) + num(it.frete);
     if (it.grupo === "maoobra") return qtyOf(it, s) * (1 + num(s.perda) / 100) * rateHora(s, it) + num(it.frete);
     const base = qtyOf(it, s) * unitOf(it, s) + num(it.frete);
+    // Item de troca (ex.: vaso elétrico no lugar do manual de série): custa só a diferença sobre o item substituído.
+    if (it.substitui && it.grupo === "acessorios") {
+      const sb = st.items.get(it.substitui);
+      if (sb && sb !== it && !sb.substitui) return Math.max(0, base - (qtyOf(sb, s) * unitOf(sb, s) + num(sb.frete)));
+    }
     return it.grupo === "estrutura" ? base / Math.max(1, num(s.volume)) : base;
   }
 
@@ -2841,7 +2901,7 @@ body.gated { overflow: hidden; }
 
   // ---------- Atendimento ao cliente ----------
   const AT_KEY = "euronav-atendimento";
-  const AT_DEF = { motor: "", kits: { conforto: false, lazer: false, fundeio: false }, hyp: false, gps: false, desc: 0, corEst: "Branco", corPiso: "Cinza" };
+  const AT_DEF = { motor: "", kits: { conforto: false, lazer: false, fundeio: false }, kitItens: {}, hyp: false, gps: false, desc: 0, corEst: "Branco", corPiso: "Cinza" };
   const CORES = [["Branco", "#F4F3EF"], ["Bege", "#D8C5A2"], ["Cinza", "#8C9197"]];
   const corTxt = (c) => String(c || "").toLowerCase();
   st.at = JSON.parse(JSON.stringify(AT_DEF));
@@ -2862,7 +2922,15 @@ body.gated { overflow: hidden; }
     const lines = [];
     lines.push({ key: "casco", nome: "Casco Euro Sette com kit básico", custo: r.base, m: mg, cred: r.parts.casco + r.kits.basico, cor: "var(--ink)" });
     lines.push({ key: "motor", nome: mid ? st.items.get(mid).item : "Motor", custo: motCost(mid), m: mm, cred: motCost(mid), cor: "#BCBEC0" });
-    KITS.forEach((k) => { if (k.key === "basico" || !(A.kits && A.kits[k.key])) return; lines.push({ key: k.key, nome: k.nome, custo: r.kits[k.key], m: mg, cred: r.kits[k.key], cor: k.cor }); });
+    KITS.forEach((k) => {
+      if (k.key === "basico") return;
+      if (A.kits && A.kits[k.key]) { lines.push({ key: k.key, nome: k.nome, custo: r.kits[k.key], m: mg, cred: r.kits[k.key], cor: k.cor }); return; }
+      const ids = (A.kitItens && A.kitItens[k.key]) || [];
+      const its = ids.map((id) => st.items.get(id)).filter((it) => it && it.grupo === "acessorios" && kitOf(it) === k.key);
+      if (!its.length) return;
+      const cs = its.map((it) => lineTotal(it, sc)), tot = cs.reduce((x, y) => x + y, 0);
+      lines.push({ key: k.key, nome: k.nome + " (itens avulsos)", custo: tot, m: mg, cred: tot, cor: k.cor, parcial: true, avulsos: its.map((it) => String(it.item || "").trim()), custosItens: cs });
+    });
     if (A.hyp) lines.push({ key: "hyp", nome: "Tubos em Hypalon", custo: hypCusto(), fixo: hypAdd(), cred: hypCusto(), cor: "#5F636B" });
     if (motorGps(mid)) lines.push({ key: "gps", nome: "GPS, incluído no motor", custo: 0, fixo: 0, cred: 0, incluso: true, cor: "#8FA6D6" });
     else if (A.gps) lines.push({ key: "gps", nome: "GPS", custo: num(v.gpsCusto), m: mg, cred: num(v.gpsCusto), cor: "#8FA6D6" });
@@ -2875,7 +2943,7 @@ body.gated { overflow: hidden; }
     const hypP = A.hyp ? hypAdd() : 0;
     const ipiOn = (base) => Math.max(0, base - hypP) * ipi;
     const resAt = (base) => base - taxFed(base, sc).total - icmsRes(base + ipiOn(base)) - custo;
-    const priceAll = (rate, ish) => { lines.forEach((l) => { l.preco = l.fixo != null ? l.fixo : up100(l.custo / Math.max(0.05, 1 - rate - ish - l.m)); }); return lines.reduce((s, l) => s + l.preco, 0); };
+    const priceAll = (rate, ish) => { lines.forEach((l) => { l.preco = l.fixo != null ? l.fixo : (l.custosItens ? l.custosItens.reduce((s2, c) => s2 + up100(c * KIT_FATOR_AVULSO / Math.max(0.05, 1 - rate - ish - l.m)), 0) : up100(l.custo / Math.max(0.05, 1 - rate - ish - l.m))); }); return lines.reduce((s, l) => s + l.preco, 0); };
     let S = priceAll(taxFed(custo * 1.3, sc).rate, icmsRes(custo * 1.3 * (1 + ipi)) / (custo * 1.3));
     const rate = taxFed(S, sc).rate, ish = S > 0 ? icmsRes(S * (1 + ipi)) / S : 0;
     S = priceAll(rate, ish);
@@ -2930,6 +2998,7 @@ body.gated { overflow: hidden; }
       det.appendChild(el("summary", "", "Ver mais motores (" + maisM.length + ")"));
       const box = el("div", "v-opts"); maisM.forEach((m) => mkMotor(box, m)); det.appendChild(box); mh.appendChild(det);
     }
+    setText("at-casco-desc", "Autêntico RIB de 7,75 m por 3,05 m" + (serieTxt() ? ", com " + serieTxt() : "") + ". Tubos em PVC Sansuy.");
     const oh = $("at-opc"); oh.replaceChildren();
     const opt = (key, nome, desc, price, on, fn, lock) => {
       const lab = el("label", "v-opt"); const inp = document.createElement("input"); inp.type = "checkbox"; inp.checked = !!on || !!lock; inp.disabled = !!lock;
@@ -2937,7 +3006,42 @@ body.gated { overflow: hidden; }
       const sp = el("span"); sp.append(el("b", "", nome), el("small", "", desc));
       lab.append(inp, sp, el("em", "", lock ? lock : "+ " + money(price))); oh.appendChild(lab);
     };
-    KITS.forEach((k) => { if (k.key === "basico") return; opt(k.key, k.nome, k.desc, q.optPrice(q.r.kits[k.key]), st.at.kits && st.at.kits[k.key], (c) => { st.at.kits = Object.assign({}, st.at.kits, { [k.key]: c }); }); });
+    st.atKitAberto = st.atKitAberto || {};
+    KITS.forEach((k) => {
+      if (k.key === "basico") return;
+      const on = !!(st.at.kits && st.at.kits[k.key]);
+      const its = kitItensOrd(k.key);
+      const sel = ((st.at.kitItens && st.at.kitItens[k.key]) || []).filter((id) => its.some(([i]) => i === id));
+      opt(k.key, k.nome, k.desc, q.optPrice(q.r.kits[k.key]), on, (c) => {
+        st.at.kits = Object.assign({}, st.at.kits, { [k.key]: c });
+        st.at.kitItens = Object.assign({}, st.at.kitItens, { [k.key]: [] });
+      });
+      const grupos = gruposAvulsos(its, q.sc);
+      if (grupos.length < 2) return;
+      const gSel = (g) => g.ids.every((i) => sel.includes(i));
+      const nSel = grupos.filter(gSel).length;
+      const det = el("details", "at-kit-av"); det.open = !on && (nSel > 0 || !!st.atKitAberto[k.key]);
+      det.addEventListener("toggle", () => { st.atKitAberto[k.key] = det.open; });
+      det.appendChild(el("summary", "", on ? "Itens incluídos no kit" : (nSel ? "Itens escolhidos separadamente: " + nSel : "Escolher itens separadamente")));
+      const box = el("div", "at-kit-its");
+      grupos.forEach((g) => {
+        const lab = el("label", "at-kit-it"); const inp = document.createElement("input"); inp.type = "checkbox";
+        inp.checked = on || gSel(g); inp.disabled = on;
+        inp.addEventListener("change", () => {
+          const cur = new Set(sel); g.ids.forEach((i) => { if (inp.checked) cur.add(i); else cur.delete(i); });
+          let arr = its.map(([i]) => i).filter((i) => cur.has(i));
+          if (arr.length === its.length) { st.at.kits = Object.assign({}, st.at.kits, { [k.key]: true }); arr = []; st.atKitAviso = k.key; }
+          st.at.kitItens = Object.assign({}, st.at.kitItens, { [k.key]: arr });
+          atSave(); renderAtend();
+        });
+        const nome = g.nomes[0] + (g.nomes.length > 1 ? ", com " + listaTxt(g.nomes.slice(1).map(frase)) : "");
+        const preco = g.custos.reduce((t, c) => t + (c > 0 ? q.optPrice(c * KIT_FATOR_AVULSO) : 0), 0);
+        lab.append(inp, el("span", "", nome), el("em", "", on ? "no kit" : "+ " + money(preco)));
+        box.appendChild(lab);
+      });
+      if (st.atKitAviso === k.key) { box.appendChild(el("p", "c-hint at-kit-aviso", "Com todos os itens marcados, o painel passou para o kit completo.")); st.atKitAviso = null; }
+      det.appendChild(box); oh.appendChild(det);
+    });
     opt("hyp", "Tubos em Hypalon", "Hypalon Orca, importado da Bélgica: mais resistente a sol, combustível e abrasão. Prazo de entrega maior.", hypAdd(), st.at.hyp, (c) => { st.at.hyp = c; });
     const gpsM = motorGps(q.mid);
     opt("gps", "GPS", gpsM ? "Navegação no console. Já vem com o motor escolhido, no painel VesselView." : "Navegação no console.", q.optPrice(num(st.v.gpsCusto)), st.at.gps, (c) => { st.at.gps = c; st.at.gpsAuto = false; }, gpsM ? "Incluído no motor" : null);
@@ -3005,7 +3109,7 @@ body.gated { overflow: hidden; }
   const dataBR = (iso) => { const d = new Date(iso); return isNaN(d.getTime()) ? "" : d.toLocaleDateString("pt-BR"); };
   function atCur() { return st.atId ? st.ats.get(st.atId) || null : null; }
   function setAtId(id) { st.atId = id || null; try { if (id) localStorage.setItem(ATC_KEY, id); else localStorage.removeItem(ATC_KEY); } catch (e) {} }
-  function atConfig() { return { motor: st.at.motor || "", kits: Object.assign({}, st.at.kits), hyp: !!st.at.hyp, gps: !!st.at.gps, desc: num(st.at.desc), corEst: st.at.corEst || AT_DEF.corEst, corPiso: st.at.corPiso || AT_DEF.corPiso }; }
+  function atConfig() { return { motor: st.at.motor || "", kits: Object.assign({}, st.at.kits), kitItens: JSON.parse(JSON.stringify(st.at.kitItens || {})), hyp: !!st.at.hyp, gps: !!st.at.gps, desc: num(st.at.desc), corEst: st.at.corEst || AT_DEF.corEst, corPiso: st.at.corPiso || AT_DEF.corPiso }; }
   function atWrite(id, fn) { atPending.add(id); return enqueue("a:" + id, fn).then((ok) => { atPending.delete(id); return ok; }); }
   function atPersist() {
     const id = st.atId; if (!id || !atCur() || !st.acol || !st.canWrite) return;
@@ -3095,7 +3199,7 @@ body.gated { overflow: hidden; }
     clearTimeout(atTimer); clearTimeout(ctTimer);
     setAtId(id);
     const c = d.config || {};
-    st.at = Object.assign(JSON.parse(JSON.stringify(AT_DEF)), { motor: c.motor || "", kits: Object.assign({}, AT_DEF.kits, c.kits || {}), hyp: !!c.hyp, gps: !!c.gps, desc: num(c.desc), corEst: c.corEst || AT_DEF.corEst, corPiso: c.corPiso || AT_DEF.corPiso });
+    st.at = Object.assign(JSON.parse(JSON.stringify(AT_DEF)), { motor: c.motor || "", kits: Object.assign({}, AT_DEF.kits, c.kits || {}), kitItens: JSON.parse(JSON.stringify(c.kitItens || {})), hyp: !!c.hyp, gps: !!c.gps, desc: num(c.desc), corEst: c.corEst || AT_DEF.corEst, corPiso: c.corPiso || AT_DEF.corPiso });
     try { localStorage.setItem(AT_KEY, JSON.stringify(st.at)); } catch (e) {}
     ctFill(d.comprador);
     $("at-contrato").hidden = true; $("at-hist").hidden = true; $("at-form").hidden = true;
@@ -3398,6 +3502,7 @@ body.gated { overflow: hidden; }
     q.lines.forEach((l, i) => {
       let nome = l.nome;
       if (l.key === "casco") nome += " (7,75 m de comprimento, 3,05 m de boca, tubos em " + (q.lines.some((x) => x.key === "hyp") ? "Hypalon Orca" : "PVC Sansuy") + ", itens de série)";
+      else if (l.parcial) nome += ": " + listaTxt(l.avulsos.map(frase));
       else if (kitDesc[l.key]) nome += " (" + kitDesc[l.key].replace(/\.$/, "").replace(/^./, (c) => c.toLowerCase()) + ")";
       row(nome, l.incluso ? "Incluído" : m2(l.preco), { fill: i % 2 === 0 });
     });
@@ -3575,7 +3680,7 @@ body.gated { overflow: hidden; }
     const out = [];
     q.lines.forEach((l) => {
       if (l.key === "motor") return;
-      if (l.key === "casco") out.push(Object.assign({}, l, { nome: "Euro Sette com motor " + mn, preco: casco.preco + motor.preco, sub: "Autêntico RIB de 7,75 m por 3,05 m, tubos em PVC Sansuy, com estofados completos, capota de popa, piso EVA, som e âncora de série, e motor de popa " + mn + mSpec + ", com garantia do fabricante." }));
+      if (l.key === "casco") out.push(Object.assign({}, l, { nome: "Euro Sette com motor " + mn, preco: casco.preco + motor.preco, sub: "Autêntico RIB de 7,75 m por 3,05 m, tubos em PVC Sansuy, " + (serieTxt() ? "com " + serieTxt() + " de série, " : "") + "e motor de popa " + mn + mSpec + ", com garantia do fabricante." }));
       else out.push(l);
     });
     out.push({ key: "cores", nome: "Cores: estofado " + corTxt(st.at.corEst || AT_DEF.corEst) + " e piso em EVA " + corTxt(st.at.corPiso || AT_DEF.corPiso), sub: "Personalização sem custo adicional.", incluso: true });
@@ -3658,10 +3763,11 @@ body.gated { overflow: hidden; }
     head("Sua configuração");
     propLines(q).forEach((l, i) => {
       let sub = l.sub || "";
-      if (sub) { /* texto pronto */ } else if (l.key === "casco") sub = "Autêntico RIB de 7,75 m por 3,05 m, tubos em PVC Sansuy, com estofados completos, capota de popa, piso EVA, som e âncora de série.";
+      if (sub) { /* texto pronto */ } else if (l.key === "casco") sub = "Autêntico RIB de 7,75 m por 3,05 m, tubos em PVC Sansuy" + (serieTxt() ? ", com " + serieTxt() + " de série." : ".");
       else if (l.key === "motor") sub = "Motor de popa com garantia do fabricante.";
       else if (l.key === "hyp") sub = "Tubos em Hypalon Orca, importado da Bélgica, no lugar do PVC Sansuy: mais resistentes a sol, combustível e abrasão.";
       else if (l.key === "gps") sub = l.incluso ? "Navegação no painel VesselView, que já vem com o motor." : "Navegação no console.";
+      else if (l.parcial) { const t = listaTxt(l.avulsos.map(frase)); sub = "Itens escolhidos: " + t + "."; }
       else if (kitDesc[l.key]) sub = kitDesc[l.key];
       font(false, 8.5); const sl = sub ? doc.splitTextToSize(sub, CW - 62) : [];
       font(true, 10.5); const nl = doc.splitTextToSize(l.nome, CW - 62);
@@ -3710,7 +3816,7 @@ body.gated { overflow: hidden; }
     // ---- o que vem no barco ----
     const motL = q.lines.find((l) => l.key === "motor");
     const grupos = [["Casco, motor e kit básico de série", (motL ? ["Motor " + String(motL.nome || "").replace(/^motor\s+/i, "")] : []).concat(kitItens("basico"))]];
-    q.lines.forEach((l) => { if (kitDesc[l.key] && l.key !== "basico") grupos.push([l.nome, kitItens(l.key)]); });
+    q.lines.forEach((l) => { if (kitDesc[l.key] && l.key !== "basico") grupos.push([l.nome, l.parcial ? l.avulsos : kitItens(l.key)]); });
     const opc = [];
     if (q.lines.some((l) => l.key === "hyp")) opc.push("Tubos em Hypalon Orca no lugar do PVC Sansuy");
     if (q.lines.some((l) => l.key === "gps")) opc.push("GPS instalado no console");
@@ -4244,7 +4350,25 @@ body.gated { overflow: hidden; }
       msg.textContent = e && e.code === "declined" ? "O salvamento foi cancelado." : "Não foi possível gerar a ficha técnica com fotos. Tente de novo.";
     } finally { btn.disabled = false; }
   }
-  function recalc() { renderResult(); renderCompare(); renderOpps(); renderLabor(); renderGroups(); renderVenda(); renderFicha(); renderAtend(); renderCRM(); }
+  function renderKitNomes() {
+    const host = $("kit-nomes-g"); if (!host) return;
+    if (!host.childElementCount) {
+      KITS.forEach((k) => {
+        if (k.key === "basico") return;
+        const lab = el("label", "c-f"); const inp = document.createElement("input"); inp.type = "text"; inp.id = "kit-nome-" + k.key; inp.autocomplete = "off";
+        inp.placeholder = KIT_PADRAO[k.key].nome;
+        inp.addEventListener("change", () => {
+          const v = inp.value.trim(), nomes = Object.assign({}, st.v.kitNomes || {});
+          if (!v || v === KIT_PADRAO[k.key].nome) delete nomes[k.key]; else nomes[k.key] = v;
+          st.v.kitNomes = nomes; saveV({ kitNomes: nomes }); recalc();
+        });
+        lab.append(el("span", "", "Kit padrão: " + KIT_PADRAO[k.key].nome), inp); host.appendChild(lab);
+      });
+    }
+    KITS.forEach((k) => { const inp = $("kit-nome-" + k.key); if (!inp) return; inp.disabled = !st.canWrite; if (document.activeElement !== inp) inp.value = k.nome; });
+    document.querySelectorAll("#c-groups select option").forEach((o) => { const k = KITS.find((x) => x.key === o.value); if (k && o.textContent !== k.curto) o.textContent = k.curto; });
+  }
+  function recalc() { syncKits(); renderKitNomes(); renderResult(); renderCompare(); renderOpps(); renderLabor(); renderGroups(); renderKitNomes(); renderVenda(); renderFicha(); renderAtend(); renderCRM(); }
   function renderAll() { renderScenList(); fillParams(); recalc(); const nb = $("c-scen-new"); if (nb) nb.disabled = !st.scol || !st.canWrite; }
 
   function addItem(grupo) {
