@@ -13,9 +13,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Saira:wght@500;600&display=swap" rel="stylesheet">
+<meta name="color-scheme" content="only light">
 <style>
 :root {
-  color-scheme: light;
+  color-scheme: only light;
   --brand-black: #000000;
   --brand-blue: #3B5999;
   --bg: #F2F3F5;
@@ -43,36 +44,6 @@
   box-sizing: border-box;
   padding-top: env(safe-area-inset-top, 0px);
   padding-bottom: env(safe-area-inset-bottom, 0px);
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    color-scheme: dark;
-    --bg: #000000; --surface: #121316; --ink: #F2F3F5; --muted: #A0A4AB; --line: #26282C; --line-strong: #3A3D42;
-    --blue-text: #9DB1DE; --blue-soft: #18213A;
-    --open: #F2F3F5; --open-bg: transparent; --open-border: #F2F3F5;
-    --doing: #FFFFFF; --doing-bg: #3B5999;
-    --done: #84D3A4; --done-bg: #14301F;
-    --later: #AAAEB4; --later-bg: #232529;
-    --alert: #F4806F; --alert-soft: #3A1714; --warn: #E6A752;
-    --bar-open: #F2F3F5; --bar-doing: #5577C2; --bar-done: #4FAE76; --bar-later: #4A4D52;
-    --btn-bg: #F2F3F5; --btn-ink: #000000;
-    --toast-bg: #F2F3F5; --toast-ink: #000000; --toast-link: #3B5999;
-    --chev: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23A0A4AB' stroke-width='1.5'/%3E%3C/svg%3E");
-  }
-}
-:root[data-theme="dark"] {
-  color-scheme: dark;
-  --bg: #000000; --surface: #121316; --ink: #F2F3F5; --muted: #A0A4AB; --line: #26282C; --line-strong: #3A3D42;
-  --blue-text: #9DB1DE; --blue-soft: #18213A;
-  --open: #F2F3F5; --open-bg: transparent; --open-border: #F2F3F5;
-  --doing: #FFFFFF; --doing-bg: #3B5999;
-  --done: #84D3A4; --done-bg: #14301F;
-  --later: #AAAEB4; --later-bg: #232529;
-  --alert: #F4806F; --alert-soft: #3A1714; --warn: #E6A752;
-  --bar-open: #F2F3F5; --bar-doing: #5577C2; --bar-done: #4FAE76; --bar-later: #4A4D52;
-  --btn-bg: #F2F3F5; --btn-ink: #000000;
-  --toast-bg: #F2F3F5; --toast-ink: #000000; --toast-link: #3B5999;
-  --chev: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23A0A4AB' stroke-width='1.5'/%3E%3C/svg%3E");
 }
 html { scroll-padding-top: env(safe-area-inset-top, 0px); }
 html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 16px; line-height: 1.45; }
@@ -509,6 +480,19 @@ body.cliente .at-bar, body.cliente .at-form, body.cliente .at-hist { display: no
 .mo-tab input.mo-nome { min-width: 240px; }
 .mo-tab input.mo-cat { min-width: 110px; }
 .mo-tab input:disabled { opacity: .7; }
+
+/* Atendentes */
+.at-equipe { margin: 36px 0 8px; color: var(--muted); font-size: .88rem; }
+.at-equipe summary { cursor: pointer; display: inline-block; padding: 4px 0; color: var(--muted); text-decoration: underline; text-decoration-color: var(--line-strong); text-underline-offset: 3px; }
+.at-equipe[open] { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-m); padding: 10px 14px 14px; }
+.at-equipe .c-hint { margin: 6px 0 10px; }
+.at-eq-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 6px 14px; }
+.at-eq-row { display: flex; align-items: center; gap: 8px; }
+.at-eq-row input, .at-eq-add input { flex: 1; min-width: 0; font: inherit; font-size: .92rem; color: var(--ink); background: var(--bg); border: 1px solid var(--line-strong); border-radius: var(--radius); padding: 5px 8px; }
+.at-eq-add { display: flex; gap: 8px; margin-top: 10px; max-width: 420px; }
+.crm-filtros { display: flex; gap: 10px 14px; flex-wrap: wrap; align-items: flex-end; }
+body.cliente .at-equipe { display: none; }
+.crm-atsel { font: inherit; font-size: .88rem; color: var(--ink); background: var(--bg); border: 1px solid var(--line-strong); border-radius: var(--radius); padding: 3px 6px; max-width: 170px; }
 /* Tela de senha */
 body.gated { overflow: hidden; }
 .gate { position: fixed; inset: 0; z-index: 100; background: var(--bg); display: flex; align-items: center; justify-content: center; padding: max(20px, env(safe-area-inset-top, 0px)) 16px max(20px, env(safe-area-inset-bottom, 0px)); overflow-y: auto; }
@@ -873,6 +857,7 @@ body.gated { overflow: hidden; }
         <span class="c-hint" id="at-cur-meta"></span>
       </div>
       <div class="at-bar-a">
+        <select id="at-atend" class="at-status" aria-label="Atendente do atendimento" hidden></select>
         <select id="at-status" class="at-status" aria-label="Status do atendimento" hidden><option>Em negociação</option><option>Fechado</option><option>Perdido</option></select>
         <button class="c-chip" type="button" id="at-editar" hidden>Editar dados</button>
         <button class="c-chip" type="button" id="at-hist-btn" aria-expanded="false">Atendimentos</button>
@@ -883,6 +868,7 @@ body.gated { overflow: hidden; }
       <h2 class="c-h3" id="at-form-t" style="margin-top:0">Novo atendimento</h2>
       <div class="at-form-g">
         <label class="c-f"><span>Nome do cliente</span><input type="text" id="at-f-nome" autocomplete="off" required></label>
+        <label class="c-f"><span>Atendente</span><select id="at-f-atend"></select></label>
         <label class="c-f"><span>Telefone (opcional)</span><input type="tel" id="at-f-tel" autocomplete="off"></label>
         <label class="c-f at-form-w"><span>Observações (opcional)</span><textarea id="at-f-obs" rows="2"></textarea></label>
       </div>
@@ -966,6 +952,12 @@ body.gated { overflow: hidden; }
         <span class="c-hint" id="ct-msg" role="status"></span>
       </div>
     </section>
+    <details class="at-equipe" id="at-equipe">
+      <summary>Atendentes</summary>
+      <p class="c-hint">Quem aparece na escolha do atendente e na proposta em PDF. Alterar um nome aqui não muda os atendimentos já registrados.</p>
+      <div class="at-eq-list" id="at-eq-list"></div>
+      <div class="at-eq-add"><input type="text" id="at-eq-novo" placeholder="Nome do atendente" aria-label="Nome do novo atendente" autocomplete="off"><button class="c-chip" type="button" id="at-eq-add">Adicionar</button></div>
+    </details>
     <button class="at-sair" type="button" id="at-sair" hidden>Sair da tela do cliente</button>
   </section>
   <section id="view-crm" class="view" hidden>
@@ -974,7 +966,7 @@ body.gated { overflow: hidden; }
         <h1>CRM de vendas</h1>
         <p class="sub">Funil, resultados e propostas, a partir dos atendimentos. Uso interno.</p>
       </div>
-      <label class="c-f crm-per"><span>Período (pela data do atendimento)</span><select id="crm-per"><option value="tudo">Todo o período</option><option value="mes">Este mês</option><option value="90">Últimos 90 dias</option><option value="ano">Este ano</option></select></label>
+      <div class="crm-filtros"><label class="c-f crm-per"><span>Atendente</span><select id="crm-at"><option value="">Todos</option></select></label><label class="c-f crm-per"><span>Período (pela data do atendimento)</span><select id="crm-per"><option value="tudo">Todo o período</option><option value="mes">Este mês</option><option value="90">Últimos 90 dias</option><option value="ano">Este ano</option></select></label></div>
     </div>
     <div class="crm-kpis" id="crm-kpis"></div>
     <div class="crm-grid">
@@ -992,7 +984,7 @@ body.gated { overflow: hidden; }
       </div>
       <div class="c-scroll">
         <table class="c-table crm-tab">
-          <thead><tr><th>Cliente</th><th>Status</th><th class="n">Valor</th><th class="n">Desconto</th><th class="n">Margem</th><th>Proposta em PDF</th><th>Atualizado</th></tr></thead>
+          <thead><tr><th>Cliente</th><th>Atendente</th><th>Status</th><th class="n">Valor</th><th class="n">Desconto</th><th class="n">Margem</th><th>Proposta em PDF</th><th>Atualizado</th></tr></thead>
           <tbody id="crm-body" class="click"></tbody>
         </table>
       </div>
@@ -1803,7 +1795,7 @@ body.gated { overflow: hidden; }
   ];
   const DEFAULT_SC = { nome: "Novo cenário", preco: 380000, ipi: 6.5, lc224: true, icmsAliq: 20.5, icmsLocal: 50, icmsFora: 7, volume: 5, moModo: "terceiro", perda: 10, salario: 5500, horasPessoa: 150, alvo: false, investimento: 0, lote: 30, marketing: 0, garantia: 0, margemAlvo: 15 };
   const NUM_KEYS = ["preco", "ipi", "icmsAliq", "icmsLocal", "icmsFora", "volume", "perda", "salario", "horasPessoa", "investimento", "lote", "marketing", "garantia", "margemAlvo"];
-  const DEFAULT_V = { cenario: "", margemCasco: 18, margemKits: 25, margemMotor: 8, tubo: "pvc", hypalon: 10000, gps: false, gpsCusto: 10000, motor: "", kits: { conforto: true, lazer: true, fundeio: true }, desconto: 0, arred: 1000, fechamento: null, atMargem: 30, atMotor: 10, atMin: 15, propValidade: 15 };
+  const DEFAULT_V = { cenario: "", margemCasco: 18, margemKits: 25, margemMotor: 8, tubo: "pvc", hypalon: 10000, gps: false, gpsCusto: 10000, motor: "", kits: { conforto: true, lazer: true, fundeio: true }, desconto: 0, arred: 1000, fechamento: null, atMargem: 30, atMotor: 10, atMin: 15, propValidade: 15, atendentes: ["Adolpho", "Carlos", "Daniel", "Erick", "Felipe", "Igor", "João Vitor", "Júlio", "Malu", "Robson"] };
   const V_NUM = ["margemCasco", "margemKits", "margemMotor", "hypalon", "gpsCusto", "desconto", "arred", "atMargem", "atMotor", "atMin", "propValidade"];
 
   const st = { col: null, scol: null, vref: null, items: new Map(), scen: new Map(), sel: null, v: JSON.parse(JSON.stringify(DEFAULT_V)), vExists: false, loadedI: false, loadedS: false, canWrite: true, q: "" };
@@ -2796,6 +2788,7 @@ body.gated { overflow: hidden; }
     const L = ["Euronav Euro Sette, proposta"].concat(propLines(q).map((l) => l.nome + ": " + money(l.preco)), ["Subtotal: " + money(q.S)]);
     if (q.desc > 0) L.push("Condição especial: − " + money(q.desc));
     L.push("IPI (" + fmtN(q.ipi * 100, 1) + "%): " + money(q.ipiV), "Valor total: " + money(q.total));
+    const curA = atCur(); if (curA && curA.atendente) L.push("Atendente: " + curA.atendente);
     return L.join("\n");
   }
   function buildAtend() {
@@ -2872,6 +2865,8 @@ body.gated { overflow: hidden; }
     setText("at-cur-meta", cur ? [cur.tel, "aberto em " + dataBR(cur.criadoEm), cur.ultimaProposta ? "proposta " + cur.ultimaProposta.numero + " em " + dataBR(cur.ultimaProposta.em) : ""].filter(Boolean).join(", ") : "Crie ou abra um atendimento para salvar as escolhas e os dados do comprador.");
     const sel = $("at-status");
     sel.hidden = !cur;
+    const asel = $("at-atend");
+    if (asel) { asel.hidden = !cur; asel.disabled = !st.acol || !st.canWrite; if (cur && document.activeElement !== asel) fillAtendSel(asel, cur.atendente || ""); }
     if (cur && document.activeElement !== sel) sel.value = STATUS.includes(cur.status) ? cur.status : STATUS[0];
     $("at-editar").hidden = !cur;
     setText("at-hist-btn", "Atendimentos" + (st.ats.size ? " (" + st.ats.size + ")" : ""));
@@ -2881,7 +2876,7 @@ body.gated { overflow: hidden; }
     setText("ct-guarda", cur ? "Os dados do comprador ficam salvos neste atendimento." : "Abra um atendimento para guardar os dados do comprador.");
   }
   function renderAtHist() {
-    renderAtBar(); renderCRM();
+    renderAtBar(); renderCRM(); renderEquipe();
     const host = $("at-hist-list"); if (!host || $("at-hist").hidden) return;
     const qv = norm($("at-hist-q").value);
     host.replaceChildren();
@@ -2895,7 +2890,7 @@ body.gated { overflow: hidden; }
       const b = el("button", "at-h-open"); b.type = "button";
       const status = STATUS.includes(d.status) ? d.status : STATUS[0];
       const top = el("span", "at-h-top"); top.append(el("b", "", d.nome || "Cliente sem nome"), el("span", "at-st at-st-" + ST_CLS[status], status));
-      const info = [dataBR(d.criadoEm), d.tel, d.total ? money(d.total) + (d.desconto ? " com desconto de " + money(d.desconto) : "") : "", d.ultimaProposta ? "proposta em PDF de " + dataBR(d.ultimaProposta.em) : ""].filter(Boolean).join(", ");
+      const info = [dataBR(d.criadoEm), d.atendente, d.tel, d.total ? money(d.total) + (d.desconto ? " com desconto de " + money(d.desconto) : "") : "", d.ultimaProposta ? "proposta em PDF de " + dataBR(d.ultimaProposta.em) : ""].filter(Boolean).join(", ");
       b.append(top, el("span", "at-h-sub", info));
       if (d.obs) b.appendChild(el("span", "at-h-sub", d.obs));
       b.setAttribute("aria-label", "Abrir atendimento de " + (d.nome || "cliente sem nome"));
@@ -2918,7 +2913,7 @@ body.gated { overflow: hidden; }
     renderAtend(); renderAtBar();
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
-  function atCreate(nome, tel, obs) {
+  function atCreate(nome, tel, obs, atendente) {
     if (!st.acol || !st.canWrite) return;
     clearTimeout(atTimer); clearTimeout(ctTimer);
     const ref = st.acol.doc();
@@ -2926,7 +2921,7 @@ body.gated { overflow: hidden; }
     try { localStorage.setItem(AT_KEY, JSON.stringify(st.at)); } catch (e) {}
     const q = atCompute();
     const agora = nowIso();
-    const data = { nome, tel, obs, status: STATUS[0], criadoEm: agora, atualizadoEm: agora, config: atConfig(), total: q ? Math.round(q.total) : 0, desconto: 0, subtotal: q ? Math.round(q.S) : 0, resultado: q ? Math.round(q.resultado) : 0, margem: q && q.margem != null ? Math.round(q.margem * 10000) / 10000 : null, comprador: {} };
+    const data = { nome, tel, obs, atendente: atendente || "", status: STATUS[0], criadoEm: agora, atualizadoEm: agora, config: atConfig(), total: q ? Math.round(q.total) : 0, desconto: 0, subtotal: q ? Math.round(q.S) : 0, resultado: q ? Math.round(q.resultado) : 0, margem: q && q.margem != null ? Math.round(q.margem * 10000) / 10000 : null, comprador: {} };
     st.ats.set(ref.id, data); setAtId(ref.id);
     atWrite(ref.id, () => ref.set(data));
     ctFill({ nome, tel });
@@ -2966,6 +2961,7 @@ body.gated { overflow: hidden; }
     $("at-f-tel").value = mode === "editar" && cur ? cur.tel || "" : "";
     $("at-f-obs").value = mode === "editar" && cur ? cur.obs || "" : "";
     $("at-f-msg").hidden = true;
+    atFillAtend(mode === "editar" && cur ? cur.atendente || "" : null);
     $("at-f-nome").focus();
   }
   function buildHist() {
@@ -2975,14 +2971,15 @@ body.gated { overflow: hidden; }
     $("at-f-cancel").addEventListener("click", () => { $("at-form").hidden = true; });
     $("at-form").addEventListener("submit", (ev) => {
       ev.preventDefault();
-      const nome = $("at-f-nome").value.trim(), tel = $("at-f-tel").value.trim(), obs = $("at-f-obs").value.trim();
+      const nome = $("at-f-nome").value.trim(), tel = $("at-f-tel").value.trim(), obs = $("at-f-obs").value.trim(), atendente = $("at-f-atend").value;
       if (!nome) { const m = $("at-f-msg"); m.textContent = "Informe o nome do cliente."; m.hidden = false; $("at-f-nome").focus(); return; }
       if (atFormMode === "editar" && atCur()) {
-        const id = st.atId, patch = { nome, tel, obs, atualizadoEm: nowIso() };
+        const id = st.atId, patch = { nome, tel, obs, atendente, atualizadoEm: nowIso() };
         Object.assign(st.ats.get(id), patch);
         atWrite(id, () => st.acol.doc(id).update(patch));
         renderAtHist();
-      } else atCreate(nome, tel, obs);
+      } else atCreate(nome, tel, obs, atendente);
+      try { if (atendente) localStorage.setItem(ATEND_KEY, atendente); } catch (e) {}
       $("at-form").hidden = true;
     });
     $("at-status").addEventListener("change", (e) => {
@@ -3000,6 +2997,8 @@ body.gated { overflow: hidden; }
     $("at-hist-close").addEventListener("click", () => { $("at-hist").hidden = true; $("at-hist-btn").setAttribute("aria-expanded", "false"); });
     $("at-hist-q").addEventListener("input", renderAtHist);
     if ($("crm-per")) $("crm-per").addEventListener("change", renderCRM);
+    if ($("crm-at")) $("crm-at").addEventListener("change", renderCRM);
+    buildEquipe();
     CT_FIELDS.forEach(([, elId]) => { const e = $(elId); if (e) e.addEventListener("input", ctPersist); });
     if ($("ct-ult72")) $("ct-ult72").addEventListener("change", ctPersist);
     $("at-pdf").addEventListener("click", propGerar);
@@ -3008,6 +3007,78 @@ body.gated { overflow: hidden; }
       if (!$("ct-nome").value && cur.nome) $("ct-nome").value = cur.nome;
       if (!$("ct-tel").value && cur.tel) $("ct-tel").value = cur.tel;
     });
+  }
+  // ---------- Atendentes ----------
+  const ATEND_KEY = "euronav-atendente";
+  function atendentes() {
+    const a = Array.isArray(st.v.atendentes) ? st.v.atendentes : DEFAULT_V.atendentes;
+    const out = []; a.forEach((x) => { const n = String(x || "").trim(); if (n && !out.includes(n)) out.push(n); });
+    return out;
+  }
+  function atFillAtend(atual) {
+    const sel = $("at-f-atend"); if (!sel) return;
+    const lista = atendentes().slice();
+    if (atual && !lista.includes(atual)) lista.unshift(atual);
+    sel.replaceChildren();
+    if (!lista.length || atual === "") sel.appendChild(new Option("Sem atendente", ""));
+    lista.forEach((n) => sel.appendChild(new Option(n, n)));
+    let ult = ""; try { ult = localStorage.getItem(ATEND_KEY) || ""; } catch (e) {}
+    sel.value = atual != null ? atual : (lista.includes(ult) ? ult : (lista[0] || ""));
+  }
+  function saveAtendentes(lista) {
+    st.v.atendentes = lista;
+    saveV({ atendentes: lista });
+    renderEquipe(true); crmAtOptions();
+  }
+  function renderEquipe(force) {
+    const host = $("at-eq-list"); if (!host) return;
+    if (!force && host.contains(document.activeElement)) return;
+    host.replaceChildren();
+    const lista = atendentes();
+    lista.forEach((n, i) => {
+      const row = el("div", "at-eq-row");
+      const inp = document.createElement("input"); inp.type = "text"; inp.value = n; inp.setAttribute("aria-label", "Nome do atendente"); inp.disabled = !st.canWrite;
+      inp.addEventListener("change", () => { const v = inp.value.trim(); const l = atendentes(); if (!v) { inp.value = n; return; } l[i] = v; saveAtendentes(l); });
+      const del = el("button", "c-link", "Remover"); del.type = "button"; del.hidden = !st.canWrite;
+      del.setAttribute("aria-label", "Remover " + n);
+      del.addEventListener("click", () => { const l = atendentes().filter((x) => x !== n); saveAtendentes(l); toast("Atendente removido: " + n, () => { const r = atendentes(); r.splice(Math.min(i, r.length), 0, n); saveAtendentes(r); }); });
+      row.append(inp, del); host.appendChild(row);
+    });
+    if (!lista.length) host.appendChild(el("p", "c-hint", "Nenhum atendente cadastrado."));
+    const add = $("at-eq-add"), novo = $("at-eq-novo");
+    if (add) { add.disabled = !st.canWrite; novo.disabled = !st.canWrite; }
+  }
+  function buildEquipe() {
+    const add = $("at-eq-add"), novo = $("at-eq-novo"); if (!add) return;
+    const go = () => { const v = novo.value.trim(); if (!v) return; const l = atendentes(); if (!l.includes(v)) l.push(v); novo.value = ""; saveAtendentes(l); };
+    add.addEventListener("click", go);
+    novo.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); go(); } });
+    renderEquipe(true);
+    if ($("at-atend")) $("at-atend").addEventListener("change", (e) => { if (st.atId) setAtendente(st.atId, e.target.value); });
+  }
+  function fillAtendSel(sel, atual) {
+    const lista = atendentes().slice();
+    if (atual && !lista.includes(atual)) lista.unshift(atual);
+    sel.replaceChildren(new Option(atual ? "Sem atendente" : "Definir atendente", ""));
+    lista.forEach((n) => sel.appendChild(new Option(n, n)));
+    sel.value = atual || "";
+  }
+  function setAtendente(id, nome) {
+    const d = st.ats.get(id); if (!d || !st.acol || !st.canWrite) return;
+    const patch = { atendente: nome || "" };
+    Object.assign(d, patch);
+    atWrite(id, () => st.acol.doc(id).update(patch));
+    renderAtHist();
+  }
+  function crmAtOptions() {
+    const sel = $("crm-at"); if (!sel) return;
+    const cur = sel.value;
+    const nomes = atendentes().slice(); let sem = false;
+    st.ats.forEach((d) => { const n = String(d.atendente || "").trim(); if (!n) sem = true; else if (!nomes.includes(n)) nomes.push(n); });
+    sel.replaceChildren(new Option("Todos", ""));
+    nomes.forEach((n) => sel.appendChild(new Option(n, n)));
+    if (sem) sel.appendChild(new Option("Sem atendente", "__sem"));
+    sel.value = Array.from(sel.options).some((o) => o.value === cur) ? cur : "";
   }
   // ---------- Contrato em PDF ----------
   const CT_KEY = "euronav-contrato-rep";
@@ -3293,7 +3364,7 @@ body.gated { overflow: hidden; }
       cliente: cur.nome || "Cliente", hoje, validade, val: new Date(hoje.getTime() + validade * 86400000),
       numero: "PR-" + hoje.getFullYear() + String(hoje.getMonth() + 1).padStart(2, "0") + String(hoje.getDate()).padStart(2, "0") + "-" + String(hoje.getHours()).padStart(2, "0") + String(hoje.getMinutes()).padStart(2, "0"),
       entrega: ent.length === 2 && num(ent[1]) >= 1 ? "Previsão de entrega em " + MESES[num(ent[1]) - 1] + " de " + ent[0] + ", contada a partir do sinal." : "A combinar conforme a agenda de produção.",
-      pagamento, garantia: Math.max(1, Math.round(num($("ct-casco") && $("ct-casco").value) || 10)), rep: f.rep
+      pagamento, garantia: Math.max(1, Math.round(num($("ct-casco") && $("ct-casco").value) || 10)), rep: cur.atendente || f.rep
     };
   }
   function buildProposta(q, d, logo) {
@@ -3456,7 +3527,7 @@ body.gated { overflow: hidden; }
     fill([0, 0, 0]); doc.rect(M, y, CW, 24, "F"); fill(BLUE); doc.rect(M, y, 2.4, 24, "F");
     font(true, 11); color(WHITE); doc.text("Fale com a Euronav", M + 8, y + 8.5);
     font(false, 8.8); color(PALE);
-    doc.text([d.rep ? "Atendimento: " + d.rep : "Estaleiro Euronav LTDA.", "Rua Dr. George William Butler, 569, Galpão 35, Curado, Recife/PE"], M + 8, y + 14.5);
+    doc.text([d.rep ? "Atendente: " + d.rep : "Estaleiro Euronav LTDA.", "Rua Dr. George William Butler, 569, Galpão 35, Curado, Recife/PE"], M + 8, y + 14.5);
     y += 31;
     font(false, 7.8); color(MUT); doc.text("Proposta sujeita a confirmação por escrito.", M, y);
 
@@ -3712,6 +3783,7 @@ body.gated { overflow: hidden; }
   }
   function crmRows() {
     const per = $("crm-per") ? $("crm-per").value : "tudo";
+    const atF = $("crm-at") ? $("crm-at").value : "";
     const now = new Date(); let ini = null;
     if (per === "mes") ini = new Date(now.getFullYear(), now.getMonth(), 1);
     else if (per === "90") ini = new Date(now.getTime() - 90 * 86400000);
@@ -3720,6 +3792,7 @@ body.gated { overflow: hidden; }
     st.ats.forEach((d, id) => {
       const c = new Date(d.criadoEm);
       if (ini && !(c >= ini)) return;
+      if (atF === "__sem" ? !!d.atendente : (atF && (d.atendente || "") !== atF)) return;
       const status = STATUS.includes(d.status) ? d.status : STATUS[0];
       out.push(Object.assign({ id, d, status }, atMetrics(d)));
     });
@@ -3727,6 +3800,7 @@ body.gated { overflow: hidden; }
   }
   function renderCRM() {
     const host = $("crm-kpis"); if (!host) return;
+    crmAtOptions();
     const rows = crmRows();
     const by = (s) => rows.filter((r) => r.status === s);
     const sum = (rs, k) => rs.reduce((t, r) => t + num(r[k]), 0);
@@ -3818,12 +3892,12 @@ body.gated { overflow: hidden; }
     });
     const tb = $("crm-body"); tb.replaceChildren();
     const lista = rows.filter((r) => crmFiltro === "Todos" || r.status === crmFiltro).sort((a, b) => String(b.d.atualizadoEm || "").localeCompare(String(a.d.atualizadoEm || "")));
-    if (!lista.length) { const tr = el("tr"); const td = el("td", "c-hint", st.atsLoaded ? "Nenhum atendimento neste filtro." : "Carregando…"); td.colSpan = 7; tr.appendChild(td); tb.appendChild(tr); }
+    if (!lista.length) { const tr = el("tr"); const td = el("td", "c-hint", st.atsLoaded ? "Nenhum atendimento neste filtro." : "Carregando…"); td.colSpan = 8; tr.appendChild(td); tb.appendChild(tr); }
     lista.forEach((r) => {
       const tr = el("tr");
       const tdS = el("td"); tdS.appendChild(el("span", "at-st at-st-" + ST_CLS[r.status], r.status));
       const mg = r.margem == null ? "–" : pct(r.margem);
-      tr.append(el("td", "", r.d.nome || "Cliente sem nome"), tdS, el("td", "n", money(r.total)), el("td", "n", r.desc ? money(r.desc) : "–"));
+      tr.append(el("td", "", r.d.nome || "Cliente sem nome"), (() => { const td = el("td"); if (st.canWrite && st.acol) { const s2 = document.createElement("select"); s2.className = "crm-atsel"; s2.setAttribute("aria-label", "Atendente de " + (r.d.nome || "cliente sem nome")); fillAtendSel(s2, r.d.atendente || ""); s2.addEventListener("click", (e) => e.stopPropagation()); s2.addEventListener("change", (e) => { e.stopPropagation(); setAtendente(r.id, s2.value); }); td.appendChild(s2); } else td.textContent = r.d.atendente || "–"; return td; })(), tdS, el("td", "n", money(r.total)), el("td", "n", r.desc ? money(r.desc) : "–"));
       const tdM = el("td", "n " + (r.margem == null ? "" : r.margem < (num(st.v.atMin) || 15) / 100 ? "c-warn" : "c-pos"), mg); tr.appendChild(tdM);
       tr.append(el("td", "", r.d.ultimaProposta ? dataBR(r.d.ultimaProposta.em) : "–"), el("td", "", dataBR(r.d.atualizadoEm)));
       tr.title = "Abrir o atendimento";
