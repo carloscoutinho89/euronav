@@ -563,6 +563,7 @@ body.lb-on { overflow: hidden; }
 .at-sinal-h { display: flex; justify-content: space-between; align-items: baseline; font-size: .85rem; color: var(--muted); }
 .at-sinal-h b { font-size: 1rem; color: var(--ink); font-variant-numeric: tabular-nums; }
 .at-sinal .v-slider { margin-top: 4px; }
+.mo-fixo .mo-nome, .mo-fixo .mo-cat { font-style: italic; }
 /* Tela de senha */
 body.gated { overflow: hidden; }
 .gate { position: fixed; inset: 0; z-index: 100; background: var(--bg); display: flex; align-items: center; justify-content: center; padding: max(20px, env(safe-area-inset-top, 0px)) 16px max(20px, env(safe-area-inset-bottom, 0px)); overflow-y: auto; }
@@ -1882,8 +1883,8 @@ body.gated { overflow: hidden; }
   "use strict";
   const $ = (id) => document.getElementById(id);
   const GROUPS = [
-    { key: "casco", nome: "Casco e tubulão", desc: "Matéria-prima do casco por barco e fabricação do tubulão.", q: "Qtd", u: "Custo unit.", flag: "" },
-    { key: "maoobra", nome: "Mão de obra direta", desc: "Horas-homem por etapa. O valor da hora segue o modo do cenário: terceirizada (R$/hora de cada linha) ou equipe própria (custo por pessoa).", q: "HH", u: "R$/hora", flag: "" },
+    { key: "casco", nome: "Casco", desc: "Matéria-prima do casco por barco.", q: "Qtd", u: "Custo unit.", flag: "" },
+    { key: "maoobra", nome: "Mão de obra direta", desc: "Horas-homem por etapa. O valor da hora segue o modo do cenário: terceirizada (R$/hora de cada linha) ou equipe própria (custo por pessoa). Serviços terceirizados por valor fechado, como a fabricação do tubulão, entram pelo valor, sem perda.", q: "HH", u: "R$/hora", flag: "" },
     { key: "estrutura", nome: "Estrutura e indiretos", desc: "Custos mensais, divididos pelos barcos produzidos no mês do cenário.", q: "Qtd", u: "R$/mês", flag: "" },
     { key: "acessorios", nome: "Acessórios", desc: "Planilha da Malu, sem o motor, organizada nos kits de venda. Alvo é o custo unitário que a pesquisa indica ser possível.", q: "Qtd", u: "Custo unit.", flag: "Kit e alvo" },
     { key: "equipamentos", nome: "Equipamentos", desc: "Motor e itens de propulsão. Marque Motor para a linha virar opção de motor na aba Precificação; só o motor escolhido lá entra no custo.", q: "Qtd", u: "Custo unit.", flag: "Motor" }
@@ -1909,7 +1910,7 @@ body.gated { overflow: hidden; }
   ];
   const KIT_KEYS = KITS.map((k) => k.key);
   const COMP = [
-    { key: "casco", nome: "Casco e tubulão", cor: "var(--ink)" },
+    { key: "casco", nome: "Casco", cor: "var(--ink)" },
     { key: "maoobra", nome: "Mão de obra", cor: "#3B5999" },
     { key: "estrutura", nome: "Estrutura e indiretos", cor: "#8FA6D6" },
     { key: "acessorios", nome: "Acessórios (todos os kits)", cor: "#7C8088" },
@@ -1996,8 +1997,11 @@ body.gated { overflow: hidden; }
   function qtyOf(it, sc) { return sc && sc.alvo && has(it.alvoQtd) && num(it.alvoQtd) >= 0 && num(it.alvoQtd) < num(it.qtd) ? num(it.alvoQtd) : num(it.qtd); }
   function unitOf(it, sc) { return sc && sc.alvo && has(it.alvo) && num(it.alvo) > 0 ? num(it.alvo) : num(it.unit); }
   function rateHora(sc, it) { return sc.moModo === "propria" ? num(sc.salario) / Math.max(1, num(sc.horasPessoa)) : unitOf(it, sc); }
+  // Mão de obra por valor fechado (ex.: fabricação terceirizada do tubulão): sem perda, sem horas e sem troca pelo valor da hora.
+  function moFixo(it) { return it.grupo === "maoobra" && !!it.unid && it.unid !== "HH"; }
   function lineTotal(it, sc) {
     const s = sc || DEFAULT_SC;
+    if (moFixo(it)) return qtyOf(it, s) * unitOf(it, s) + num(it.frete);
     if (it.grupo === "maoobra") return qtyOf(it, s) * (1 + num(s.perda) / 100) * rateHora(s, it) + num(it.frete);
     const base = qtyOf(it, s) * unitOf(it, s) + num(it.frete);
     return it.grupo === "estrutura" ? base / Math.max(1, num(s.volume)) : base;
@@ -2013,7 +2017,7 @@ body.gated { overflow: hidden; }
       const t = lineTotal(it, sc);
       if (g[it.grupo] !== undefined) g[it.grupo] += t;
       if (it.grupo === "acessorios") { const k = kitOf(it); kits[k] += t; kitN[k]++; }
-      if (it.grupo === "maoobra") hh += num(it.qtd);
+      if (it.grupo === "maoobra" && !moFixo(it)) hh += num(it.qtd);
       if (it.grupo === "estrutura") estMes += num(it.qtd) * unitOf(it, sc) + num(it.frete);
     });
     const lote = num(sc.lote);
@@ -2326,12 +2330,13 @@ body.gated { overflow: hidden; }
     const sc = current();
     if (!sc || !st.loadedI) return;
     const mo = []; let hh = 0, moCusto = 0;
-    st.items.forEach((it, id) => { if (it.grupo === "maoobra") { mo.push(Object.assign({ _id: id }, it)); hh += num(it.qtd); moCusto += lineTotal(it, sc); } });
+    let moFix = 0;
+    st.items.forEach((it, id) => { if (it.grupo === "maoobra") { mo.push(Object.assign({ _id: id }, it)); const c = lineTotal(it, sc); moCusto += c; if (moFixo(it)) moFix += c; else hh += num(it.qtd); } });
     mo.sort((a, b) => num(a.ordem) - num(b.ordem));
     const hhEf = hh * (1 + num(sc.perda) / 100);
     const vol = Math.max(1, num(sc.volume)), hp = Math.max(1, num(sc.horasPessoa));
     const propria = sc.moModo === "propria";
-    const rate = hhEf > 0 ? moCusto / hhEf : 0;
+    const rate = hhEf > 0 ? (moCusto - moFix) / hhEf : 0;
     let estMes = 0; const est = [];
     st.items.forEach((it) => { if (it.grupo === "estrutura") { const v = num(it.qtd) * unitOf(it, sc) + num(it.frete); estMes += v; est.push([it.item, v, num(it.ordem)]); } });
     est.sort((a, b) => a[2] - b[2]);
@@ -2356,8 +2361,11 @@ body.gated { overflow: hidden; }
         if (f.nome !== a) f.nome.value = it.item || "";
         if (f.cat !== a) f.cat.value = it.categoria || "";
         if (f.hh !== a) f.hh.value = String(round2(num(it.qtd)));
-        if (f.rt !== a) f.rt.value = String(round2(propria ? rateP : num(it.unit)));
-        f.rt.disabled = propria || !st.canWrite; f.rt.title = propria ? "Equipe própria: o valor da hora vem das premissas" : "";
+        const fx = moFixo(it);
+        if (f.rt !== a) f.rt.value = String(round2(propria && !fx ? rateP : num(it.unit)));
+        f.rt.disabled = (propria && !fx) || !st.canWrite; f.rt.title = fx ? "Serviço por valor fechado (R$ por " + (it.unid || "un") + ")" : (propria ? "Equipe própria: o valor da hora vem das premissas" : "");
+        f.hh.title = fx ? "Quantidade (" + (it.unid || "un") + "), serviço por valor fechado" : "";
+        moRowEls.get(it._id).classList.toggle("mo-fixo", fx);
         [f.nome, f.cat, f.hh].forEach((x) => { x.disabled = !st.canWrite; });
         f.del.hidden = !st.canWrite;
         f.custo.textContent = money(lineTotal(it, sc));
@@ -2365,13 +2373,13 @@ body.gated { overflow: hidden; }
       if (!mo.length) { const tr = el("tr"); const td = el("td", "c-hint", "Nenhuma etapa. Use Adicionar etapa."); td.colSpan = 6; tr.appendChild(td); tb.appendChild(tr); }
       const ft = $("mo-foot"); ft.replaceChildren();
       const tt = el("tr", "tot"); tt.append(el("td", "", "Total"), el("td"), el("td", "n", fmtN(hh) + " HH"), el("td", "n", money(rate) + "/h"), el("td", "n", money(moCusto)), el("td")); ft.appendChild(tt);
-      setText("mo-hint", "O custo por barco já inclui " + fmtN(sc.perda) + "% de perda e aprendizado sobre as horas. " + (propria ? "Equipe própria: o valor da hora vem do custo mensal por pessoa, nas premissas." : "Mão de obra terceirizada: informe o valor da hora de cada etapa."));
+      setText("mo-hint", "O custo por barco já inclui " + fmtN(sc.perda) + "% de perda e aprendizado sobre as horas. " + (moFix > 0 ? "Linhas em itálico são serviços terceirizados por valor fechado: entram pelo valor, sem perda e fora das horas. " : "") + (propria ? "Equipe própria: o valor da hora vem do custo mensal por pessoa, nas premissas." : "Mão de obra terceirizada: informe o valor da hora de cada etapa."));
       const ab = $("mo-add"); ab.hidden = !st.canWrite; ab.disabled = !st.col;
     }
     step("Horas por barco", fmtN(hh) + " HH", mo.length + (mo.length === 1 ? " etapa, detalhada" : " etapas, detalhadas") + " na tabela acima.");
     step("Perda e aprendizado", "+" + fmtN(sc.perda) + "%", "Horas efetivas por barco: " + fmtN(hhEf) + " HH.");
     step("Valor da hora", money(rate) + "/h", propria ? "Equipe própria: " + money(num(sc.salario)) + " por pessoa ÷ " + fmtN(hp) + " horas produtivas no mês." : "Terceirizada: valor por hora de cada etapa, que já inclui os encargos do prestador. Nada é somado por cima.");
-    step("Mão de obra por barco", money(moCusto), fmtN(hhEf) + " HH × " + money(rate) + "/h. Não muda com o volume; o que cai com mais barcos é a estrutura.");
+    step("Mão de obra por barco", money(moCusto), fmtN(hhEf) + " HH × " + money(rate) + "/h" + (moFix > 0 ? ", mais " + money(moFix) + " de serviços terceirizados por valor fechado" : "") + ". Não muda com o volume; o que cai com mais barcos é a estrutura.");
     step("Pessoas na linha", fmtN(pessoas, 1), fmtN(hhEf) + " HH × " + vol + (vol === 1 ? " barco" : " barcos") + " ÷ " + fmtN(hp) + " horas por pessoa." + (propria ? " Folha mensal: " + money(pessoas * num(sc.salario)) + "." : " Se fosse equipe própria, a folha seria " + money(pessoas * num(sc.salario)) + " por mês."));
     const mini2 = el("div", "c-mini");
     est.forEach(([n, v]) => { const d = el("div"); d.append(el("span", "", n), el("span", "", money(v) + "/mês")); mini2.appendChild(d); });
