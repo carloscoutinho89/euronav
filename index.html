@@ -583,6 +583,22 @@ body.lb-on { overflow: hidden; }
 .cg-busca { padding: 10px 0 8px; }
 .cg-busca .search { width: 100%; max-width: 420px; }
 .f-serie { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.at-3d { margin: -4px 0 14px; position: relative; }
+.at-3d.grande { position: fixed; top: max(4vh, env(safe-area-inset-top, 0px)); bottom: max(4vh, env(safe-area-inset-bottom, 0px)); left: 4vw; right: 4vw; z-index: 160; margin: 0; padding: 10px; background: var(--surface); border-radius: var(--radius-m); box-shadow: 0 24px 80px rgba(0,0,0,.35); display: flex; flex-direction: column; }
+.at-3d.grande .at-3d-v { flex: 1; height: auto; touch-action: none; }
+body.b3d-on::before { content: ""; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 150; }
+.at-3d-big { position: absolute; top: 8px; right: 8px; appearance: none; border: 1px solid rgba(0,0,0,.08); background: rgba(255,255,255,.85); color: var(--ink); font: inherit; font-size: .78rem; padding: 5px 10px; border-radius: 999px; cursor: pointer; backdrop-filter: blur(4px); }
+.at-3d-big:hover { background: #fff; }
+.at-3d-v { height: 290px; border-radius: var(--radius-m); background: radial-gradient(ellipse at 50% 35%, #F7F9FC 0%, #E7ECF2 70%, #DDE3EA 100%); cursor: grab; touch-action: pan-y; overflow: hidden; }
+.at-3d-v.arrastando { cursor: grabbing; }
+.at-3d-v canvas { display: block; }
+.at-3d-leg { margin: 6px 0 0; font-size: .78rem; color: var(--muted); text-align: center; }
+@media (max-width: 560px) { .at-3d-v { height: 240px; } }
+body.cliente .f-cont-ed { display: none; }
+.f-cont p { margin: 0; line-height: 1.6; }
+.at-3d-cfgp { margin: -8px 0 12px; text-align: center; font-size: .82rem; }
+.at-3d-cfg { color: var(--brand-blue); text-decoration: none; font-weight: 600; }
+.at-3d-cfg:hover { text-decoration: underline; text-underline-offset: 3px; }
 /* Tela de senha */
 body.gated { overflow: hidden; }
 .gate { position: fixed; inset: 0; z-index: 100; background: var(--bg); display: flex; align-items: center; justify-content: center; padding: max(20px, env(safe-area-inset-top, 0px)) 16px max(20px, env(safe-area-inset-bottom, 0px)); overflow-y: auto; }
@@ -860,7 +876,7 @@ body.gated { overflow: hidden; }
         <div class="c-card">
           <h2 class="c-h3">Tubos</h2>
           <div class="v-opts">
-            <label class="v-opt"><input type="checkbox" id="v-tubo-hyp"><span><b>Tubos em Hypalon</b><small>Fora da composição de custo. Soma um valor fixo ao preço final, sem IPI.</small></span><em id="v-hyp-preco">–</em></label>
+            <label class="v-opt"><input type="checkbox" id="v-tubo-hyp"><span><b>Tubos em Hypalon</b><small>Fora da composição de custo. Preço fixo de venda, com IPI por cima.</small></span><em id="v-hyp-preco">–</em></label>
           </div>
           <p class="c-hint" id="v-hyp-hint" style="margin:8px 0 0"></p>
         </div>
@@ -877,6 +893,7 @@ body.gated { overflow: hidden; }
           <h2 class="c-h3">Eletrônica</h2>
           <label class="v-opt"><input type="checkbox" id="v-gps"><span><b>GPS</b><small>Fora da planilha de acessórios; custo estimado</small></span><em id="v-gps-preco">–</em></label>
           <label class="c-f v-inline"><span>Custo do GPS (R$)</span><input type="number" id="v-gpscusto" min="0" step="500" data-v="gpsCusto"></label>
+          <label class="c-f v-inline"><span>Preço de venda do GPS (R$, fixo)</span><input type="number" id="v-gpspreco" min="0" step="100" data-v="gpsPreco"></label>
         </div>
         <div class="c-card">
           <h2 class="c-h3">Regras da aba Atendimento</h2>
@@ -886,6 +903,7 @@ body.gated { overflow: hidden; }
             <label class="c-f"><span>Margem do motor (%)</span><input type="number" id="v-atmm" data-v="atMotor" step="1"></label>
             <label class="c-f"><span>Resultado mínimo após desconto (% do valor final)</span><input type="number" id="v-atmin" data-v="atMin" step="1"></label>
             <label class="c-f"><span>Custo extra do Hypalon na margem (R$)</span><input type="number" id="v-hypc" data-v="hypalon" min="0" step="500"></label>
+            <label class="c-f"><span>Preço de venda do Hypalon (R$, antes do IPI)</span><input type="number" id="v-hypp" data-v="hypPreco" min="0" step="100"></label>
             <label class="c-f"><span>Validade da proposta em PDF (dias)</span><input type="number" id="v-pval" data-v="propValidade" min="1" step="1"></label>
           </div>
           <p class="c-hint" id="v-at-info" style="margin:10px 0 0"></p>
@@ -1018,6 +1036,12 @@ body.gated { overflow: hidden; }
       </div>
       <div class="at-right">
         <div class="c-card at-sum">
+          <div class="at-3d" id="at-3d">
+            <div class="at-3d-v" id="at-3d-v" role="img" aria-label="Ilustração 3D do Euro Sette com as cores e os opcionais escolhidos"></div>
+            <button class="at-3d-big" id="at-3d-big" type="button" aria-pressed="false">Ampliar</button>
+            <p class="at-3d-leg">Ilustração com as cores e os opcionais escolhidos. Arraste para girar; em "Ampliar", use a roda do mouse ou dois dedos para aproximar.</p>
+          </div>
+          <p class="at-3d-cfgp"><a class="at-3d-cfg" id="at-3d-cfg" href="#" target="_blank" rel="noopener">Abrir no configurador ↗</a></p>
           <h2 class="at-h">Seu Euro Sette</h2>
           <table class="c-comp"><tbody id="at-lines"></tbody></table>
           <p class="c-hint at-cores-res" id="at-cores-res"></p>
@@ -1238,6 +1262,21 @@ body.gated { overflow: hidden; }
         <figure class="lb-f"><img id="lb-img" alt=""><figcaption id="lb-cap"></figcaption></figure>
         <button class="lb-b lb-n" type="button" id="lb-n" aria-label="Próxima foto">›</button>
       </div>
+    </section>
+
+    <section class="c-sec" aria-labelledby="h-f-cont">
+      <h2 class="c-h2" id="h-f-cont">Fale com a Euronav</h2>
+      <div class="c-card f-cont"><p id="f-contato"></p></div>
+      <details class="kit-nomes f-cont-ed">
+        <summary>Editar contato</summary>
+        <p class="c-hint">Aparece na ficha técnica, na ficha com fotos e na proposta. Deixe em branco o que não quiser mostrar.</p>
+        <div class="kit-nomes-g">
+          <label class="c-f"><span>Instagram</span><input type="text" data-cv="contatoInsta" autocomplete="off" placeholder="@euronavbr"></label>
+          <label class="c-f"><span>Telefone ou WhatsApp</span><input type="tel" data-cv="contatoTel" autocomplete="off" placeholder="(81) 9 0000-0000"></label>
+          <label class="c-f"><span>E-mail</span><input type="email" data-cv="contatoEmail" autocomplete="off" placeholder="contato@euronav.com.br"></label>
+          <label class="c-f"><span>Site</span><input type="text" data-cv="contatoSite" autocomplete="off" placeholder="www.euronav.com.br"></label>
+        </div>
+      </details>
     </section>
 
     <section class="c-sec" aria-labelledby="h-f-quem">
@@ -1940,7 +1979,7 @@ body.gated { overflow: hidden; }
   const KIT_KEYS = KITS.map((k) => k.key);
   const KIT_PADRAO = {}; KITS.forEach((k) => { KIT_PADRAO[k.key] = { nome: k.nome, curto: k.curto }; });
   const KIT_FATOR_AVULSO = 1.2; // item avulso custa 20% a mais que dentro do kit completo
-  const MAIUSC = /^(Euronav|Euro|Sette|Bruce|Mercury|Yamaha|Sansuy|Hypalon|Orca|Garmin|Savoretti|Brasil|Jet|Deck)$/;
+  const MAIUSC = /^(Euronav|Euro|Sette|Bruce|Mercury|Yamaha|Sansuy|Hypalon|Orca|Garmin|Savoretti|Brasil|Jet|Deck|RULE|\(no|L|W|V|A|Ah)$/;
   function frase(n) { return String(n || "").trim().split(/\s+/).map((w) => (/[0-9]/.test(w) || /^[A-ZÀ-Ý]{2,}$/.test(w) || MAIUSC.test(w)) ? w : w.charAt(0).toLowerCase() + w.slice(1)).join(" "); }
   function listaTxt(arr) { arr = (arr || []).filter(Boolean); return arr.length <= 1 ? (arr[0] || "") : arr.slice(0, -1).join(", ") + " e " + arr[arr.length - 1]; }
   function kitItensOrd(key) { const out = []; st.items.forEach((it, id) => { if (it.grupo === "acessorios" && kitOf(it) === key) out.push([id, it]); }); out.sort((a, b) => num(a[1].ordem) - num(b[1].ordem)); return out; }
@@ -1967,54 +2006,41 @@ body.gated { overflow: hidden; }
   }
   // Visão comercial dos itens: frases por tema, só para itens que estão de fato no kit.
   const SERIE_COM = [
-    ["Conforto e acabamento", [
-      [/estofado/i, "Estofados completos em matelassê, com costura em diamante"],
-      [/piso eva/i, "Piso em EVA náutico completo"],
-      [/capota de popa/i, "Capota de popa para sombra no cockpit"],
-      [/capota de proa/i, "Capota de proa"],
-      [/vaso sanit/i, "Banheiro com vaso sanitário e ducha higiênica"],
-      [/kit de som/i, "Som marinizado com 4 alto-falantes"],
-      [/mesa de proa/i, "Mesa de proa com porta-copos"],
-      [/mesa de popa|mesa do banco/i, "Mesa de apoio no banco do piloto"],
-      [/pia e fog/i, "Pia e fogão"], [/churrasqueira/i, "Churrasqueira a gás com tábua e suporte"], [/caixa t[ée]rmica/i, "Caixa térmica de 26,5 L"],
-      [/caixas de acr/i, "Caixas e porta-objetos em acrílico"],
-      [/porta-copo/i, "Porta-copos em inox"],
-      [/luz de cortesia/i, "Iluminação de cortesia no cockpit e no bar"],
-      [/logomarca/i, "Logomarca Euronav em inox com corte a laser"]]],
-    ["Comando e navegação", [
-      [/volante/i, "Volante branco Savoretti, feito na Itália"],
-      [/painel de comando|placa inox de bot/i, "Painel em inox com comandos iluminados"],
-      [/b[úu]ssola/i, "Bússola de embutir"],
-      [/para-brisa/i, "Para-brisa em acrílico com suportes em inox"],
-      [/apoio de bra/i, "Assento do piloto com apoios de braço em inox"],
-      [/apoio lateral/i, "Apoios laterais em inox no console"],
-      [/sensor de combust/i, "Indicador de nível de combustível"]]],
-    ["Segurança", [
-      [/tecido pvc/i, "Tubulões em PVC Sansuy, com válvulas de enchimento"],
-      [/bomba de por/i, "Bomba de porão de 1.500 GPH"],
-      [/extintor/i, "Extintor com suporte"],
-      [/buzina/i, "Buzina elétrica"],
-      [/chave geral/i, "Chave geral da bateria"],
-      [/pega-m/i, "Pega-mãos na escada de popa e nos tubulões"]]],
-    ["Convés e fundeio", [
-      [/[âa]ncora bruce/i, "Âncora Bruce de 7,5 kg"],
-      [/corrente galvanizada/i, "Corrente galvanizada de 6 mm"],
-      [/corrente inox/i, "Corrente inox de 6 mm"],
-      [/guincho/i, "Guincho elétrico de 700 W"],
-      [/lan[çc]ador/i, "Lançador de âncora duplo"],
-      [/cabo de [âa]ncora/i, "Cabo de âncora de 10 m"],
-      [/amarrador|cunho/i, "Cunhos de amarração"],
-      [/escada de popa/i, "Escada de popa telescópica para banho"],
-      [/mastro de bandeira/i, "Mastro de bandeira em inox"]]],
-    ["Sistemas e autonomia", [
-      [/tanque de combust/i, "Tanque de combustível de 200 L"],
-      [/tanque de [áa]gua/i, "Tanque de água doce de 60 L"],
-      [/bomba de pressuriza/i, "Água pressurizada"],
-      [/bateria/i, "Bateria de 105 Ah"],
-      [/rel[ée] de carregamento/i, "Sistema de carga da bateria"],
-      [/chicote/i, "Instalação elétrica completa"]]]
+    ["Acabamento e Conforto", [
+      [/capota de popa/i, "Capota de Popa"],
+      [/estofado/i, "Bancos Estofados"],
+      [/vaso sanit[áa]rio manual/i, "Vaso Sanitário Manual com Sistema de Acionamento"],
+      [/vaso sanit[áa]rio el[ée]trico/i, "Vaso Sanitário Elétrico"],
+      [/piso eva/i, "Revestimento de Piso em EVA Náutico"],
+      [/volante/i, "Volante Savoretti"],
+      [/para-brisa/i, "Para-brisa"],
+      [/b[úu]ssola/i, "Bússola de Navegação"],
+      [/mastro de bandeira/i, "Mastro de Bandeira"],
+      [/buzina/i, "Buzina Elétrica"],
+      [/porta-copo/i, "Porta-copos"],
+      [/caixas de acr|porta-objeto|porta-treco/i, "Kit de Porta-objetos"],
+      [/escotilha|tampa de inspe/i, "Escotilha de Inspeção"],
+      [/capota de proa/i, "Capota de Proa"],
+      [/pia e fog/i, "Pia e Fogão"], [/churrasqueira/i, "Churrasqueira a Gás com Tábua e Suporte"], [/caixa t[ée]rmica/i, "Caixa Térmica de 26,5 L"]]],
+    ["Sistema Elétrico e Eletrônicos", [
+      [/bateria/i, "Baterias Náuticas"],
+      [/kit de som/i, "Sistema de Som Marinizado com 4 Alto-falantes"],
+      [/luz de cortesia|luz de manuten/i, "Iluminação de Cortesia e Manutenção"]]],
+    ["Sistemas Hidráulicos e Tanques", [
+      [/bomba de por/i, "Bombas de Porão RULE"],
+      [/bomba de pressuriza/i, "Bomba de Pressurização de Água"],
+      [/tanque de combust/i, "Tanque de Combustível de 200L"],
+      [/tanque de [áa]gua/i, "Tanque de Água Doce de 60L"]]],
+    ["Ancoragem e Segurança", [
+      [/[âa]ncora bruce/i, "Âncora"],
+      [/lan[çc]ador/i, "Suporte de Âncora com Roletes"],
+      [/escada de popa/i, "Escada de Popa"],
+      [/extintor/i, "Extintor de Incêndio"],
+      [/guincho/i, "Guincho Elétrico de 700 W"],
+      [/corrente inox/i, "Corrente Inox de 6 mm"],
+      [/cabo de [âa]ncora/i, "Cabo de Âncora de 10 m"]]]
   ];
-  const KIT_COM = [[/vaso sanit[áa]rio el[ée]trico/i, "Vaso sanitário elétrico (no lugar do manual)"], [/amortecedor.*inox/i, "Tampa do painel com amortecedores em inox"], [/trava de corrente/i, "Trava de corrente"]];
+  const KIT_COM = [[/vaso sanit[áa]rio el[ée]trico/i, "Vaso Sanitário Elétrico (no lugar do manual)"], [/amortecedor.*inox/i, "Tampa do Painel com Amortecedores em Inox"], [/trava de corrente/i, "Trava de Corrente"]];
   function nomeComercial(nome) {
     for (const [re, t] of KIT_COM) if (re.test(nome || "")) return t;
     for (const [, lst] of SERIE_COM) for (const [re, t] of lst) if (re.test(nome || "")) return t;
@@ -2031,6 +2057,15 @@ body.gated { overflow: hidden; }
     });
     return { grupos, resto: nomes.filter((n) => !usados.has(n)).length };
   }
+  function contatoPartes() {
+    const v = st.v || {}, out = [];
+    const ins = String(v.contatoInsta || "").trim(); if (ins) out.push("Instagram " + (ins.startsWith("@") ? ins : "@" + ins));
+    const tel = String(v.contatoTel || "").trim(); if (tel) out.push("WhatsApp " + tel);
+    const em = String(v.contatoEmail || "").trim(); if (em) out.push(em);
+    const si = String(v.contatoSite || "").trim(); if (si) out.push(si);
+    return out;
+  }
+  const ENDERECO = "Rua Dr. George William Butler, 569, Galpão 35, Curado, Recife/PE";
   function kitSepara(key) { const ns = st.v && Array.isArray(st.v.kitSemSeparar) ? st.v.kitSemSeparar : ["conforto"]; return !ns.includes(key); }
   function syncKits() {
     const nomes = (st.v && st.v.kitNomes) || {};
@@ -2038,7 +2073,7 @@ body.gated { overflow: hidden; }
       const nm = String(nomes[k.key] || "").trim(), pad = KIT_PADRAO[k.key];
       k.nome = nm || pad.nome; k.curto = nm ? nm.replace(/^kit\s+/i, "") : pad.curto;
       if (k.key === "basico") { const t = serieTxt(); k.desc = "Incluso no casco: " + (t ? t + ", além de " : "") + "combustível, porão, água, elétrica, comando, segurança, ferragens e flutuante."; return; }
-      const its = itensComerciais(k.key).map((t) => t.charAt(0).toLowerCase() + t.slice(1));
+      const its = itensComerciais(k.key).map((t) => frase(t));
       const txt = listaTxt(its);
       k.desc = its.length ? txt.charAt(0).toUpperCase() + txt.slice(1) + "." : "Sem itens no momento.";
     });
@@ -2053,8 +2088,8 @@ body.gated { overflow: hidden; }
   ];
   const DEFAULT_SC = { nome: "Novo cenário", preco: 380000, ipi: 6.5, lc224: true, icmsAliq: 20.5, icmsLocal: 50, icmsFora: 7, volume: 5, moModo: "terceiro", perda: 10, salario: 5500, horasPessoa: 150, alvo: false, investimento: 0, lote: 30, marketing: 0, garantia: 0, margemAlvo: 15 };
   const NUM_KEYS = ["preco", "ipi", "icmsAliq", "icmsLocal", "icmsFora", "volume", "perda", "salario", "horasPessoa", "investimento", "lote", "marketing", "garantia", "margemAlvo"];
-  const DEFAULT_V = { cenario: "", margemCasco: 18, margemKits: 25, margemMotor: 8, tubo: "pvc", hypalon: 10000, gps: false, gpsCusto: 10000, motor: "", kits: { conforto: true, lazer: true, fundeio: true }, desconto: 0, arred: 1000, fechamento: null, atMargem: 35, atMotor: 0, atMin: 15, propValidade: 15, atendentes: ["Adolpho", "Carlos", "Daniel", "Erick", "Felipe", "Igor", "João Vitor", "Júlio", "Malu", "Robson"] };
-  const V_NUM = ["margemCasco", "margemKits", "margemMotor", "hypalon", "gpsCusto", "desconto", "arred", "atMargem", "atMotor", "atMin", "propValidade"];
+  const DEFAULT_V = { cenario: "", margemCasco: 18, margemKits: 25, margemMotor: 8, tubo: "pvc", hypalon: 10000, gps: false, gpsCusto: 10000, gpsPreco: 12900, hypPreco: 24900, contatoInsta: "@euronavbr", contatoTel: "", contatoEmail: "", contatoSite: "", motor: "", kits: { conforto: true, lazer: true, fundeio: true }, desconto: 0, arred: 1000, fechamento: null, atMargem: 35, atMotor: 0, atMin: 15, propValidade: 15, atendentes: ["Adolpho", "Carlos", "Daniel", "Erick", "Felipe", "Igor", "João Vitor", "Júlio", "Malu", "Robson"] };
+  const V_NUM = ["margemCasco", "margemKits", "margemMotor", "hypalon", "hypPreco", "gpsCusto", "gpsPreco", "desconto", "arred", "atMargem", "atMotor", "atMin", "propValidade"];
 
   const st = { col: null, scol: null, vref: null, items: new Map(), scen: new Map(), sel: null, v: JSON.parse(JSON.stringify(DEFAULT_V)), vExists: false, loadedI: false, loadedS: false, canWrite: true, q: "" };
   const rowEls = new Map();
@@ -2115,6 +2150,7 @@ body.gated { overflow: hidden; }
   }
   function equipOn(id, it) { return !it.motor || id === motorId(); }
   // Motor que já traz o GPS (ex.: VesselView): o opcional GPS entra incluído, sem cobrança.
+  function gpsPrecoFixo() { const p = num(st.v && st.v.gpsPreco); return p > 0 ? p : null; }
   function motorGps(id) { const it = id ? st.items.get(id) : null; return !!(it && it.incluiGps); }
   // Itens com ICMS de origem próprio (ex.: motor importado comprado em SC, 4%): troca o crédito médio pelo da nota.
   function icmsAjuste(mid, kits, sc, credRate) {
@@ -2717,7 +2753,7 @@ body.gated { overflow: hidden; }
     if (a > 0 && p > 0) p = Math.ceil(p / a) * a;
     return p;
   }
-  function hypAdd() { return has(st.v.hypPreco) ? num(st.v.hypPreco) : 20000; }
+  function hypAdd() { return has(st.v.hypPreco) && num(st.v.hypPreco) > 0 ? num(st.v.hypPreco) : 24900; }
   function hypCusto() { return has(st.v.hypalon) ? num(st.v.hypalon) : 10000; }
   function cfgVenda() {
     const v = st.v, kits = {};
@@ -2732,7 +2768,6 @@ body.gated { overflow: hidden; }
     const lines = at.lines.filter((l) => l.key !== "hyp").map((l) => Object.assign({}, l, l.key === "casco" ? { nome: "Casco Euro Sette com kit básico (tubos em PVC)" } : {}));
     const custoItens = lines.reduce((s, l) => s + l.custo, 0);
     const hypC = cfg.hyp ? hypCusto() : 0;
-    const hypP = cfg.hyp ? hypAdd() : 0;
     const custo = custoItens + hypC;
     const aliq = Math.max(0, num(sc.icmsAliq)) / 100, loc = Math.min(100, Math.max(0, num(sc.icmsLocal))) / 100, fora = Math.max(0, num(sc.icmsFora)) / 100;
     let energia = 0; st.items.forEach((it) => { if (it.grupo === "estrutura" && /energia/i.test(it.item || "")) energia += lineTotal(it, sc); });
@@ -2742,7 +2777,7 @@ body.gated { overflow: hidden; }
     const icmsCred = credBase * credRate + icmsAdj;
     const RES = 0.05 + 0.02 * 0.95;
     const icmsAt = (fin) => { const deb = aliq * fin; const saldo = Math.max(0, deb - icmsCred); return { deb, saldo, res: saldo * RES }; };
-    const resultAt = (fin) => { const n = (fin - hypP) / (1 + ipi) + hypP; return n - taxFed(n, sc).total - icmsAt(fin).res - custo; };
+    const resultAt = (fin) => { const n = fin / (1 + ipi); return n - taxFed(n, sc).total - icmsAt(fin).res - custo; };
     const solve = (mm) => {
       let lo = custo * 0.5, hi = custo * 4;
       if (resultAt(hi) - mm * hi < 0) return null;
@@ -2750,9 +2785,9 @@ body.gated { overflow: hidden; }
       return hi;
     };
     const tabela = at.total;
-    const final = has(v.fechamento) ? Math.max(0, num(v.fechamento)) + (cfg.hyp ? hypAdd() : 0) : tabela;
+    const final = has(v.fechamento) ? Math.max(0, num(v.fechamento)) + (cfg.hyp ? hypAdd() * (1 + ipi) : 0) : tabela;
     const desconto = tabela - final;
-    const net = (final - hypP) / (1 + ipi) + hypP;
+    const net = final / (1 + ipi);
     const ipiV = final - net;
     const tx = taxFed(net, sc);
     const ic = icmsAt(final);
@@ -2818,7 +2853,7 @@ body.gated { overflow: hidden; }
   function buildVenda() {
     if (!$("view-venda")) return;
     const sl = $("v-slider");
-    const hypCur = () => (st.v.tubo === "hypalon" ? hypAdd() : 0);
+    const hypCur = () => { if (st.v.tubo !== "hypalon") return 0; const sc = vScen(); return hypAdd() * (1 + (sc ? ipiOf(sc) : 0.065)); };
     sl.addEventListener("input", () => { st.v.fechamento = num(sl.value) - hypCur(); renderVenda(); renderResult(); renderFicha(); });
     sl.addEventListener("change", () => { st.v.fechamento = num(sl.value) - hypCur(); renderVenda(); renderResult(); saveV({ fechamento: st.v.fechamento }); });
     $("v-reset").addEventListener("click", () => { st.v.fechamento = null; renderVenda(); renderResult(); saveV({ fechamento: null }); });
@@ -2861,8 +2896,8 @@ body.gated { overflow: hidden; }
     const bk = basicos.map((it) => it.item).join("|");
     if (bl._k !== bk) { bl.replaceChildren(); basicos.forEach((it) => bl.appendChild(el("li", "", it.item))); bl._k = bk; }
     setText("v-basico-sum", "Ver o que já vem no kit básico (" + basicos.length + " itens, custo " + money(r.kits.basico) + ")");
-    setText("v-hyp-preco", "+ " + money(hypAdd()) + " sem IPI");
-    setText("v-gps-preco", motorGps(motorId()) ? "Incluído no motor" : money(num(st.v.gpsCusto)));
+    setText("v-hyp-preco", "+ " + money(hypAdd()) + " + IPI");
+    setText("v-gps-preco", motorGps(motorId()) ? "Incluído no motor" : money(num(st.v.gpsCusto)) + (gpsPrecoFixo() != null ? " · venda " + money(gpsPrecoFixo()) : ""));
     const mid = motorId(); const mi = mid ? st.items.get(mid) : null;
     setText("v-motor-hint", mi ? "Custo do motor e itens de propulsão: " + money(r.parts.equipamentos) + "." + (has(mi.icmsOrig) ? " Crédito de ICMS do motor: " + fmtN(mi.icmsOrig, 1) + "% (nota de outro estado)." : "") + (mi.spec ? " " + mi.spec + "." : "") : "Marque Motor numa linha de Equipamentos na aba Custos.");
     renderVKits(r);
@@ -2875,7 +2910,7 @@ body.gated { overflow: hidden; }
     });
     const t1 = el("tr", "tot"); t1.append(el("td", "", "Custo do barco"), el("td", "n", money(vr.custoItens))); body.appendChild(t1);
     if (vr.hypOn) {
-      const th = el("tr", "sub v-hyp-row"); const tdh = el("td"); tdh.append(document.createTextNode("Tubos em Hypalon, fora da composição"), el("small", "", "Soma " + money(hypAdd()) + " ao preço final, sem IPI; na margem entra " + money(vr.hypC) + " de custo a mais."));
+      const th = el("tr", "sub v-hyp-row"); const tdh = el("td"); tdh.append(document.createTextNode("Tubos em Hypalon, fora da composição"), el("small", "", "Preço fixo de " + money(hypAdd()) + ", com IPI por cima; na margem entra " + money(vr.hypC) + " de custo a mais."));
       th.append(tdh, el("td", "n", "+ " + money(hypAdd()))); body.appendChild(th);
     }
     setText("v-final", money(vr.final));
@@ -3020,7 +3055,7 @@ body.gated { overflow: hidden; }
   // ---------- Atendimento ao cliente ----------
   const AT_KEY = "euronav-atendimento";
   const AT_DEF = { motor: "", kits: { conforto: false, lazer: false, fundeio: false }, kitItens: {}, hyp: false, gps: false, desc: 0, corEst: "Branco", corPiso: "Cinza" };
-  const CORES = [["Branco", "#F4F3EF"], ["Bege", "#D8C5A2"], ["Cinza", "#8C9197"]];
+  const CORES = [["Branco", "#F4F3EF"], ["Bege", "#B5835A"], ["Cinza", "#8C9197"]];
   const corTxt = (c) => String(c || "").toLowerCase();
   st.at = JSON.parse(JSON.stringify(AT_DEF));
   try { const s = localStorage.getItem(AT_KEY); if (s) Object.assign(st.at, JSON.parse(s)); } catch (e) {}
@@ -3052,15 +3087,14 @@ body.gated { overflow: hidden; }
     });
     if (A.hyp) lines.push({ key: "hyp", nome: "Tubos em Hypalon", custo: hypCusto(), fixo: hypAdd(), cred: hypCusto(), cor: "#5F636B" });
     if (motorGps(mid)) lines.push({ key: "gps", nome: "GPS, incluído no motor", custo: 0, fixo: 0, cred: 0, incluso: true, cor: "#8FA6D6" });
-    else if (A.gps) lines.push({ key: "gps", nome: "GPS", custo: num(v.gpsCusto), m: mg, cred: num(v.gpsCusto), cor: "#8FA6D6" });
+    else if (A.gps) lines.push({ key: "gps", nome: "GPS", custo: num(v.gpsCusto), m: mg, cred: num(v.gpsCusto), cor: "#8FA6D6", fixo: gpsPrecoFixo() });
     const custo = lines.reduce((s, l) => s + l.custo, 0);
     const aliq = Math.max(0, num(sc.icmsAliq)) / 100, loc = Math.min(100, Math.max(0, num(sc.icmsLocal))) / 100, fora = Math.max(0, num(sc.icmsFora)) / 100;
     let energia = 0; st.items.forEach((it) => { if (it.grupo === "estrutura" && /energia/i.test(it.item || "")) energia += lineTotal(it, sc); });
     const credRateA = loc * aliq + (1 - loc) * fora;
     const cred = (lines.reduce((s, l) => s + l.cred, 0) + energia) * credRateA + icmsAjuste(mid, A.kits, sc, credRateA);
     const icmsRes = (fin) => Math.max(0, aliq * fin - cred) * (0.05 + 0.02 * 0.95);
-    const hypP = A.hyp ? hypAdd() : 0;
-    const ipiOn = (base) => Math.max(0, base - hypP) * ipi;
+    const ipiOn = (base) => Math.max(0, base) * ipi;
     const resAt = (base) => base - taxFed(base, sc).total - icmsRes(base + ipiOn(base)) - custo;
     const priceAll = (rate, ish) => { lines.forEach((l) => { l.preco = l.fixo != null ? l.fixo : (l.custosItens ? l.custosItens.reduce((s2, c) => s2 + up100(c * KIT_FATOR_AVULSO / Math.max(0.05, 1 - rate - ish - l.m)), 0) : up100(l.custo / Math.max(0.05, 1 - rate - ish - l.m))); }); return lines.reduce((s, l) => s + l.preco, 0); };
     let S = priceAll(taxFed(custo * 1.3, sc).rate, icmsRes(custo * 1.3 * (1 + ipi)) / (custo * 1.3));
@@ -3162,9 +3196,9 @@ body.gated { overflow: hidden; }
       if (st.atKitAviso === k.key) { box.appendChild(el("p", "c-hint at-kit-aviso", "Com todos os itens marcados, o painel passou para o kit completo.")); st.atKitAviso = null; }
       det.appendChild(box); oh.appendChild(det);
     });
-    opt("hyp", "Tubos em Hypalon", "Hypalon Orca, importado da Bélgica: mais resistente a sol, combustível e abrasão. Prazo de entrega maior.", hypAdd(), st.at.hyp, (c) => { st.at.hyp = c; });
+    opt("hyp", "Tubos em Hypalon", "Hypalon Orca, importado da Bélgica: mais resistente a sol, combustível e abrasão.", hypAdd(), st.at.hyp, (c) => { st.at.hyp = c; });
     const gpsM = motorGps(q.mid);
-    opt("gps", "GPS", gpsM ? "Navegação no console. Já vem com o motor escolhido, no painel VesselView." : "Navegação no console.", q.optPrice(num(st.v.gpsCusto)), st.at.gps, (c) => { st.at.gps = c; st.at.gpsAuto = false; }, gpsM ? "Incluído no motor" : null);
+    opt("gps", "GPS", gpsM ? "Navegação no console. Já vem com o motor escolhido, no painel VesselView." : "Navegação no console.", (gpsPrecoFixo() != null ? gpsPrecoFixo() : q.optPrice(num(st.v.gpsCusto))), st.at.gps, (c) => { st.at.gps = c; st.at.gpsAuto = false; }, gpsM ? "Incluído no motor" : null);
     const corG = (hostId, key) => {
       const h = $(hostId); if (!h) return; h.replaceChildren();
       CORES.forEach(([n, hex]) => {
@@ -3176,6 +3210,7 @@ body.gated { overflow: hidden; }
       });
     };
     corG("at-cor-est", "corEst"); corG("at-cor-piso", "corPiso");
+    b3dAtualizar();
     setText("at-cores-res", "Cores: estofado " + corTxt(st.at.corEst || AT_DEF.corEst) + " e piso em EVA " + corTxt(st.at.corPiso || AT_DEF.corPiso) + ", sem custo adicional.");
     const lh = $("at-lines"); lh.replaceChildren();
     q.lines.forEach((l) => atLine(lh, l.nome, l.incluso ? "Incluído" : money(l.preco)));
@@ -3914,7 +3949,7 @@ body.gated { overflow: hidden; }
     font(false, 8); color(MUT); doc.text("Valores em reais, com impostos incluídos e IPI destacado na nota fiscal.", M, y); y += 12;
 
     // ---- condições ----
-    const cond = [["Validade", "Proposta válida por " + d.validade + " dias, até " + dd(d.val) + "."], ["Entrega", d.entrega + (d.hyp ? " Com tubos em Hypalon, o prazo é maior, porque o material vem da Bélgica." : "") + " Valor para retirada no estaleiro da Euronav, em Recife/PE."], ["Pagamento", d.pagamento], ["Garantia", "Casco e tubulões: 2 anos contra defeitos de fabricação estrutural (1 ano em uso profissional ou comercial). Demais itens: 12 meses contra vícios de fabricação. Motor: garantia do fabricante."]];
+    const cond = [["Validade", "Proposta válida por " + d.validade + " dias, até " + dd(d.val) + "."], ["Entrega", d.entrega + " Valor para retirada no estaleiro da Euronav, em Recife/PE."], ["Pagamento", d.pagamento], ["Garantia", "Casco e tubulões: 2 anos contra defeitos de fabricação estrutural (1 ano em uso profissional ou comercial). Demais itens: 12 meses contra vícios de fabricação. Motor: garantia do fabricante."]];
     const cw2 = (CW - 10) / 2;
     font(false, 9); const c0 = 7 + Math.max(doc.splitTextToSize(cond[0][1], cw2 - 6).length, doc.splitTextToSize(cond[1][1], cw2 - 6).length) * 4.2;
     const c1 = 7 + Math.max(doc.splitTextToSize(cond[2][1], cw2 - 6).length, doc.splitTextToSize(cond[3][1], cw2 - 6).length) * 4.2;
@@ -3999,7 +4034,8 @@ body.gated { overflow: hidden; }
 
     // ---- quem faz e contato ----
     font(false, 8.6); const sob = doc.splitTextToSize(SOBRE_EURONAV, CW - 16);
-    const ch = 22 + sob.length * 3.9;
+    const cpp = contatoPartes();
+    const ch = 22 + sob.length * 3.9 + (cpp.length ? 5 : 0);
     need(ch + 10);
     fill([0, 0, 0]); doc.rect(M, y, CW, ch, "F"); fill(BLUE); doc.rect(M, y, 2.4, ch, "F");
     font(true, 11); color(WHITE); doc.text("Quem faz o Euro Sette", M + 8, y + 8.5);
@@ -4007,7 +4043,8 @@ body.gated { overflow: hidden; }
     const cy = y + 14.2 + sob.length * 3.9 + 2.5;
     stroke([60, 60, 60], 0.2); doc.line(M + 8, cy - 2.6, W - M - 8, cy - 2.6);
     font(true, 8.8); color(WHITE); doc.text(d.rep ? "Atendente: " + d.rep : "Estaleiro Euronav LTDA.", M + 8, cy + 1.6);
-    font(false, 8.4); color(PALE); doc.text("Rua Dr. George William Butler, 569, Galpão 35, Curado, Recife/PE", W - M - 8, cy + 1.6, { align: "right" });
+    font(false, 8.4); color(PALE); doc.text(ENDERECO, W - M - 8, cy + 1.6, { align: "right" });
+    if (cpp.length) { font(true, 8.4); color(WHITE); doc.text(cpp.join("   |   "), M + 8, cy + 6.6); }
     y += ch + 7;
     font(false, 7.8); color(MUT); doc.text("Proposta sujeita a confirmação por escrito.", M, y);
 
@@ -4030,7 +4067,9 @@ body.gated { overflow: hidden; }
     btn.disabled = true; msg.textContent = "Gerando a proposta…";
     try {
       const d = propData(q, cur);
-      const blob = buildProposta(q, d, await logoPng(640));
+      const fc = await fotoCor("w_lounge", st.at.corEst || AT_DEF.corEst, st.at.corPiso || AT_DEF.corPiso);
+      if (fc) FOTO_OVR.w_lounge = fc; else delete FOTO_OVR.w_lounge;
+      let blob; try { blob = buildProposta(q, d, await logoPng(640)); } finally { delete FOTO_OVR.w_lounge; }
       let dl = null; try { dl = window.claude && window.claude.use ? await window.claude.use("downloads") : null; } catch (e) { dl = null; }
       if (!dl) { msg.textContent = "Não foi possível salvar o arquivo. Tente de novo."; return; }
       await dl.save({ filename: "Proposta Euro Sette - " + String(d.cliente).replace(/[^\p{L}\p{N} ]/gu, "").slice(0, 60) + ".pdf", data: blob });
@@ -4054,7 +4093,17 @@ body.gated { overflow: hidden; }
     });
     return out;
   }
+  function renderContato() {
+    const p = $("f-contato"); if (!p) return;
+    p.replaceChildren(document.createTextNode("Estaleiro Euronav LTDA., " + ENDERECO + "."));
+    const cps = contatoPartes(); if (cps.length) { p.appendChild(document.createElement("br")); p.appendChild(el("b", "", cps.join("  ·  "))); }
+    document.querySelectorAll("[data-cv]").forEach((inp) => {
+      if (!inp._ok) { inp._ok = true; inp.addEventListener("change", () => { const k = inp.dataset.cv; st.v[k] = inp.value.trim(); saveV({ [k]: st.v[k] }); renderContato(); }); }
+      inp.disabled = !st.canWrite; if (document.activeElement !== inp) inp.value = st.v[inp.dataset.cv] || "";
+    });
+  }
   function renderFichaKits() {
+    renderContato();
     const sh = $("f-serie");
     if (sh) {
       const scm = serieComercial(); sh.replaceChildren();
@@ -4224,7 +4273,7 @@ body.gated { overflow: hidden; }
     if (scm.grupos.length) {
       const NC = 3, gw = (CW - (NC - 1) * 6) / NC;
       // espaço que sobra na página para a série, já reservando kits e contato
-      const disp = (H - 22) - y - 9.5 - (scm.resto > 0 ? 3 : 0) - 3 - (9.5 + kh + 4) - 16;
+      const disp = (H - 22) - y - 9.5 - (scm.resto > 0 ? 3 : 0) - 3 - (9.5 + kh + 4) - (contatoPartes().length ? 21 : 16);
       const montar = (fs, lh) => {
         font(false, fs);
         const blocos = scm.grupos.map(([t, f]) => ({ t, ls: f.map((x) => doc.splitTextToSize(x, gw - 5)) }));
@@ -4261,11 +4310,13 @@ body.gated { overflow: hidden; }
     y += kh + 4;
 
     // contato
-    need(15);
-    fill([0, 0, 0]); doc.rect(M, y, CW, 14, "F"); fill(BLUE); doc.rect(M, y, 2.4, 14, "F");
+    const cps = contatoPartes(), chc = cps.length ? 19 : 14;
+    need(chc + 1);
+    fill([0, 0, 0]); doc.rect(M, y, CW, chc, "F"); fill(BLUE); doc.rect(M, y, 2.4, chc, "F");
     font(true, 10.5); color(WHITE); doc.text("Fale com a Euronav", M + 8, y + 5.9);
-    font(false, 8.4); color(PALE); doc.text("Estaleiro Euronav LTDA.  |  Rua Dr. George William Butler, 569, Galpão 35, Curado, Recife/PE", M + 8, y + 10.6);
-    y += 20;
+    font(false, 8.4); color(PALE); doc.text("Estaleiro Euronav LTDA.  |  " + ENDERECO, M + 8, y + 10.6);
+    if (cps.length) { font(true, 8.6); color(WHITE); doc.text(cps.join("   |   "), M + 8, y + 15.4); }
+    y += chc + 6;
 
     const n = doc.getNumberOfPages();
     for (let i = 1; i <= n; i++) {
@@ -4443,7 +4494,54 @@ body.gated { overflow: hidden; }
     });
   }
   // ---------- Fotos do barco (galeria, telas e PDFs) ----------
-  function fotoPdf(doc, k, x, y, w, h) { const r = FOTOS.recortes[k]; if (r) doc.addImage(r.src, "JPEG", x, y, w, h, "f_" + k); }
+  // Fotos com as cores escolhidas: as fotos originais mostram estofado e piso cinza; as máscaras marcam onde estão,
+  // e só essas áreas mudam de cor, preservando costuras, sombras e brilho.
+  const FOTO_OVR = {};
+  const FOTO_MASCARAS = { w_lounge: "data:image/png;base64,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" };
+  // Troca de cor fisicamente correta: em luz linear, foto = luz x cor do material. Troca-se só a cor do material,
+  // mantendo sol, sombras e brilho. Canais da máscara: R = estofado, G = piso, B = acrílico (segue o estofado).
+  const COR_ALVO = { est: { Branco: [240, 238, 233], Bege: [198, 144, 96] }, piso: { Branco: [226, 224, 218], Bege: [212, 188, 150] } };
+  const S2L = new Float32Array(256); for (let i = 0; i < 256; i++) { const c = i / 255; S2L[i] = c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }
+  const L2S = new Uint8ClampedArray(4097); for (let i = 0; i <= 4096; i++) { const l = i / 4096; L2S[i] = Math.round(255 * (l <= 0.0031308 ? l * 12.92 : 1.055 * Math.pow(l, 1 / 2.4) - 0.055)); }
+  function recolorCanal(src, px, m, canal, alvo, espec = true) {
+    if (!alvo) return;
+    const ls = [];
+    for (let i = 0; i < src.length; i += 4) if (m[i + canal] > 127) ls.push(0.2126 * S2L[src[i]] + 0.7152 * S2L[src[i + 1]] + 0.0722 * S2L[src[i + 2]]);
+    if (ls.length < 50) return;
+    const ord = Float32Array.from(ls).sort(), q = (p) => ord[Math.min(ord.length - 1, Math.floor(p * ord.length))];
+    const p65 = q(0.65), p80 = q(0.8), p92 = q(0.92);
+    let r = 0, g = 0, b = 0, n = 0;
+    for (let i = 0; i < src.length; i += 4) if (m[i + canal] > 127) { const l = 0.2126 * S2L[src[i]] + 0.7152 * S2L[src[i + 1]] + 0.0722 * S2L[src[i + 2]]; if (l > p65 && l < p92) { r += S2L[src[i]]; g += S2L[src[i + 1]]; b += S2L[src[i + 2]]; n++; } }
+    if (!n) return;
+    const k0 = S2L[alvo[0]] / (r / n), k1 = S2L[alvo[1]] / (g / n), k2 = S2L[alvo[2]] / (b / n);
+    const lim = 0.82, sc = (o) => (o > lim ? lim + (1 - lim) * (1 - Math.exp(-(o - lim) / (1 - lim))) : o);
+    for (let i = 0; i < src.length; i += 4) {
+      const a = m[i + canal] / 255; if (a <= 0) continue;
+      const R = S2L[src[i]], G = S2L[src[i + 1]], B = S2L[src[i + 2]], I = (0.2126 * R + 0.7152 * G + 0.0722 * B) / p80;
+      const e = espec ? Math.min(1, Math.max(0, (I - 1.75) / 0.5)) : 0;
+      const o0 = sc(R * k0 * (1 - e) + R * e), o1 = sc(G * k1 * (1 - e) + G * e), o2 = sc(B * k2 * (1 - e) + B * e);
+      px[i] += (L2S[Math.round(Math.min(1, o0) * 4096)] - px[i]) * a; px[i + 1] += (L2S[Math.round(Math.min(1, o1) * 4096)] - px[i + 1]) * a; px[i + 2] += (L2S[Math.round(Math.min(1, o2) * 4096)] - px[i + 2]) * a;
+    }
+  }
+  function recolorir(d, m, est, piso) {
+    const src = new Uint8ClampedArray(d.data), px = d.data;
+    recolorCanal(src, px, m, 0, COR_ALVO.est[est]); recolorCanal(src, px, m, 2, COR_ALVO.est[est], false); recolorCanal(src, px, m, 1, COR_ALVO.piso[piso]);
+  }
+  const carregaImg = (src) => new Promise((ok, erro) => { const i = new Image(); i.onload = () => ok(i); i.onerror = erro; i.src = src; });
+  async function fotoCor(k, est, piso) {
+    const r = FOTOS.recortes[k], mk = FOTO_MASCARAS[k];
+    if (!r || !mk || (!COR_ALVO.est[est] && !COR_ALVO.piso[piso])) return null;
+    try {
+      const [im, mi] = await Promise.all([carregaImg(r.src), carregaImg(mk)]);
+      const W = im.naturalWidth, H = im.naturalHeight;
+      const c = document.createElement("canvas"); c.width = W; c.height = H; const g = c.getContext("2d"); g.drawImage(im, 0, 0);
+      const d = g.getImageData(0, 0, W, H);
+      const c2 = document.createElement("canvas"); c2.width = W; c2.height = H; const g2 = c2.getContext("2d"); g2.drawImage(mi, 0, 0, W, H);
+      recolorir(d, g2.getImageData(0, 0, W, H).data, est, piso); g.putImageData(d, 0, 0);
+      return c.toDataURL("image/jpeg", 0.9);
+    } catch (e) { return null; }
+  }
+  function fotoPdf(doc, k, x, y, w, h) { const r = FOTOS.recortes[k]; const src = FOTO_OVR[k] || (r && r.src); if (src) doc.addImage(src, "JPEG", x, y, w, h, "f_" + k + (FOTO_OVR[k] ? "_cor" : "")); }
   function bandaFoto(doc, W, H, opac) {
     fotoPdf(doc, "b_proa", 0, 0, W, H);
     doc.setFillColor(0, 0, 0);
@@ -4527,6 +4625,360 @@ body.gated { overflow: hidden; }
     }
     KITS.forEach((k) => { const inp = $("kit-nome-" + k.key); if (!inp) return; inp.disabled = !st.canWrite; if (document.activeElement !== inp) inp.value = k.nome; const sp = $("kit-sep-" + k.key); if (sp) { sp.checked = kitSepara(k.key); sp.disabled = !st.canWrite; } });
     document.querySelectorAll("#c-groups select option").forEach((o) => { const k = KITS.find((x) => x.key === o.value); if (k && o.textContent !== k.curto) o.textContent = k.curto; });
+  }
+  // ---------- Modelo 3D do barco no Atendimento (ilustrativo) ----------
+  const B3D = { estado: "off" };
+  const B3D_EST = { Branco: 0xF1EFEA, Bege: 0xB5835A, Cinza: 0x8C9197 };
+  const B3D_PISO = { Branco: ["#E8E6E0", "#B8B5AD"], Bege: ["#B07E55", "#E4D3BD"], Cinza: ["#8D8E8B", "#E2E1DC"] };
+  function b3dVisivel() { const v = $("at-3d-v"); return !!(v && v.offsetParent); }
+  function b3dCarregar() {
+    if (B3D.estado !== "off" || !b3dVisivel()) return;
+    B3D.estado = "carregando";
+    if (window.THREE) { b3dIniciar(); return; }
+    const sc = document.createElement("script");
+    sc.src = "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
+    sc.onload = b3dIniciar;
+    sc.onerror = () => { B3D.estado = "erro"; const c = $("at-3d"); if (c) c.hidden = true; };
+    document.head.appendChild(sc);
+  }
+  function b3dTemItem(re) {
+    let ok = false;
+    st.items.forEach((it, id) => {
+      if (ok || it.grupo !== "acessorios" || !re.test(it.item || "")) return;
+      const k = kitOf(it);
+      if (k === "basico" || (st.at.kits && st.at.kits[k]) || (kitSepara(k) && ((st.at.kitItens && st.at.kitItens[k]) || []).includes(id))) ok = true;
+    });
+    return ok;
+  }
+  function b3dIniciar() {
+    const T = window.THREE, host = $("at-3d-v");
+    if (!T || !host) { B3D.estado = "erro"; return; }
+    let ren;
+    try { ren = new T.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" }); } catch (e) { B3D.estado = "erro"; const c = $("at-3d"); if (c) c.hidden = true; return; }
+    ren.setPixelRatio(Math.min(2.5, window.devicePixelRatio || 1));
+    ren.outputEncoding = T.sRGBEncoding; ren.toneMapping = T.ACESFilmicToneMapping; ren.toneMappingExposure = 0.84;
+    ren.shadowMap.enabled = true; ren.shadowMap.type = T.PCFSoftShadowMap;
+    host.appendChild(ren.domElement);
+    const C = (hex) => new T.Color(hex).convertSRGBToLinear();
+    const cena = new T.Scene();
+    // ambiente de céu para reflexos no gelcoat e no inox
+    try {
+      const pm = new T.PMREMGenerator(ren), env = new T.Scene();
+      const sg = new T.SphereGeometry(50, 48, 24), cs = [], P = sg.attributes.position;
+      const zen = new T.Color(0x7FAEDF), hor = new T.Color(0xF2F5F8), chao = new T.Color(0x7E8B78);
+      for (let i = 0; i < P.count; i++) { const y = P.getY(i) / 50; const c = y >= 0 ? hor.clone().lerp(zen, Math.pow(y, 0.55)) : hor.clone().lerp(chao, Math.min(1, -y * 3)); cs.push(c.r, c.g, c.b); }
+      sg.setAttribute("color", new T.Float32BufferAttribute(cs, 3));
+      env.add(new T.Mesh(sg, new T.MeshBasicMaterial({ vertexColors: true, side: T.BackSide })));
+      const sl = new T.Mesh(new T.SphereGeometry(5, 16, 8), new T.MeshBasicMaterial({ color: 0xffffff })); sl.position.set(22, 30, 18); env.add(sl);
+      cena.environment = pm.fromScene(env, 0.03).texture; pm.dispose();
+    } catch (e) { /* segue sem reflexos */ }
+    const cam = new T.PerspectiveCamera(28, 1, 0.1, 100);
+    cena.add(new T.HemisphereLight(C(0xffffff), C(0x8e97a2), 0.12));
+    const sol = new T.DirectionalLight(C(0xfff4e6), 1.95); sol.position.set(7, 11, 4); sol.castShadow = true;
+    sol.shadow.mapSize.set(2048, 2048); Object.assign(sol.shadow.camera, { left: -7, right: 7, top: 7, bottom: -7, near: 1, far: 32 }); sol.shadow.bias = -0.0005; sol.shadow.radius = 3;
+    cena.add(sol);
+    const rim = new T.DirectionalLight(C(0xdfe8ff), 0.4); rim.position.set(-8, 5, -7); cena.add(rim);
+    const giro = new T.Group(); cena.add(giro);
+    const barco = new T.Group(); barco.position.x = -3.6; giro.add(barco);
+    const chao = new T.Mesh(new T.PlaneGeometry(30, 30), new T.ShadowMaterial({ opacity: 0.22 })); chao.rotation.x = -Math.PI / 2; chao.position.y = -0.98; chao.receiveShadow = true; giro.add(chao);
+    const M = (hex, op) => new T.MeshStandardMaterial(Object.assign({ color: C(hex), roughness: 0.5, metalness: 0.0 }, op || {}));
+    const add = (m, g, semSombra) => { if (!semSombra) { m.castShadow = true; m.receiveShadow = true; } (g || barco).add(m); return m; };
+    const tela = (w, h, desenha, rep) => { const cv = document.createElement("canvas"); cv.width = w; cv.height = h; const t = new T.CanvasTexture(cv); t.encoding = T.sRGBEncoding; t.anisotropy = 8; if (rep) t.wrapS = t.wrapT = T.RepeatWrapping; t.cv = cv; t.desenhar = (...a) => { desenha(cv.getContext("2d"), w, h, ...a); t.needsUpdate = true; }; return t; };
+    const hexCss = (hex, f) => { const c = new T.Color(hex); if (f) c.multiplyScalar(f); return "#" + c.getHexString(); };
+    // ---- materiais ----
+    const texEst = tela(512, 512, (g, w, h, hex) => {
+      g.fillStyle = hexCss(hex); g.fillRect(0, 0, w, h);
+      const passo = 80;
+      for (let i = -w; i < w * 2; i += passo) for (const s of [1, -1]) {
+        g.strokeStyle = hexCss(hex, 0.9); g.lineWidth = 2.5; g.beginPath(); g.moveTo(i, s > 0 ? 0 : h); g.lineTo(i + h, s > 0 ? h : 0); g.stroke();
+        g.strokeStyle = "rgba(255,255,255,.3)"; g.lineWidth = 1; g.setLineDash([5, 4]); g.beginPath(); g.moveTo(i + 3, s > 0 ? 0 : h); g.lineTo(i + h + 3, s > 0 ? h : 0); g.stroke(); g.setLineDash([]);
+      }
+    }, true);
+    const bumpEst = tela(512, 512, (g, w, h) => { g.fillStyle = "#fff"; g.fillRect(0, 0, w, h); g.strokeStyle = "#555"; g.lineWidth = 6; g.filter = "blur(2px)"; for (let i = -w; i < w * 2; i += 80) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i + h, h); g.stroke(); g.beginPath(); g.moveTo(i, h); g.lineTo(i + h, 0); g.stroke(); } }, true);
+    bumpEst.desenhar(); texEst.repeat.set(1.6, 1.6); bumpEst.repeat.set(1.6, 1.6);
+    const mat = {
+      casco: M(0xF1F2F3, { roughness: 0.2, side: T.DoubleSide, envMapIntensity: 0.35 }), gel: M(0xF6F6F5, { roughness: 0.22, envMapIntensity: 0.3 }),
+      est: new T.MeshStandardMaterial({ map: texEst, bumpMap: bumpEst, bumpScale: 0.008, roughness: 0.8 }),
+      inox: M(0xE3E7EB, { metalness: 1, roughness: 0.16, envMapIntensity: 1.3 }), escuro: M(0x1B1D21, { roughness: 0.35 }), preto: M(0x0A0B0D, { roughness: 0.08, metalness: 0.2 }),
+      motor: M(0xF2F2F1, { roughness: 0.16, envMapIntensity: 0.55 }), motorEsc: M(0x2A2D31, { roughness: 0.4 }), madeira: M(0xB98B57, { roughness: 0.65 }), branco: M(0xF4F4F2, { roughness: 0.4 }), acril: M(0xC9D0D8, { roughness: 0.12, envMapIntensity: 0.6 }),
+      vidro: new T.MeshPhysicalMaterial({ color: C(0xB9CDDB), transparent: true, opacity: 0.28, roughness: 0.04, metalness: 0, side: T.DoubleSide, envMapIntensity: 1.2 })
+    };
+    // ---- casco em V ----
+    const L = 7.75, BW = 1.12;
+    const perfil = (t) => ({ w: Math.max(0.03, t < 0.52 ? BW : BW * Math.pow(Math.cos(((t - 0.52) / 0.48) * Math.PI / 2), 0.8)), d: 0.68 * (1 - 0.6 * Math.max(0, (t - 0.6) / 0.4)), h: 0.16 * Math.pow(Math.max(0, (t - 0.62) / 0.38), 1.6) });
+    { const NS = 72, NP = 16, pos = [], idx = [];
+      for (let i = 0; i <= NS; i++) { const t = i / NS, p = perfil(t), x = t * L;
+        for (let j = 0; j <= NP; j++) { const s = -1 + 2 * j / NP, a = Math.abs(s); let yv = p.h - p.d * Math.pow(1 - a, 1.15) * (1 - 0.18 * Math.sin(Math.PI * a)); if (Math.abs(a - 0.45) < 0.04 || Math.abs(a - 0.72) < 0.04) yv -= 0.012; pos.push(x, yv, s * p.w); } }
+      for (let i = 0; i < NS; i++) for (let j = 0; j < NP; j++) { const a = i * (NP + 1) + j, b = a + NP + 1; idx.push(a, b, a + 1, a + 1, b, b + 1); }
+      const nb = pos.length / 3; pos.push(0, 0.05, 0); for (let j = 0; j < NP; j++) idx.push(nb, j + 1, j);
+      const g = new T.BufferGeometry(); g.setAttribute("position", new T.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals(); add(new T.Mesh(g, mat.casco)); }
+    // ---- piso (EVA) e paredes internas ----
+    const texPiso = tela(512, 512, (g, w, h, base, friso) => { g.fillStyle = base; g.fillRect(0, 0, w, h); g.fillStyle = friso; for (let i = 6; i < h; i += 30) g.fillRect(0, i, w, 3); g.fillStyle = "rgba(0,0,0,.06)"; for (let k = 0; k < 1400; k++) g.fillRect(Math.random() * w, Math.random() * h, 1.5, 1.5); }, true);
+    texPiso.repeat.set(0.3, 0.95);
+    const forma = new T.Shape(); forma.moveTo(-0.05, -0.92); forma.lineTo(4.7, -0.92); forma.quadraticCurveTo(6.55, -0.92, 6.95, 0); forma.quadraticCurveTo(6.55, 0.92, 4.7, 0.92); forma.lineTo(-0.05, 0.92); forma.closePath();
+    const piso = add(new T.Mesh(new T.ShapeGeometry(forma, 30), new T.MeshStandardMaterial({ map: texPiso, roughness: 0.92 }))); piso.rotation.x = -Math.PI / 2; piso.position.y = -0.12;
+    { const op = forma.getPoints(40), pos = [], idx = []; op.forEach((p) => { pos.push(p.x, -0.12, -p.y, p.x, 0.36, -p.y); });
+      for (let i = 0; i < op.length - 1; i++) { const a = i * 2; idx.push(a, a + 2, a + 1, a + 1, a + 2, a + 3); }
+      const g = new T.BufferGeometry(); g.setAttribute("position", new T.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals(); add(new T.Mesh(g, new T.MeshStandardMaterial({ color: C(0xFAFAFA), roughness: 0.25, side: T.DoubleSide }))); }
+    // ---- tubulões com faixa lateral cinza ----
+    const pts = [];
+    const lado = (s, ts) => ts.forEach((t) => { const p = perfil(t); pts.push(new T.Vector3(t * L, p.h + 0.14, s * (p.w + 0.2))); });
+    pts.push(new T.Vector3(-0.75, 0.14, -(BW + 0.2))); lado(-1, [0, 0.18, 0.36, 0.52, 0.63, 0.73, 0.82, 0.9, 0.96]);
+    pts.push(new T.Vector3(L + 0.14, 0.34, 0)); lado(1, [0.96, 0.9, 0.82, 0.73, 0.63, 0.52, 0.36, 0.18, 0]); pts.push(new T.Vector3(-0.75, 0.14, BW + 0.2));
+    const curva = new T.CatmullRomCurve3(pts, false, "centripetal");
+    const gT = new T.TubeGeometry(curva, 420, 0.28, 48, false);
+    const v0 = gT.attributes.normal.getZ(0) < 0 ? 0 : 0.5;
+    const texTubo = tela(1024, 1024, (g, w, h, base, faixa, linha) => {
+      g.fillStyle = base; g.fillRect(0, 0, w, h);
+      for (let k = 1; k < 26; k++) { const xx = Math.round(k * w / 26); g.fillStyle = "rgba(0,0,0,.09)"; g.fillRect(xx, 0, 2, h); g.fillStyle = "rgba(255,255,255,.12)"; g.fillRect(xx + 2, 0, 1, h); }
+      const banda = (c) => { const y = c * h; g.fillStyle = faixa; g.fillRect(0, y - 0.06 * h, w, 0.12 * h); g.fillStyle = linha; g.fillRect(0, y - 0.06 * h, w, 4); g.fillRect(0, y + 0.06 * h - 4, w, 4); };
+      if (v0 === 0) { banda(0); banda(1); } else banda(0.5);
+    });
+    const matTubo = new T.MeshStandardMaterial({ map: texTubo, roughness: 0.5, envMapIntensity: 0.3 });
+    add(new T.Mesh(gT, matTubo));
+    const matPonta = M(0xE2E3E0, { roughness: 0.42 });
+    [pts[0], pts[pts.length - 1]].forEach((p) => { const e = add(new T.Mesh(new T.SphereGeometry(0.28, 40, 24), matPonta)); e.position.copy(p); e.scale.set(1.35, 1, 1); });
+    const texLogo = tela(1024, 300, (g, w, h) => { g.clearRect(0, 0, w, h); g.fillStyle = "#80868e"; g.font = "italic 900 190px 'Saira', 'Arial Black', sans-serif"; g.fillText("EURO", 30, 190); g.font = "500 58px 'Saira', Arial, sans-serif"; g.fillText("S   E   T   T   E", 250, 270); g.fillRect(30, 232, 190, 9); });
+    texLogo.desenhar();
+    [-1, 1].forEach((s) => { const pl = new T.Mesh(new T.PlaneGeometry(1.55, 0.45), new T.MeshStandardMaterial({ map: texLogo, transparent: true, roughness: 0.5, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 })); pl.position.set(1.05, 0.2, s * (BW + 0.2 + 0.283)); pl.rotation.y = s > 0 ? 0 : Math.PI; barco.add(pl); });
+    { const matAlca = M(0x6E737A, { roughness: 0.7 });
+      [-1, 1].forEach((sg) => [1.3, 2.8, 4.4, 5.7].forEach((x) => { const p = perfil(x / L), y0 = p.h + 0.14 + 0.27, z = sg * (p.w + 0.2);
+        barco.add(Object.assign(new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3([new T.Vector3(x - 0.08, y0, z), new T.Vector3(x - 0.05, y0 + 0.045, z), new T.Vector3(x + 0.05, y0 + 0.045, z), new T.Vector3(x + 0.08, y0, z)]), 16, 0.013, 8), matAlca), { castShadow: true })); })); }
+    [[0.25, -0.98], [0.25, 0.98], [6.05, -0.8], [6.05, 0.8]].forEach(([x, z]) => { const g = new T.Group(); const b0 = new T.Mesh(new T.BoxGeometry(0.16, 0.018, 0.03), M(0xE3E7EB, { metalness: 1, roughness: 0.16 })); b0.position.y = 0.035; g.add(b0);
+      [-0.04, 0.04].forEach((dx) => { const c = new T.Mesh(new T.CylinderGeometry(0.01, 0.012, 0.035, 10), M(0xE3E7EB, { metalness: 1, roughness: 0.16 })); c.position.set(dx, 0.017, 0); g.add(c); }); g.position.set(x, 0.36, z); g.traverse((o) => { o.castShadow = true; }); barco.add(g); });
+    // ---- peças arredondadas ----
+    const roundRect = (w, h, r) => { const s = new T.Shape(), x = -w / 2, y = -h / 2; s.moveTo(x + r, y); s.lineTo(x + w - r, y); s.quadraticCurveTo(x + w, y, x + w, y + r); s.lineTo(x + w, y + h - r); s.quadraticCurveTo(x + w, y + h, x + w - r, y + h); s.lineTo(x + r, y + h); s.quadraticCurveTo(x, y + h, x, y + h - r); s.lineTo(x, y + r); s.quadraticCurveTo(x, y, x + r, y); return s; };
+    const almofada = (sx, sz, esp, m, x, y, z, rot) => {
+      const r = Math.min(0.09, sx * 0.25, sz * 0.25), bv = Math.min(0.045, esp * 0.4);
+      const g = new T.ExtrudeGeometry(roundRect(Math.max(0.02, sx - 2 * bv), Math.max(0.02, sz - 2 * bv), r), { depth: Math.max(0.005, esp - 2 * bv), bevelEnabled: true, bevelThickness: bv, bevelSize: bv, bevelSegments: 5, curveSegments: 10 });
+      g.rotateX(-Math.PI / 2); g.translate(0, -esp / 2 + bv, 0);
+      const o = add(new T.Mesh(g, m || mat.est)); o.position.set(x, y, z); if (rot) o.rotation.set(rot[0] || 0, rot[1] || 0, rot[2] || 0); return o;
+    };
+    const bloco = (sx, sy, sz, m, x, y, z) => almofada(sx, sz, sy, m, x, y, z);
+    const tubo = (pp, r, m, seg) => add(new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(pp.map((p) => new T.Vector3(p[0], p[1], p[2]))), seg || 40, r, 10), m || mat.inox));
+    const decal = (tex, w, h, x, y, z, ry, g) => { const p = new T.Mesh(new T.PlaneGeometry(w, h), new T.MeshStandardMaterial({ map: tex, transparent: true, depthWrite: false, roughness: 0.4, polygonOffset: true, polygonOffsetFactor: -2 })); p.position.set(x, y, z); p.rotation.y = ry || 0; (g || barco).add(p); return p; };
+    const texto = (txt, cor, fonte, w, h) => { const t = tela(w || 512, h || 128, (g, W, H) => { g.clearRect(0, 0, W, H); g.fillStyle = cor; g.font = fonte; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(txt, W / 2, H / 2); }); t.desenhar(); return t; };
+    // ---- popa: banco, espelho com logo, plataformas e alças ----
+    bloco(0.62, 0.46, 1.95, mat.gel, 0.36, 0.0, 0);
+    almofada(0.58, 1.88, 0.15, mat.est, 0.38, 0.3, 0);
+    almofada(0.15, 1.88, 0.5, mat.est, 0.1, 0.58, 0, [0, 0, 0.1]);
+    [-1, 1].forEach((s) => { bloco(1.05, 0.4, 0.42, mat.gel, 1.2, -0.02, s * 0.76); almofada(1.0, 0.38, 0.13, mat.est, 1.2, 0.24, s * 0.76); });
+    decal(texto("euronav", "#2b2e33", "500 86px 'Saira', Arial, sans-serif"), 0.5, 0.125, 0.0, 0.44, 0, -Math.PI / 2);
+    [-1, 1].forEach((s) => {
+      bloco(0.72, 0.16, 0.66, mat.gel, -0.38, -0.08, s * 0.72);
+      const ev = almofada(0.62, 0.56, 0.02, null, -0.38, 0.01, s * 0.72); ev.material = new T.MeshStandardMaterial({ map: texPiso, roughness: 0.9 });
+      const pl = add(new T.Mesh(new T.BoxGeometry(0.06, 0.1, 0.62), mat.inox)); pl.position.set(-0.76, -0.04, s * 0.72);
+      tubo([[-0.55, 0.02, s * 0.98], [-0.55, 0.38, s * 0.98], [-0.42, 0.42, s * 0.98], [-0.3, 0.38, s * 0.98], [-0.3, 0.02, s * 0.98]], 0.018);
+    });
+    // mastro de bandeira e luz de navegação
+    const mastro = new T.Group(); barco.add(mastro);
+    { const m = new T.Mesh(new T.CylinderGeometry(0.012, 0.014, 0.75, 10), mat.inox); m.position.set(-0.55, 0.38, 0.52); mastro.add(m);
+      const tb = tela(96, 64, (g, w, h) => { g.fillStyle = "#009739"; g.fillRect(0, 0, w, h); g.fillStyle = "#FEDD00"; g.beginPath(); g.moveTo(w / 2, 6); g.lineTo(w - 8, h / 2); g.lineTo(w / 2, h - 6); g.lineTo(8, h / 2); g.closePath(); g.fill(); g.fillStyle = "#012169"; g.beginPath(); g.arc(w / 2, h / 2, 12, 0, Math.PI * 2); g.fill(); }); tb.desenhar();
+      const f = new T.Mesh(new T.PlaneGeometry(0.22, 0.15), new T.MeshStandardMaterial({ map: tb, side: T.DoubleSide, roughness: 0.8 })); f.position.set(-0.66, 0.66, 0.52); mastro.add(f); }
+    { const m = add(new T.Mesh(new T.CylinderGeometry(0.012, 0.012, 0.55, 10), mat.inox)); m.position.set(-0.55, 0.3, -0.52); const l = add(new T.Mesh(new T.CylinderGeometry(0.03, 0.03, 0.08, 16), M(0xffffff, { roughness: 0.1, transparent: true, opacity: 0.85 }))); l.position.set(-0.55, 0.61, -0.52); }
+    // ---- banco do piloto: módulo de fibra, estofados, apoios de braço e mesa acoplada (como na foto) ----
+    { const pl = new T.Shape(); pl.moveTo(-0.3, -0.12); pl.lineTo(0.3, -0.12); pl.lineTo(0.3, 0.44); pl.quadraticCurveTo(0.3, 0.5, 0.24, 0.5); pl.lineTo(-0.24, 0.5); pl.quadraticCurveTo(-0.3, 0.5, -0.3, 0.44); pl.closePath();
+      const g = new T.ExtrudeGeometry(pl, { depth: 0.8, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.045, bevelSegments: 6, curveSegments: 12 }); g.translate(0, 0, -0.4);
+      const lp = add(new T.Mesh(g, mat.gel)); lp.position.set(2.92, 0, 0); }
+    almofada(0.54, 0.84, 0.13, mat.est, 2.96, 0.62, 0);
+    almofada(0.14, 0.86, 0.56, mat.est, 2.67, 0.97, 0, [0, 0, -0.07]);
+    [-1, 1].forEach((s) => { tubo([[2.66, 0.55, s * 0.47], [2.68, 0.86, s * 0.51], [3.02, 0.88, s * 0.51], [3.1, 0.62, s * 0.47]], 0.016); almofada(0.4, 0.1, 0.07, mat.est, 2.86, 0.92, s * 0.51); });
+    decal(texto("euronav", "#2b2e33", "500 86px 'Saira', Arial, sans-serif"), 0.22, 0.055, 2.574, 0.47, 0, -Math.PI / 2);
+    { // mesa em balanço presa ao módulo, com borda elevada e 4 porta-copos em inox
+      const g = new T.ExtrudeGeometry(roundRect(0.4, 0.62, 0.06), { depth: 0.02, bevelEnabled: true, bevelThickness: 0.012, bevelSize: 0.014, bevelSegments: 4, curveSegments: 10 }); g.rotateX(-Math.PI / 2);
+      const mesa = add(new T.Mesh(g, mat.gel)); mesa.position.set(2.36, 0.34, 0);
+      const tampo = add(new T.Mesh(new T.PlaneGeometry(0.33, 0.55), mat.acril)); tampo.rotation.x = -Math.PI / 2; tampo.position.set(2.36, 0.373, 0);
+      [[-0.09, -0.17], [-0.09, 0.17], [0.08, -0.17], [0.08, 0.17]].forEach(([dx, dz]) => {
+        const an = add(new T.Mesh(new T.TorusGeometry(0.042, 0.008, 10, 32), mat.inox)); an.rotation.x = Math.PI / 2; an.position.set(2.36 + dx, 0.377, dz);
+        const fd = add(new T.Mesh(new T.CircleGeometry(0.038, 24), mat.inox)); fd.rotation.x = -Math.PI / 2; fd.position.set(2.36 + dx, 0.36, dz); });
+      const porta = new T.Mesh(new T.PlaneGeometry(0.42, 0.26), mat.vidro); porta.position.set(2.568, 0.1, 0); porta.rotation.y = -Math.PI / 2; barco.add(porta);
+      [-1, 1].forEach((s) => { const dob = add(new T.Mesh(new T.BoxGeometry(0.012, 0.05, 0.03), mat.inox)); dob.position.set(2.566, 0.19, s * 0.15); }); }
+    // ---- console ----
+    const perfilC = new T.Shape(); perfilC.moveTo(-0.5, -0.12); perfilC.lineTo(0.5, -0.12); perfilC.lineTo(0.5, 0.62); perfilC.quadraticCurveTo(0.45, 0.98, 0.18, 1.02); perfilC.lineTo(-0.36, 0.98); perfilC.quadraticCurveTo(-0.5, 0.96, -0.5, 0.82); perfilC.closePath();
+    const gCon = new T.ExtrudeGeometry(perfilC, { depth: 0.9, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.05, bevelSegments: 5, curveSegments: 14 }); gCon.translate(0, 0, -0.45);
+    const con = add(new T.Mesh(gCon, mat.gel)); con.position.set(3.75, 0, 0);
+    const painel = new T.Group(); painel.position.set(3.55, 1.0, 0); painel.rotation.z = 0.14; barco.add(painel);
+    { const base = new T.Mesh(new T.BoxGeometry(0.46, 0.02, 0.84), M(0xCFC8BA, { roughness: 0.7 })); base.receiveShadow = true; painel.add(base);
+      const texBot = tela(256, 160, (g, w, h) => { const gr = g.createLinearGradient(0, 0, w, h); gr.addColorStop(0, "#d9dde1"); gr.addColorStop(1, "#aab0b6"); g.fillStyle = gr; g.fillRect(0, 0, w, h); for (let r = 0; r < 3; r++) for (let c = 0; c < 6; c++) { g.fillStyle = "#3a3d42"; g.beginPath(); g.arc(28 + c * 40, 32 + r * 46, 11, 0, Math.PI * 2); g.fill(); g.fillStyle = "#6fa8ff"; g.beginPath(); g.arc(28 + c * 40, 32 + r * 46, 4, 0, Math.PI * 2); g.fill(); } }); texBot.desenhar();
+      const bot = new T.Mesh(new T.PlaneGeometry(0.3, 0.19), new T.MeshStandardMaterial({ map: texBot, metalness: 0.6, roughness: 0.3 })); bot.rotation.x = -Math.PI / 2; bot.rotation.z = Math.PI / 2; bot.position.set(-0.05, 0.012, -0.22); painel.add(bot);
+      const gar = new T.Group(); const bz = new T.Mesh(new T.BoxGeometry(0.24, 0.025, 0.34), M(0xC9CBCD, { roughness: 0.5 })); gar.add(bz);
+      const scr = new T.Mesh(new T.PlaneGeometry(0.2, 0.3), mat.preto); scr.rotation.x = -Math.PI / 2; scr.rotation.z = Math.PI / 2; scr.position.y = 0.014; gar.add(scr);
+      gar.position.set(-0.02, 0.012, 0.2); painel.add(gar); B3D.gar = gar;
+      const som = new T.Mesh(new T.BoxGeometry(0.08, 0.012, 0.13), mat.preto); som.position.set(-0.05, 0.012, 0.0); painel.add(som); }
+    const bus = new T.Group(); { const b0 = new T.Mesh(new T.CylinderGeometry(0.08, 0.09, 0.05, 24), mat.branco); bus.add(b0); const b1 = new T.Mesh(new T.SphereGeometry(0.075, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2), mat.preto); b1.position.y = 0.025; bus.add(b1); bus.position.set(3.82, 1.05, 0); bus.traverse((o) => { o.castShadow = true; }); barco.add(bus); }
+    const vid = new T.Mesh(new T.CylinderGeometry(0.62, 0.62, 0.44, 48, 1, true, -0.95, 1.9), mat.vidro); vid.rotation.set(0, Math.PI / 2, 0); vid.position.set(3.55, 1.22, 0); barco.add(vid);
+    [-1, 1].forEach((s) => { const sp = add(new T.Mesh(new T.BoxGeometry(0.03, 0.42, 0.05), mat.inox)); sp.position.set(3.6 + 0.62 * Math.cos(0.95) - 0.02, 1.18, s * 0.62 * Math.sin(0.95)); sp.rotation.x = s * -0.1; });
+    [-1, 1].forEach((s) => tubo([[3.3, 0.5, s * 0.52], [3.35, 0.95, s * 0.56], [4.05, 0.95, s * 0.56], [4.15, 0.55, s * 0.52]], 0.02));
+    const volante = new T.Group(); { const aro = new T.Mesh(new T.TorusGeometry(0.17, 0.024, 14, 48), M(0xF2F2F0, { roughness: 0.55 })); volante.add(aro); const cubo = new T.Mesh(new T.CylinderGeometry(0.05, 0.05, 0.04, 24), mat.inox); cubo.rotation.x = Math.PI / 2; volante.add(cubo);
+      for (let k = 0; k < 5; k++) { const a = (k / 5) * Math.PI * 2; const r = new T.Mesh(new T.CylinderGeometry(0.009, 0.009, 0.15, 8), mat.inox); r.position.set(Math.cos(a) * 0.1, Math.sin(a) * 0.1, 0); r.rotation.z = a - Math.PI / 2; volante.add(r); }
+      volante.position.set(3.24, 0.96, -0.12); volante.rotation.y = Math.PI / 2; volante.rotation.x = -0.35; volante.traverse((o) => { o.castShadow = true; }); barco.add(volante); }
+    { const mb = add(new T.Mesh(new T.BoxGeometry(0.1, 0.16, 0.06), mat.inox)); mb.position.set(3.32, 0.86, 0.32); const mh = add(new T.Mesh(new T.CylinderGeometry(0.022, 0.022, 0.14, 12), mat.escuro)); mh.rotation.x = Math.PI / 2; mh.position.set(3.3, 0.98, 0.36); }
+    const gps = B3D.gar;
+    almofada(0.14, 0.7, 0.5, mat.est, 4.32, 0.62, 0, [0, 0, -0.12]);
+    almofada(0.38, 0.72, 0.12, mat.est, 4.42, 0.33, 0);
+    decal(texto("euronav", "#2b2e33", "500 86px 'Saira', Arial, sans-serif"), 0.26, 0.065, 3.18, 0.72, 0, -Math.PI / 2);
+    // alto-falantes do som marinizado
+    [[0.9, -0.94], [0.9, 0.94], [4.9, -0.86], [4.9, 0.86]].forEach(([x, z]) => { const g = new T.Group(); const r = new T.Mesh(new T.TorusGeometry(0.06, 0.012, 10, 28), mat.branco); g.add(r); const c = new T.Mesh(new T.CircleGeometry(0.055, 24), M(0xE9E9E9, { roughness: 0.6 })); g.add(c); g.position.set(x, 0.18, z); g.rotation.y = z > 0 ? Math.PI : 0; barco.add(g); });
+    // ---- proa: lounge em U, mesa e solário ----
+    [-1, 1].forEach((s) => { bloco(1.35, 0.38, 0.44, mat.gel, 5.35, -0.02, s * 0.66); almofada(1.3, 0.42, 0.14, mat.est, 5.35, 0.24, s * 0.66); almofada(1.3, 0.12, 0.38, mat.est, 5.35, 0.52, s * 0.86, [s * 0.15, 0, 0]); });
+    { const sh = new T.Shape(); sh.moveTo(6.0, -0.62); sh.lineTo(6.55, -0.5); sh.quadraticCurveTo(7.0, -0.2, 7.05, 0); sh.quadraticCurveTo(7.0, 0.2, 6.55, 0.5); sh.lineTo(6.0, 0.62); sh.closePath();
+      const g = new T.ExtrudeGeometry(sh, { depth: 0.12, bevelEnabled: true, bevelThickness: 0.045, bevelSize: 0.045, bevelSegments: 5, curveSegments: 12 }); g.rotateX(-Math.PI / 2); const so = add(new T.Mesh(g, mat.est)); so.position.y = 0.2; }
+    { const pe = add(new T.Mesh(new T.CylinderGeometry(0.035, 0.05, 0.42, 20), mat.inox)); pe.position.set(5.35, 0.05, 0); bloco(0.62, 0.045, 0.44, mat.gel, 5.35, 0.29, 0);
+      const tp = add(new T.Mesh(new T.PlaneGeometry(0.52, 0.34), mat.acril)); tp.rotation.x = -Math.PI / 2; tp.position.set(5.35, 0.3145, 0);
+      [[-0.22, -0.14], [-0.22, 0.14], [0.22, -0.14], [0.22, 0.14]].forEach(([dx, dz]) => { const cp = add(new T.Mesh(new T.CircleGeometry(0.035, 20), mat.preto)); cp.rotation.x = -Math.PI / 2; cp.position.set(5.35 + dx, 0.316, dz); }); }
+    // ---- capota bimini realista com logo ----
+    const svgLogo = document.querySelector("svg.logo");
+    const capota = (o) => {
+      const g = new T.Group(); barco.add(g);
+      const { x0, x1, alt, meia, arcos, logo, hinge } = o, NX = 48, NZ = 40;
+      const arco = (v) => alt - 0.2 * v * v - 0.05 * Math.pow(Math.abs(v), 6);
+      const sag = (x) => { let d = 1; for (const a of arcos) d = Math.min(d, Math.abs(x - a)); const vao = (x1 - x0) / Math.max(1, arcos.length - 1); return -0.035 * Math.pow(Math.min(1, d / (vao / 2)), 1.5); };
+      const larg = (u) => meia * (1 - 0.1 * Math.pow(Math.abs(2 * u - 1), 6));
+      const pos = [], uv = [], idx = [];
+      for (let i = 0; i <= NX; i++) { const u = i / NX, x = x0 + (x1 - x0) * u;
+        for (let j = 0; j <= NZ; j++) { const v = -1 + 2 * j / NZ, z = v * larg(u); pos.push(x, arco(v) + sag(x), z); uv.push(u, (1 - v) / 2); } }
+      for (let i = 0; i < NX; i++) for (let j = 0; j < NZ; j++) { const a = i * (NZ + 1) + j, b = a + NZ + 1; idx.push(a, a + 1, b, a + 1, b + 1, b); }
+      const gl = new T.BufferGeometry(); gl.setAttribute("position", new T.Float32BufferAttribute(pos, 3)); gl.setAttribute("uv", new T.Float32BufferAttribute(uv, 2)); gl.setIndex(idx); gl.computeVertexNormals();
+      const tex = tela(1536, 768, (c, W, H, img) => {
+        c.fillStyle = "#9a968c"; c.fillRect(0, 0, W, H);
+        for (let k = 0; k < 14000; k++) { c.fillStyle = Math.random() < 0.5 ? "rgba(255,255,255,.05)" : "rgba(0,0,0,.05)"; c.fillRect(Math.random() * W, Math.random() * H, 2, 1); }
+        c.strokeStyle = "rgba(60,58,52,.35)"; c.lineWidth = 2; c.setLineDash([10, 7]);
+        [0.3, 0.7].forEach((f) => { c.beginPath(); c.moveTo(0, f * H); c.lineTo(W, f * H); c.stroke(); });
+        c.setLineDash([]); c.fillStyle = "#8f8b82"; c.fillRect(0, 0, W, 18); c.fillRect(0, H - 18, W, 18); c.fillRect(0, 0, 18, H); c.fillRect(W - 18, 0, 18, H);
+        if (img) { const lw = W * 0.46, lh = lw * img.height / img.width; c.shadowColor = "rgba(0,0,0,.35)"; c.shadowBlur = 6; c.shadowOffsetY = 2; c.drawImage(img, (W - lw) / 2, (H - lh) / 2, lw, lh); c.shadowColor = "transparent"; }
+      });
+      tex.desenhar(null);
+      const topo = new T.Mesh(gl, new T.MeshStandardMaterial({ map: tex, roughness: 0.95, side: T.FrontSide })); topo.castShadow = true; g.add(topo);
+      const baixo = new T.Mesh(gl, new T.MeshStandardMaterial({ color: C(0x6f6b64), roughness: 1, side: T.BackSide })); baixo.position.y = -0.004; g.add(baixo);
+      // bainha e saia em volta
+      const borda = []; for (let i = 0; i <= NX; i++) { const u = i / NX, x = x0 + (x1 - x0) * u; borda.push(new T.Vector3(x, arco(1) + sag(x), larg(u))); }
+      const borda2 = borda.map((p) => new T.Vector3(p.x, p.y, -p.z)).reverse();
+      const fr = []; for (let j = 0; j <= NZ; j++) { const v = -1 + 2 * j / NZ; fr.push(new T.Vector3(x1, arco(v) + sag(x1), v * larg(1))); }
+      const tr = fr.map((p) => new T.Vector3(x0, p.y + sag(x0) - sag(x1), p.z * larg(0) / larg(1))).reverse();
+      const anel = borda.concat(fr.slice(1)).concat(borda2.slice(1)).concat(tr.slice(1));
+      const hem = new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(anel, true), 260, 0.016, 8, true), new T.MeshStandardMaterial({ color: C(0x76726a), roughness: 0.9 })); hem.castShadow = true; g.add(hem);
+      { const pp = [], ii = []; anel.forEach((p) => { pp.push(p.x, p.y, p.z, p.x, p.y - 0.07, p.z); }); for (let i = 0; i < anel.length - 1; i++) { const a = i * 2; ii.push(a, a + 2, a + 1, a + 1, a + 2, a + 3); }
+        const sg2 = new T.BufferGeometry(); sg2.setAttribute("position", new T.Float32BufferAttribute(pp, 3)); sg2.setIndex(ii); sg2.computeVertexNormals(); const saia = new T.Mesh(sg2, new T.MeshStandardMaterial({ color: C(0x8f8b82), roughness: 0.95, side: T.DoubleSide })); saia.castShadow = true; g.add(saia); }
+      // arcos de inox articulados nas laterais
+      arcos.forEach((ax) => { const top = []; for (let k = 0; k <= 24; k++) { const v = -0.97 + 1.94 * k / 24; top.push(new T.Vector3(ax, arco(v) + sag(ax) - 0.03, v * larg((ax - x0) / (x1 - x0)))); }
+        const pe = (s) => new T.Vector3(hinge, 0.42, s * (meia + 0.02));
+        const meioL = (s) => new T.Vector3((ax + hinge) / 2, (arco(1) + 0.42) / 2, s * (meia + 0.04));
+        const cam2 = [pe(-1), meioL(-1)].concat(top).concat([meioL(1), pe(1)]);
+        const bt = new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(cam2), 90, 0.019, 10), mat.inox); bt.castShadow = true; g.add(bt); });
+      [-1, 1].forEach((s) => { const hb = new T.Mesh(new T.CylinderGeometry(0.035, 0.035, 0.05, 16), mat.inox); hb.position.set(hinge, 0.4, s * (meia + 0.02)); hb.rotation.x = Math.PI / 2; g.add(hb); });
+      // cintas de amarração
+      const cinta = (a, b) => { const d = b.clone().sub(a), l = d.length(); const m = new T.Mesh(new T.BoxGeometry(0.035, l, 0.004), M(0xF2F2EE, { roughness: 0.8 })); m.position.copy(a.clone().add(b).multiplyScalar(0.5)); m.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), d.normalize()); m.castShadow = true; g.add(m); };
+      [-1, 1].forEach((s) => { cinta(new T.Vector3(x1, arco(1) + sag(x1), s * larg(1) * 0.92), new T.Vector3(x1 + 1.0, 0.42, s * (BW + 0.05))); cinta(new T.Vector3(x0, arco(1) + sag(x0), s * larg(0) * 0.92), new T.Vector3(x0 - 1.0, 0.42, s * (BW + 0.05))); });
+      if (logo && svgLogo) {
+        try { const c = svgLogo.cloneNode(true); c.querySelectorAll("*").forEach((p) => { p.setAttribute("fill", p.classList && p.classList.contains("a") ? "#3B5999" : "#FFFFFF"); });
+          c.setAttribute("xmlns", "http://www.w3.org/2000/svg"); c.setAttribute("width", "1004"); c.setAttribute("height", "185"); c.removeAttribute("class");
+          const img = new Image(); img.onload = () => tex.desenhar(img); img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(new XMLSerializer().serializeToString(c)); } catch (e) { /* sem logo */ }
+      }
+      return g;
+    };
+    capota({ x0: 2.35, x1: 4.25, alt: 2.12, meia: 1.18, arcos: [2.4, 3.3, 4.2], logo: true, hinge: 3.3 });
+    const capProa = capota({ x0: 4.7, x1: 6.15, alt: 1.6, meia: 0.98, arcos: [4.75, 6.1], logo: false, hinge: 5.4 });
+    // ---- Kit Lazer ----
+    const pia = new T.Group(); barco.add(pia); // pia e fogão ficam dentro do banco: sem representação no 3D
+    const churr = new T.Group(); barco.add(churr);
+    { const ps = new T.Mesh(new T.CylinderGeometry(0.022, 0.022, 1.15, 12), mat.inox); ps.position.set(-0.4, 0.52, 0.98); churr.add(ps);
+      const tab = new T.Mesh(new T.BoxGeometry(0.36, 0.03, 0.28), mat.madeira); tab.position.set(-0.4, 0.95, 0.98); churr.add(tab);
+      const dom = new T.Mesh(new T.SphereGeometry(0.2, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2), mat.inox); dom.rotation.x = Math.PI; dom.position.set(-0.4, 1.18, 0.98); churr.add(dom);
+      const tampa = new T.Mesh(new T.SphereGeometry(0.2, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2), mat.inox); tampa.position.set(-0.4, 1.18, 0.98); tampa.rotation.z = -0.9; churr.add(tampa); churr.traverse((o) => { o.castShadow = true; }); }
+    // ---- Kit Fundeio ----
+    const guincho = new T.Group(); barco.add(guincho);
+    { const gb = new T.Mesh(new T.CylinderGeometry(0.11, 0.11, 0.14, 28), mat.escuro); gb.position.set(L - 0.55, 0.38, 0); guincho.add(gb);
+      const gt = new T.Mesh(new T.CylinderGeometry(0.06, 0.06, 0.18, 24), mat.inox); gt.position.set(L - 0.55, 0.49, 0); guincho.add(gt);
+      const rl = new T.Mesh(new T.BoxGeometry(0.46, 0.05, 0.12), mat.inox); rl.position.set(L - 0.18, 0.4, 0); guincho.add(rl); guincho.traverse((o) => { o.castShadow = true; }); }
+    // ---- motor de popa ----
+    const motor = new T.Group(); barco.add(motor); motor.position.set(-0.62, 0, 0);
+    const pM = new T.Shape(); pM.moveTo(-0.3, -0.22); pM.lineTo(0.26, -0.22); pM.quadraticCurveTo(0.36, 0.1, 0.3, 0.4); pM.quadraticCurveTo(0.14, 0.66, -0.16, 0.62); pM.quadraticCurveTo(-0.38, 0.52, -0.36, 0.12); pM.closePath();
+    { const g = new T.ExtrudeGeometry(pM, { depth: 0.36, bevelEnabled: true, bevelThickness: 0.08, bevelSize: 0.08, bevelSegments: 8, curveSegments: 20 }); g.translate(0, 0, -0.18);
+      const cap = new T.Mesh(g, mat.motor); cap.position.set(0, 0.66, 0); cap.castShadow = true; motor.add(cap);
+      const linha = new T.Mesh(new T.BoxGeometry(0.72, 0.012, 0.54), mat.escuro); linha.position.set(-0.02, 0.6, 0); motor.add(linha);
+      const meio = new T.Mesh(new T.CylinderGeometry(0.17, 0.14, 0.62, 24), mat.motor); meio.scale.set(1, 1, 0.8); meio.position.set(0.02, 0.18, 0); meio.castShadow = true; motor.add(meio);
+      const placa = new T.Mesh(new T.BoxGeometry(0.46, 0.02, 0.3), mat.motor); placa.position.set(-0.05, -0.18, 0); motor.add(placa);
+      const perna = new T.Mesh(new T.CylinderGeometry(0.1, 0.07, 0.6, 20), mat.motor); perna.scale.set(1.2, 1, 0.65); perna.position.set(0.0, -0.5, 0); motor.add(perna);
+      const bulbo = new T.Mesh(new T.CylinderGeometry(0.075, 0.075, 0.42, 20), mat.motor); bulbo.rotation.z = Math.PI / 2; bulbo.position.set(-0.02, -0.82, 0); motor.add(bulbo);
+      const skeg = new T.Mesh(new T.BoxGeometry(0.16, 0.18, 0.025), mat.motorEsc); skeg.position.set(0.02, -0.96, 0); motor.add(skeg);
+      const helice = new T.Group(); const cubo = new T.Mesh(new T.CylinderGeometry(0.05, 0.04, 0.12, 20), mat.inox); cubo.rotation.z = Math.PI / 2; helice.add(cubo);
+      for (let k = 0; k < 3; k++) { const pa = new T.Mesh(new T.SphereGeometry(0.13, 20, 12), mat.inox); pa.scale.set(0.12, 1, 0.5); pa.position.set(0, 0.12, 0); const piv = new T.Group(); piv.rotation.x = (k / 3) * Math.PI * 2; pa.rotation.x = 0.5; piv.add(pa); helice.add(piv); }
+      helice.position.set(-0.27, -0.82, 0); motor.add(helice); motor.traverse((o) => { o.castShadow = true; }); }
+    const texMarca = tela(1024, 256, (g, w, h, txt) => { g.clearRect(0, 0, w, h); g.fillStyle = "#1c1d20"; g.font = "italic 900 150px Arial, sans-serif"; g.fillText(txt, 20, 170); g.fillStyle = "#c8102e"; g.fillRect(20, 196, 620, 16); });
+    [-1, 1].forEach((s) => decal(texMarca, 0.56, 0.14, 0.0, 0.88, s * 0.265, s > 0 ? 0 : Math.PI, motor));
+    const tex150 = texto("150", "#2b2e33", "700 110px Arial, sans-serif", 256, 128);
+    const n150 = decal(tex150, 0.2, 0.1, -0.385, 1.02, 0, -Math.PI / 2, motor);
+    // ---- interação, tamanho e animação ----
+    let ang = -0.62, arr = null, ultimo = 0, pulso = 0, zoom = 1, incl = 0, kAsp = 1;
+    const dedos = new Map(); let pinca = null;
+    const posCam = () => { const r = Math.hypot(6.9, 10.9) * kAsp * zoom, a0 = Math.atan2(6.9, 10.9) + incl; cam.position.set(0, r * Math.sin(a0), r * Math.cos(a0)); cam.lookAt(0, 0.1, 0); };
+    host.addEventListener("pointerdown", (e) => { if (e.target.closest && e.target.closest("button")) return; dedos.set(e.pointerId, { x: e.clientX, y: e.clientY }); host.setPointerCapture(e.pointerId); host.classList.add("arrastando");
+      if (dedos.size === 2) { const [p1, p2] = [...dedos.values()]; pinca = { d: Math.hypot(p1.x - p2.x, p1.y - p2.y), z: zoom }; arr = null; } else arr = { x: e.clientX, y: e.clientY, a: ang, i: incl }; });
+    host.addEventListener("pointermove", (e) => { if (!dedos.has(e.pointerId)) return; dedos.set(e.pointerId, { x: e.clientX, y: e.clientY }); ultimo = performance.now();
+      if (pinca && dedos.size === 2) { const [p1, p2] = [...dedos.values()]; zoom = Math.min(1.5, Math.max(0.45, pinca.z * pinca.d / Math.max(20, Math.hypot(p1.x - p2.x, p1.y - p2.y)))); posCam(); return; }
+      if (arr) { ang = arr.a + (e.clientX - arr.x) * 0.012; if ($("at-3d").classList.contains("grande") || e.pointerType === "mouse") { incl = Math.min(0.55, Math.max(-0.45, arr.i + (e.clientY - arr.y) * 0.005)); posCam(); } } });
+    const solta = (e) => { dedos.delete(e.pointerId); if (dedos.size < 2) pinca = null; if (!dedos.size) { arr = null; host.classList.remove("arrastando"); } };
+    host.addEventListener("pointerup", solta); host.addEventListener("pointercancel", solta);
+    host.addEventListener("wheel", (e) => { if (!$("at-3d").classList.contains("grande")) return; e.preventDefault(); zoom = Math.min(1.5, Math.max(0.45, zoom * (1 + e.deltaY * 0.0012))); ultimo = performance.now(); posCam(); }, { passive: false });
+    const tamanho = () => { const w = host.clientWidth || 300, h = host.clientHeight || 260; ren.setSize(w, h, false); ren.domElement.style.width = "100%"; ren.domElement.style.height = "100%"; cam.aspect = w / h; kAsp = Math.max(1, 1.62 / cam.aspect); posCam(); cam.updateProjectionMatrix(); };
+    if (window.ResizeObserver) new ResizeObserver(tamanho).observe(host); tamanho();
+    const loop = (t) => {
+      requestAnimationFrame(loop);
+      if (!b3dVisivel() || document.hidden) return;
+      if (!arr && t - ultimo > 2500) ang += 0.003;
+      giro.rotation.y = ang;
+      if (pulso > 0) { pulso = Math.max(0, pulso - 0.04); const s = 1 + Math.sin(pulso * Math.PI) * 0.03; barco.scale.set(s, s, s); }
+      ren.render(cena, cam);
+    };
+    requestAnimationFrame(loop);
+    B3D.estado = "pronto"; Object.assign(B3D, { barco, giro, cam, ren, cena });
+    B3D.aplicar = (o) => {
+      texEst.desenhar(B3D_EST[o.est] || B3D_EST.Branco);
+      mat.acril.color.copy(C({ Branco: 0xF0F1F2, Bege: 0xC9A074, Cinza: 0xC9D0D8 }[o.est] || 0xC9D0D8));
+      const pp = B3D_PISO[o.piso] || B3D_PISO.Cinza; texPiso.desenhar(pp[0], pp[1]);
+      const tb = new T.Color(o.tuboCor || "#e3e4e1"), hx = (c, f) => "#" + c.clone().multiplyScalar(f).getHexString();
+      texTubo.desenhar("#" + tb.getHexString(), hx(tb, 0.74), hx(tb, 0.52));
+      matPonta.color.copy(C(tb.getHex()));
+      gps.visible = o.gps; capProa.visible = o.capProa; pia.visible = o.pia; churr.visible = o.churr; guincho.visible = o.guincho; mastro.visible = o.mastro !== false;
+      mat.motor.color.copy(C(o.motorBranco ? 0xF5F5F4 : 0x7E848B));
+      texMarca.desenhar(o.marca || "MERCURY"); n150.visible = (o.marca || "MERCURY") === "MERCURY";
+      const sig = JSON.stringify(o); if (B3D.sig && B3D.sig !== sig) pulso = 1; B3D.sig = sig;
+    };
+    const big = $("at-3d-big");
+    let marca3d = null;
+    const ampliar = (on) => {
+      const c = $("at-3d");
+      if (on && !marca3d) { marca3d = document.createComment("3d"); c.parentNode.insertBefore(marca3d, c); document.body.appendChild(c); }
+      if (!on && marca3d) { marca3d.parentNode.insertBefore(c, marca3d); marca3d.remove(); marca3d = null; }
+      c.classList.toggle("grande", on); document.body.classList.toggle("b3d-on", on); if (!on) { zoom = 1; incl = 0; }
+      big.textContent = on ? "Reduzir" : "Ampliar"; big.setAttribute("aria-pressed", on ? "true" : "false"); setTimeout(tamanho, 30);
+    };
+    if (big) big.addEventListener("click", () => ampliar(!$("at-3d").classList.contains("grande")));
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && $("at-3d").classList.contains("grande")) ampliar(false); });
+    b3dAtualizar();
+  }
+  const CONFIG_URL = "configurador.html";
+  function cfgLink() {
+    const a = $("at-3d-cfg"); if (!a || !st.at) return;
+    const q = atCompute(), mi = q && q.mid ? st.items.get(q.mid) : null, nm = String((mi && mi.item) || "");
+    const o = [[/capota de proa/i, "cp"], [/churrasqueira/i, "ch"], [/guincho/i, "gu"]].filter(([re]) => b3dTemItem(re)).map(([, k]) => k);
+    if (st.at.gps || (q && motorGps(q.mid))) o.push("gps");
+    const pr = new URLSearchParams({ e: st.at.corEst || AT_DEF.corEst, p: st.at.corPiso || AT_DEF.corPiso, t: st.at.hyp ? "hyp" : "pvc", m: /yamaha/i.test(nm) ? "yamaha" : "mercury", v: "360" });
+    if (o.length) pr.set("o", o.join("."));
+    a.href = CONFIG_URL + "#" + pr.toString();
+  }
+  function b3dAtualizar() {
+    cfgLink();
+    if (B3D.estado === "off") b3dCarregar();
+    if (B3D.estado !== "pronto" || !B3D.aplicar) return;
+    const q = atCompute(); const mid = q ? q.mid : null; const mi = mid ? st.items.get(mid) : null;
+    const nomeM = String((mi && mi.item) || "");
+    B3D.aplicar({
+      est: st.at.corEst || AT_DEF.corEst, piso: st.at.corPiso || AT_DEF.corPiso, hyp: !!st.at.hyp, tuboCor: "#e3e4e1",
+      gps: !!st.at.gps || motorGps(mid), capProa: b3dTemItem(/capota de proa/i), pia: b3dTemItem(/pia e fog/i),
+      churr: b3dTemItem(/churrasqueira/i), guincho: b3dTemItem(/guincho/i), motorBranco: /mercury|branco|white/i.test(nomeM) || !nomeM,
+      marca: /yamaha/i.test(nomeM) ? "YAMAHA" : "MERCURY", mastro: b3dTemItem(/mastro de bandeira/i)
+    });
   }
   function recalc() { syncKits(); renderKitNomes(); renderResult(); renderCompare(); renderOpps(); renderLabor(); renderGroups(); renderKitNomes(); renderVenda(); renderFicha(); renderAtend(); renderCRM(); }
   function renderAll() { renderScenList(); fillParams(); recalc(); const nb = $("c-scen-new"); if (nb) nb.disabled = !st.scol || !st.canWrite; }
@@ -4660,6 +5112,7 @@ body.gated { overflow: hidden; }
   if ($("mo-add")) $("mo-add").addEventListener("click", moAdd);
   if ($("f-pdf")) $("f-pdf").addEventListener("click", fichaGerar);
   if ($("f-cat")) $("f-cat").addEventListener("click", catGerar);
+  window.addEventListener("hashchange", () => setTimeout(b3dAtualizar, 80));
   buildFotos();
   buildVenda();
   buildAtend();
