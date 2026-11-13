@@ -589,6 +589,9 @@ body.lb-on { overflow: hidden; }
 body.b3d-on::before { content: ""; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 150; }
 .at-3d-big { position: absolute; top: 8px; right: 8px; appearance: none; border: 1px solid rgba(0,0,0,.08); background: rgba(255,255,255,.85); color: var(--ink); font: inherit; font-size: .78rem; padding: 5px 10px; border-radius: 999px; cursor: pointer; backdrop-filter: blur(4px); }
 .at-3d-big:hover { background: #fff; }
+.at-3d-proa { position: absolute; top: 8px; left: 8px; z-index: 2; appearance: none; border: 1px solid rgba(0,0,0,.08); background: rgba(255,255,255,.85); color: var(--ink); font: inherit; font-size: .78rem; padding: 5px 10px; border-radius: 999px; cursor: pointer; }
+.at-3d-proa:hover { background: #fff; }
+.cfx-3d .at-3d-proa { top: 14px; left: 14px; background: rgba(0,0,0,.45); color: #eceef1; border-color: rgba(255,255,255,.18); }
 .at-3d-v { height: 290px; border-radius: var(--radius-m); background: radial-gradient(ellipse at 50% 35%, #F7F9FC 0%, #E7ECF2 70%, #DDE3EA 100%); cursor: grab; touch-action: pan-y; overflow: hidden; }
 .at-3d-v.arrastando { cursor: grabbing; }
 .at-3d-v canvas { display: block; }
@@ -1116,6 +1119,7 @@ body.gated { overflow: hidden; }
           <div class="at-3d" id="at-3d">
             <div class="at-3d-v" id="at-3d-v" role="img" aria-label="Ilustração 3D do Euro Sette com as cores e os opcionais escolhidos"></div>
             <button class="at-3d-big" id="at-3d-big" type="button" aria-pressed="false">Ampliar</button>
+            <button class="at-3d-proa" id="at-3d-proa" type="button" aria-pressed="false" title="Alterna a proa entre mesa e solário (os dois vêm de série)">Proa: mesa</button>
             <p class="at-3d-leg">Ilustração com as cores e os opcionais escolhidos. Arraste para girar; em "Ampliar", use a roda do mouse ou dois dedos para aproximar.</p>
           </div>
           <div class="at-cfx-acoes">
@@ -4788,7 +4792,7 @@ body.gated { overflow: hidden; }
   // ---------- Modelo 3D do barco no Atendimento (ilustrativo) ----------
   const B3D = { estado: "off" };
   const B3D_EST = { Branco: 0xF1EFEA, Bege: 0xB5835A, Cinza: 0x8C9197 };
-  const B3D_PISO = { Branco: ["#E8E6E0", "#B8B5AD"], Bege: ["#B07E55", "#E4D3BD"], Cinza: ["#8D8E8B", "#E2E1DC"] };
+  const B3D_PISO = { Branco: ["#E8E6E0", "#B8B5AD"], Bege: ["#C4A77C", "#EFE4CF"], Cinza: ["#8D8E8B", "#E2E1DC"] };
   function b3dVisivel() { const v = $("at-3d-v"); if (!v || !v.offsetParent) return false; return !(typeof cfx !== "undefined" && cfx.aberto && cfx.vista !== "3d"); }
   function b3dCarregar() {
     if (B3D.estado !== "off" || !b3dVisivel()) return;
@@ -4917,12 +4921,36 @@ body.gated { overflow: hidden; }
     const tubo = (pp, r, m, seg) => add(new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(pp.map((p) => new T.Vector3(p[0], p[1], p[2]))), seg || 40, r, 10), m || mat.inox));
     const decal = (tex, w, h, x, y, z, ry, g) => { const p = new T.Mesh(new T.PlaneGeometry(w, h), new T.MeshStandardMaterial({ map: tex, transparent: true, depthWrite: false, roughness: 0.4, polygonOffset: true, polygonOffsetFactor: -2 })); p.position.set(x, y, z); p.rotation.y = ry || 0; (g || barco).add(p); return p; };
     const texto = (txt, cor, fonte, w, h) => { const t = tela(w || 512, h || 128, (g, W, H) => { g.clearRect(0, 0, W, H); g.fillStyle = cor; g.font = fonte; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(txt, W / 2, H / 2); }); t.desenhar(); return t; };
-    // ---- popa: banco, espelho com logo, plataformas e alças ----
-    bloco(0.62, 0.46, 1.95, mat.gel, 0.36, 0.0, 0);
-    almofada(0.58, 1.88, 0.15, mat.est, 0.38, 0.3, 0);
-    almofada(0.15, 1.88, 0.5, mat.est, 0.1, 0.58, 0, [0, 0, 0.1]);
-    [-1, 1].forEach((s) => { bloco(1.05, 0.4, 0.42, mat.gel, 1.2, -0.02, s * 0.76); almofada(1.0, 0.38, 0.13, mat.est, 1.2, 0.24, s * 0.76); });
-    decal(texto("euronav", "#2b2e33", "500 86px 'Saira', Arial, sans-serif"), 0.5, 0.125, 0.0, 0.44, 0, -Math.PI / 2);
+    // ---- faixa de convés entre a parede interna e os tubulões (fecha o vão em toda a volta) ----
+    { const zin = (x) => { if (x <= 4.7) return 0.918; if (x >= 6.94) return 0; let a = 0, b = 1; for (let k = 0; k < 24; k++) { const tm = (a + b) / 2, u = 1 - tm; if (u * u * 4.7 + 2 * u * tm * 6.55 + tm * tm * 6.95 < x) a = tm; else b = tm; } const t = (a + b) / 2; return 0.918 * (1 - t * t); };
+      const N = 70, pos = [], nor = [], idx = [];
+      [1, -1].forEach((s) => { const base = pos.length / 3;
+        for (let i = 0; i <= N; i++) { const x = -0.05 + (L + 0.13) * i / N, zo = perfil(Math.min(1, Math.max(0, x / L))).w + 0.2, zi = Math.min(zin(x), zo); pos.push(x, 0, s * zi, x, 0, s * zo); nor.push(0, 1, 0, 0, 1, 0); }
+        for (let i = 0; i < N; i++) { const a = base + i * 2, o = a + 1, a2 = a + 2, o2 = a + 3; if (s > 0) idx.push(a, o, a2, o, o2, a2); else idx.push(a, a2, o, o, a2, o2); } });
+      const g = new T.BufferGeometry(); g.setAttribute("position", new T.Float32BufferAttribute(pos, 3)); g.setAttribute("normal", new T.Float32BufferAttribute(nor, 3)); g.setIndex(idx);
+      const fx = add(new T.Mesh(g, mat.gel)); fx.position.y = 0.352; }
+    // ---- popa: assento em U matelassê, encosto em C só atrás (rolo liso) e espelho com a logo (como nas fotos) ----
+    bloco(0.74, 0.31, 1.84, mat.gel, 0.33, 0.035, 0);
+    [-1, 1].forEach((s) => { bloco(0.61, 0.31, 0.47, mat.gel, 0.995, 0.035, s * 0.675); almofada(1.15, 0.44, 0.125, mat.est, 0.715, 0.2525, s * 0.68); });
+    almofada(0.56, 0.91, 0.125, mat.est, 0.42, 0.2525, 0);
+    { const am = [{ x: 0.46, z: 0.92, nx: 0, nz: -1 }, { x: 0.37, z: 0.92, nx: 0, nz: -1 }, { x: 0.29, z: 0.92, nx: 0, nz: -1 }];
+      for (let i = 1; i <= 12; i++) { const a = Math.PI / 2 + (Math.PI / 2) * i / 12; am.push({ x: 0.29 + 0.34 * Math.cos(a), z: 0.58 + 0.34 * Math.sin(a), nx: -Math.cos(a), nz: -Math.sin(a) }); }
+      am.push({ x: -0.05, z: 0.35, nx: 1, nz: 0 }, { x: -0.05, z: 0, nx: 1, nz: 0 });
+      const perf = [[0.19, 0.33], [0.19, 0.46], [0.15, 0.53], [0.04, 0.56], [-0.03, 0.52], [-0.04, 0.33]], n = perf.length;
+      const matRolo = new T.MeshStandardMaterial({ roughness: 0.84, side: T.DoubleSide }); mat.estRolo = matRolo;
+      [-1, 1].forEach((s) => { const pos = [], idx = [];
+        am.forEach((a) => { for (let j = 0; j <= n; j++) { const q = perf[j % n]; pos.push(a.x + a.nx * q[0], q[1], s * Math.max(0, a.z + a.nz * q[0])); } });
+        for (let i = 0; i < am.length - 1; i++) for (let j = 0; j < n; j++) { const a = i * (n + 1) + j, b = a + n + 1; idx.push(a, b, a + 1, a + 1, b, b + 1); }
+        const c = pos.length / 3; let cx = 0, cy = 0, cz = 0; for (let j = 0; j < n; j++) { cx += pos[j * 3]; cy += pos[j * 3 + 1]; cz += pos[j * 3 + 2]; } pos.push(cx / n, cy / n, cz / n); for (let j = 0; j < n; j++) idx.push(c, j, j + 1);
+        const g = new T.BufferGeometry(); g.setAttribute("position", new T.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals(); add(new T.Mesh(g, matRolo)); }); }
+    { // espelho de popa inclinado, em fibra, com a logo euronav
+      const pf = new T.Shape(); pf.moveTo(-0.05, -0.1); pf.lineTo(-0.05, 0.38); pf.lineTo(-0.12, 0.38); pf.lineTo(-0.56, 0.1); pf.lineTo(-0.56, -0.1); pf.closePath();
+      const g = new T.ExtrudeGeometry(pf, { depth: 0.9, bevelEnabled: true, bevelThickness: 0.02, bevelSize: 0.02, bevelSegments: 3 }); g.translate(0, 0, -0.45); add(new T.Mesh(g, mat.gel));
+      const lg = new T.Mesh(new T.PlaneGeometry(0.62, 0.155), new T.MeshStandardMaterial({ map: texto("euronav", "#2b2e33", "500 86px 'Saira', Arial, sans-serif"), transparent: true, depthWrite: false, roughness: 0.4, polygonOffset: true, polygonOffsetFactor: -2 }));
+      const Z = new T.Vector3(-0.28, 0.44, 0).normalize(), X = new T.Vector3(0, 0, 1), Y = new T.Vector3().crossVectors(Z, X);
+      lg.setRotationFromMatrix(new T.Matrix4().makeBasis(X, Y, Z)); lg.position.set(-0.34 + Z.x * 0.024, 0.24 + Z.y * 0.024, 0); barco.add(lg);
+      bloco(0.2, 0.34, 0.4, mat.gel, -0.65, 0.07, 0); }
+    // plataformas de popa e alças
     [-1, 1].forEach((s) => {
       bloco(0.72, 0.16, 0.66, mat.gel, -0.38, -0.08, s * 0.72);
       const ev = almofada(0.62, 0.56, 0.02, null, -0.38, 0.01, s * 0.72); ev.material = new T.MeshStandardMaterial({ map: texPiso, roughness: 0.9 });
@@ -4977,14 +5005,63 @@ body.gated { overflow: hidden; }
     almofada(0.38, 0.72, 0.12, mat.est, 4.42, 0.33, 0);
     decal(texto("euronav", "#2b2e33", "500 86px 'Saira', Arial, sans-serif"), 0.26, 0.065, 3.18, 0.72, 0, -Math.PI / 2);
     // alto-falantes do som marinizado
-    [[0.9, -0.94], [0.9, 0.94], [4.9, -0.86], [4.9, 0.86]].forEach(([x, z]) => { const g = new T.Group(); const r = new T.Mesh(new T.TorusGeometry(0.06, 0.012, 10, 28), mat.branco); g.add(r); const c = new T.Mesh(new T.CircleGeometry(0.055, 24), M(0xE9E9E9, { roughness: 0.6 })); g.add(c); g.position.set(x, 0.18, z); g.rotation.y = z > 0 ? Math.PI : 0; barco.add(g); });
-    // ---- proa: lounge em U, mesa e solário ----
-    [-1, 1].forEach((s) => { bloco(1.35, 0.38, 0.44, mat.gel, 5.35, -0.02, s * 0.66); almofada(1.3, 0.42, 0.14, mat.est, 5.35, 0.24, s * 0.66); almofada(1.3, 0.12, 0.38, mat.est, 5.35, 0.52, s * 0.86, [s * 0.15, 0, 0]); });
-    { const sh = new T.Shape(); sh.moveTo(6.0, -0.62); sh.lineTo(6.55, -0.5); sh.quadraticCurveTo(7.0, -0.2, 7.05, 0); sh.quadraticCurveTo(7.0, 0.2, 6.55, 0.5); sh.lineTo(6.0, 0.62); sh.closePath();
-      const g = new T.ExtrudeGeometry(sh, { depth: 0.12, bevelEnabled: true, bevelThickness: 0.045, bevelSize: 0.045, bevelSegments: 5, curveSegments: 12 }); g.rotateX(-Math.PI / 2); const so = add(new T.Mesh(g, mat.est)); so.position.y = 0.2; }
-    { const pe = add(new T.Mesh(new T.CylinderGeometry(0.035, 0.05, 0.42, 20), mat.inox)); pe.position.set(5.35, 0.05, 0); bloco(0.62, 0.045, 0.44, mat.gel, 5.35, 0.29, 0);
-      const tp = add(new T.Mesh(new T.PlaneGeometry(0.52, 0.34), mat.acril)); tp.rotation.x = -Math.PI / 2; tp.position.set(5.35, 0.3145, 0);
-      [[-0.22, -0.14], [-0.22, 0.14], [0.22, -0.14], [0.22, 0.14]].forEach(([dx, dz]) => { const cp = add(new T.Mesh(new T.CircleGeometry(0.035, 20), mat.preto)); cp.rotation.x = -Math.PI / 2; cp.position.set(5.35 + dx, 0.316, dz); }); }
+    [[0.9, -0.94], [0.9, 0.94]].forEach(([x, z]) => { const g = new T.Group(); const r = new T.Mesh(new T.TorusGeometry(0.06, 0.012, 10, 28), mat.branco); g.add(r); const c = new T.Mesh(new T.CircleGeometry(0.055, 24), M(0xE9E9E9, { roughness: 0.6 })); g.add(c); g.position.set(x, 0.18, z); g.rotation.y = z > 0 ? Math.PI : 0; barco.add(g); });
+    // ---- proa: sofá em U com encosto contínuo, bico com paiol da âncora, mesa ou solário (como nas fotos) ----
+    mat.estLiso = new T.MeshStandardMaterial({ color: C(0xF1EFEA), roughness: 0.84 });
+    const grupoMesa = new T.Group(), grupoSol = new T.Group(); barco.add(grupoMesa); barco.add(grupoSol);
+    { const bz = (t) => { const u = 1 - t; return { x: u * u * 4.7 + 2 * u * t * 6.55 + t * t * 6.95, z: 0.92 * (1 - t * t), tx: 2 * u * 1.85 + 2 * t * 0.4, tz: -2 * t * 0.92 }; };
+      const XA = 4.74, XB = 6.3; let ta = 0, tb = 1; for (let k = 0; k < 30; k++) { const tm = (ta + tb) / 2; if (bz(tm).x < XB) ta = tm; else tb = tm; } const TB = (ta + tb) / 2, ZB = bz(TB).z;
+      const am = [{ x: XA, z: 0.92, nx: 0, nz: -1 }];
+      for (let i = 0; i <= 28; i++) { const p = bz(i / 28 * TB), l = Math.hypot(p.tx, p.tz); am.push({ x: p.x, z: p.z, nx: p.tz / l, nz: -p.tx / l }); }
+      // fecha o U no bico: da parede até a linha de centro numa curva só
+      const pB = bz(TB), lB = Math.hypot(pB.tx, pB.tz), XF = XB + 0.24, kC = (XF - XB) / (pB.tx / lB), cX = XF, cZ = ZB + kC * (pB.tz / lB), arcoU = [];
+      for (let i = 1; i <= 14; i++) { const t = i / 14, u = 1 - t, x = u * u * XB + 2 * u * t * cX + t * t * XF, z = u * u * ZB + 2 * u * t * cZ, tx = 2 * u * (cX - XB) + 2 * t * (XF - cX), tz = 2 * u * (cZ - ZB) + 2 * t * (0 - cZ), l = Math.hypot(tx, tz);
+        am.push({ x, z: Math.max(0, z), nx: tz / l, nz: -tx / l }); arcoU.push([x, Math.max(0.001, z)]); }
+      const dupla = (m) => { const c = m.clone(); c.side = T.DoubleSide; return c; };
+      const matEstD = dupla(mat.est), matGelD = dupla(mat.gel);
+      // perfil [afastamento da parede, altura] levado ao longo da parede interna, nos dois bordos
+      const loft = (perf, m) => [-1, 1].forEach((s) => {
+        const n = perf.length, pos = [], uv = [], idx = [], per = [0]; let arco = 0;
+        for (let j = 1; j <= n; j++) { const a = perf[j - 1], b = perf[j % n]; per.push(per[j - 1] + Math.hypot(b[0] - a[0], b[1] - a[1])); }
+        am.forEach((a, i) => { if (i) arco += Math.hypot(a.x - am[i - 1].x, a.z - am[i - 1].z);
+          for (let j = 0; j <= n; j++) { const q = perf[j % n]; pos.push(a.x + a.nx * q[0], q[1], s * Math.max(0, a.z + a.nz * q[0])); uv.push(arco, per[j]); } });
+        for (let i = 0; i < am.length - 1; i++) for (let j = 0; j < n; j++) { const a = i * (n + 1) + j, b = a + n + 1; idx.push(a, b, a + 1, a + 1, b, b + 1); }
+        [0, am.length - 1].forEach((i) => { const c = pos.length / 3; let cx = 0, cy = 0, cz = 0;
+          for (let j = 0; j < n; j++) { cx += pos[(i * (n + 1) + j) * 3]; cy += pos[(i * (n + 1) + j) * 3 + 1]; cz += pos[(i * (n + 1) + j) * 3 + 2]; }
+          pos.push(cx / n, cy / n, cz / n); uv.push(0, 0); for (let j = 0; j < n; j++) idx.push(c, i * (n + 1) + j, i * (n + 1) + j + 1); });
+        const g = new T.BufferGeometry(); g.setAttribute("position", new T.Float32BufferAttribute(pos, 3)); g.setAttribute("uv", new T.Float32BufferAttribute(uv, 2)); g.setIndex(idx); g.computeVertexNormals(); add(new T.Mesh(g, m));
+      });
+      loft([[0, -0.12], [0.57, -0.12], [0.57, 0.19], [0, 0.19]], matGelD);                                                       // base de fibra
+      loft([[0.2, 0.19], [0.555, 0.19], [0.58, 0.215], [0.58, 0.285], [0.555, 0.315], [0.22, 0.315], [0.2, 0.29]], matEstD);      // assento matelassê
+      loft([[0.25, 0.3], [0.235, 0.37], [0.12, 0.6], [0.05, 0.64], [-0.02, 0.61], [-0.035, 0.3]], matEstD);                       // encosto inclinado
+      // peça em planta (x, z) com espessura: fibra, almofadas lisas e EVA
+      const placa = (pts, y0, esp, m, bv, g) => { const sh = new T.Shape(); pts.forEach(([x, z], i) => (i ? sh.lineTo(x, z) : sh.moveTo(x, z))); sh.closePath();
+        const ge = new T.ExtrudeGeometry(sh, { depth: Math.max(0.004, esp - 2 * (bv || 0)), bevelEnabled: !!bv, bevelThickness: bv || 0, bevelSize: bv || 0, bevelSegments: 4, curveSegments: 8 }); ge.rotateX(-Math.PI / 2);
+        const o = add(new T.Mesh(ge, m), g); o.position.y = y0 + (bv || 0); return o; };
+      const espelha = (meio) => meio.concat(meio.slice().reverse().map(([x, z]) => [x, -z]));
+      // bico: convés elevado com painel da logo, encosto transversal, almofada lisa e tampa do paiol em EVA
+      const borda = arcoU.slice().reverse(); for (let i = 0; i <= 14; i++) { const p = bz(TB + (1 - TB) * i / 14); borda.push([p.x, Math.max(0.001, p.z)]); }
+      placa(espelha(borda.slice(arcoU.length - 1)), 0.19, 0.28, mat.gel, 0);
+      { const sh = new T.Shape(); arcoU.forEach(([x, z], i) => (i ? sh.lineTo(x, z) : sh.moveTo(x, z))); [[XF + 0.3, 0.001], [XF + 0.3, -0.001]].forEach(([x, z]) => sh.lineTo(x, z)); arcoU.slice().reverse().forEach(([x, z]) => sh.lineTo(x, -z)); bz(TB); sh.lineTo(XB, -ZB); sh.lineTo(XB, ZB); sh.closePath();
+        const ge = new T.ExtrudeGeometry(sh, { depth: 0.28, bevelEnabled: false }); ge.rotateX(-Math.PI / 2); const o = add(new T.Mesh(ge, mat.gel)); o.position.y = 0.19; }
+      const dentro = (x, f) => { let a = TB, b = 1; for (let k = 0; k < 24; k++) { const tm = (a + b) / 2; if (bz(tm).x < x) a = tm; else b = tm; } return Math.max(0.02, bz((a + b) / 2).z * f - 0.03); };
+      placa(espelha([[XF + 0.07, dentro(XF + 0.07, 0.8)], [XF + 0.2, dentro(XF + 0.2, 0.8)]]), 0.47, 0.05, mat.estLiso, 0.018);
+      { const hw = (x) => perfil(Math.min(1, x / L)).w + 0.09, xs = []; for (let i = 0; i <= 16; i++) xs.push(XF + 0.02 + (7.6 - XF - 0.02) * i / 16);
+        placa(espelha(xs.map((x) => [x, hw(x)])), 0.4, 0.07, mat.gel, 0);
+        const xe = xs.filter((x) => x >= XF + 0.24 && x <= 7.52);
+        const eva = placa(espelha(xe.map((x) => [x, Math.max(0.03, hw(x) - 0.13)])), 0.47, 0.012, null, 0); eva.material = new T.MeshStandardMaterial({ map: texPiso, roughness: 0.9 });
+        const r = add(new T.Mesh(new T.CylinderGeometry(0.045, 0.045, 0.035, 20), mat.inox)); r.position.set(7.3, 0.5, 0); }
+      // centro em modo mesa: pé em inox, mesa com borda de fibra, tampo de acrílico e 4 porta-copos pretos
+      { const pe = add(new T.Mesh(new T.CylinderGeometry(0.04, 0.055, 0.58, 20), mat.inox), grupoMesa); pe.position.set(5.2, 0.17, 0);
+        const g = new T.ExtrudeGeometry(roundRect(0.78, 0.46, 0.05), { depth: 0.02, bevelEnabled: true, bevelThickness: 0.012, bevelSize: 0.014, bevelSegments: 4, curveSegments: 10 }); g.rotateX(-Math.PI / 2);
+        const ms = add(new T.Mesh(g, mat.gel), grupoMesa); ms.position.set(5.2, 0.46, 0);
+        const tp = add(new T.Mesh(new T.ShapeGeometry(roundRect(0.7, 0.38, 0.03), 8), mat.acril), grupoMesa); tp.rotation.x = -Math.PI / 2; tp.position.set(5.2, 0.4935, 0);
+        [[-0.3, -0.14], [-0.3, 0.14], [0.3, -0.14], [0.3, 0.14]].forEach(([dx, dz]) => { const cp = add(new T.Mesh(new T.CircleGeometry(0.034, 20), mat.preto), grupoMesa); cp.rotation.x = -Math.PI / 2; cp.position.set(5.2 + dx, 0.4945, dz); }); }
+      // centro em modo solário: base e duas almofadas lisas fechando o vão entre os assentos
+      placa(espelha([[4.76, 0.34], [5.3, 0.315], [5.83, 0.215], [5.97, 0.165], [6.1, 0.09]]), 0.17, 0.03, mat.gel, 0, grupoSol);
+      placa(espelha([[4.77, 0.335], [5.3, 0.31], [5.42, 0.29]]), 0.2, 0.118, mat.estLiso, 0.03, grupoSol);
+      placa(espelha([[5.45, 0.283], [5.83, 0.21], [5.97, 0.16], [6.09, 0.085]]), 0.2, 0.118, mat.estLiso, 0.03, grupoSol);
+      grupoSol.visible = false; }
     // ---- capota bimini realista com logo ----
     const svgLogo = document.querySelector("svg.logo");
     const capota = (o) => {
@@ -5045,12 +5122,12 @@ body.gated { overflow: hidden; }
       const dom = new T.Mesh(new T.SphereGeometry(0.2, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2), mat.inox); dom.rotation.x = Math.PI; dom.position.set(-0.4, 1.18, 0.98); churr.add(dom);
       const tampa = new T.Mesh(new T.SphereGeometry(0.2, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2), mat.inox); tampa.position.set(-0.4, 1.18, 0.98); tampa.rotation.z = -0.9; churr.add(tampa); churr.traverse((o) => { o.castShadow = true; }); }
     // ---- Kit Fundeio ----
-    const guincho = new T.Group(); barco.add(guincho);
+    const guincho = new T.Group(); barco.add(guincho); guincho.position.y = 0.1;
     { const gb = new T.Mesh(new T.CylinderGeometry(0.11, 0.11, 0.14, 28), mat.escuro); gb.position.set(L - 0.55, 0.38, 0); guincho.add(gb);
       const gt = new T.Mesh(new T.CylinderGeometry(0.06, 0.06, 0.18, 24), mat.inox); gt.position.set(L - 0.55, 0.49, 0); guincho.add(gt);
       const rl = new T.Mesh(new T.BoxGeometry(0.46, 0.05, 0.12), mat.inox); rl.position.set(L - 0.18, 0.4, 0); guincho.add(rl); guincho.traverse((o) => { o.castShadow = true; }); }
     // ---- motor de popa ----
-    const motor = new T.Group(); barco.add(motor); motor.position.set(-0.62, 0, 0);
+    const motor = new T.Group(); barco.add(motor); motor.position.set(-0.9, 0, 0);
     const pM = new T.Shape(); pM.moveTo(-0.3, -0.22); pM.lineTo(0.26, -0.22); pM.quadraticCurveTo(0.36, 0.1, 0.3, 0.4); pM.quadraticCurveTo(0.14, 0.66, -0.16, 0.62); pM.quadraticCurveTo(-0.38, 0.52, -0.36, 0.12); pM.closePath();
     { const g = new T.ExtrudeGeometry(pM, { depth: 0.36, bevelEnabled: true, bevelThickness: 0.08, bevelSize: 0.08, bevelSegments: 8, curveSegments: 20 }); g.translate(0, 0, -0.18);
       const cap = new T.Mesh(g, mat.motor); cap.position.set(0, 0.66, 0); cap.castShadow = true; motor.add(cap);
@@ -5093,6 +5170,7 @@ body.gated { overflow: hidden; }
     B3D.estado = "pronto"; Object.assign(B3D, { barco, giro, cam, ren, cena });
     B3D.aplicar = (o) => {
       texEst.desenhar(B3D_EST[o.est] || B3D_EST.Branco);
+      mat.estLiso.color.copy(C(B3D_EST[o.est] || B3D_EST.Branco)); mat.estRolo.color.copy(C(B3D_EST[o.est] || B3D_EST.Branco)); grupoMesa.visible = !o.solario; grupoSol.visible = !!o.solario;
       mat.acril.color.copy(C({ Branco: 0xF0F1F2, Bege: 0xC9A074, Cinza: 0xC9D0D8 }[o.est] || 0xC9D0D8));
       const pp = B3D_PISO[o.piso] || B3D_PISO.Cinza; texPiso.desenhar(pp[0], pp[1]);
       const tb = new T.Color(o.tuboCor || "#e3e4e1"), hx = (c, f) => "#" + c.clone().multiplyScalar(f).getHexString();
@@ -5239,7 +5317,7 @@ body.gated { overflow: hidden; }
     const q = atCompute(); const mid = q ? q.mid : null; const mi = mid ? st.items.get(mid) : null;
     const nomeM = String((mi && mi.item) || "");
     B3D.aplicar({
-      est: st.at.corEst || AT_DEF.corEst, piso: st.at.corPiso || AT_DEF.corPiso, hyp: !!st.at.hyp, tuboCor: tuboCor(st.at.hyp, st.at.corTubo)[2],
+      est: st.at.corEst || AT_DEF.corEst, piso: st.at.corPiso || AT_DEF.corPiso, hyp: !!st.at.hyp, tuboCor: tuboCor(st.at.hyp, st.at.corTubo)[2], solario: !!B3D.solario,
       gps: !!st.at.gps || motorGps(mid), capProa: b3dTemItem(/capota de proa/i), pia: b3dTemItem(/pia e fog/i),
       churr: b3dTemItem(/churrasqueira/i), guincho: b3dTemItem(/guincho/i), motorBranco: /mercury|branco|white/i.test(nomeM) || !nomeM,
       marca: /yamaha/i.test(nomeM) ? "YAMAHA" : "MERCURY", mastro: b3dTemItem(/mastro de bandeira/i)
@@ -5379,6 +5457,7 @@ body.gated { overflow: hidden; }
   if ($("f-cat")) $("f-cat").addEventListener("click", catGerar);
   window.addEventListener("hashchange", () => { if (cfx.aberto && location.hash.indexOf("atendimento") < 0) cfxFechar(); setTimeout(b3dAtualizar, 80); });
   $("at-cfx-abrir").addEventListener("click", cfxAbrir); $("cfx-ok").addEventListener("click", cfxFechar);
+  $("at-3d-proa").addEventListener("click", () => { B3D.solario = !B3D.solario; const b = $("at-3d-proa"); b.textContent = B3D.solario ? "Proa: solário" : "Proa: mesa"; b.setAttribute("aria-pressed", B3D.solario ? "true" : "false"); b3dAtualizar(); });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && cfx.aberto && !$("at-3d").classList.contains("grande")) cfxFechar(); });
   $("at-cfg-copiar").addEventListener("click", () => copiarLinkCliente("at-cfg-msg")); $("cfx-copiar").addEventListener("click", () => copiarLinkCliente("cfx-resumo"));
   $("at-cfg-importar").addEventListener("click", importarLink);
