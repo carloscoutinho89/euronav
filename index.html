@@ -672,6 +672,7 @@ body.cfx-on { overflow: hidden; }
 body.vendas:not(.tem-preco) .tab:not([data-view="atendimento"]):not([data-view="ficha"]) { display: none; }
 body.vendas.tem-preco .tab:not([data-view="atendimento"]):not([data-view="ficha"]):not([data-view="venda"]) { display: none; }
 body.vendas #pv-senha-card { display: none; }
+body.so-vendas #modo-vendas { display: none; }
 .pv-card { margin-bottom: 16px; }
 .pv-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
 .pv-row select { flex: 1 1 260px; min-width: 0; min-height: 42px; padding: 8px 10px; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--surface); color: var(--ink); font: inherit; }
@@ -1464,7 +1465,10 @@ body.gated { overflow: hidden; }
 (function () {
   "use strict";
   const API = "https://script.google.com/macros/s/AKfycbwGjZAsu5fIpKSEDR63I_cLmiTQWHhoCKJImXoE4C6H_3gWPV4PC6SujvM9zLXTk7_A/exec";
-  const KEY = "euronav-senha";
+  const KEY = "euronav-senha", PKEY = "euronav-perfil";
+  // perfil do acesso: "gestao" (senha da equipe) ou "vendas" (senha de vendedor, só modo vendas)
+  const perfilSet = (p) => { const v = p === "vendas" ? "vendas" : "gestao"; try { localStorage.setItem(PKEY, v); } catch (e) {} if (window.EURONAV_PERFIL !== v) { window.EURONAV_PERFIL = v; try { window.dispatchEvent(new Event("euronav-perfil")); } catch (e) {} } };
+  try { window.EURONAV_PERFIL = localStorage.getItem(PKEY) || ""; } catch (e) { window.EURONAV_PERFIL = ""; }
   const POLL_MS = 15000;
   let senha = null;
   try { senha = localStorage.getItem(KEY); } catch (e) {}
@@ -1506,6 +1510,7 @@ body.gated { overflow: hidden; }
     if (!r.ok) throw mkErr("unavailable");
     let j; try { j = await r.json(); } catch (e) { throw mkErr("unavailable"); }
     if (!j || !j.ok) throw mkErr(j && (j.erro === "senha" || j.erro === "senha-padrao") ? j.erro : "unavailable");
+    perfilSet(j.perfil);
     return j;
   }
 
@@ -2079,11 +2084,12 @@ body.gated { overflow: hidden; }
   // Modo vendas: só Atendimento e Ficha técnica; para voltar ao modo gestão pede a senha.
   const MODO_KEY = "euronav-modo", PIN_KEY = "euronav-pin-vendas", VENDAS = ["atendimento", "ficha"];
   const mem = { get: (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } }, set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* ignora */ } }, del: (k) => { try { localStorage.removeItem(k); } catch (e) { /* ignora */ } } };
-  let vendas = mem.get(MODO_KEY) === "vendas", precoAberto = false;
+  const soVendas = () => (window.EURONAV_PERFIL || mem.get("euronav-perfil")) === "vendas"; // acesso com senha de vendedor: sem volta para a gestão
+  let vendas = mem.get(MODO_KEY) === "vendas" || soVendas(), precoAberto = false;
   const PRECO = () => window.EURONAV_PRECO || { tem: () => false, confere: async () => false };
   const senhaEquipe = () => mem.get("euronav-senha");
   function aplicaModo() {
-    document.body.classList.toggle("vendas", vendas);
+    document.body.classList.toggle("vendas", vendas); document.body.classList.toggle("so-vendas", soVendas());
     const b = $("modo-vendas"); if (!b) return;
     b.setAttribute("aria-pressed", vendas ? "true" : "false"); b.querySelector("span").textContent = vendas ? "Modo gestão" : "Modo vendas";
     b.title = vendas ? "Volta a mostrar todas as abas (pede a senha)" : "Mostra só Atendimento e Ficha técnica";
@@ -2121,7 +2127,9 @@ body.gated { overflow: hidden; }
     if (location.hash !== "#" + v) location.hash = v; else showView(v);
   }));
   window.addEventListener("hashchange", () => showView(location.hash.slice(1)));
+  window.addEventListener("euronav-perfil", () => { if (soVendas() && !vendas) { vendas = true; mem.set(MODO_KEY, "vendas"); } aplicaModo(); showView(location.hash.slice(1)); });
   $("modo-vendas").addEventListener("click", async () => {
+    if (soVendas()) return;
     if (!vendas) {
       if (!senhaEquipe() && !mem.get(PIN_KEY) && !(await pedirSenha(true))) return;
       vendas = true; mem.set(MODO_KEY, "vendas"); aplicaModo();
@@ -4076,6 +4084,32 @@ body.gated { overflow: hidden; }
     out.sort((a, b) => num(a.ordem) - num(b.ordem));
     return out.map((it) => String(it.item || "").trim()).filter(Boolean);
   }
+  // Nomes comerciais da proposta: mesmo item do cadastro, dito de forma objetiva e sem detalhe de fabricação (material de peça, medida, código).
+  const PROP_NOME = [
+    [/estofad/i, "Estofamento completo"], [/capota de popa/i, "Capota de popa"], [/capota de proa/i, "Capota de proa"], [/piso eva/i, "Piso completo em EVA náutico"],
+    [/vaso sanit[áa]rio el[ée]trico/i, "Vaso sanitário elétrico"], [/vaso sanit[áa]rio/i, "Banheiro com vaso sanitário"], [/ducha/i, "Ducha de água doce"],
+    [/luz de cortesia azul|luz.*bar/i, "Iluminação azul no bar"], [/luz de cortesia/i, "Luzes de cortesia"], [/luz do banheiro/i, "Luz no banheiro"], [/luz de manuten/i, "Luz de manutenção"],
+    [/kit de som/i, "Som marinizado com 4 alto-falantes"], [/subwoofer/i, "Subwoofer de 800 W"], [/pia e fog/i, "Pia e fogão"], [/churrasqueira/i, "Churrasqueira a gás com tábua e suporte"],
+    [/bar de acr/i, "Bar em acrílico"], [/porta-celular/i, "Porta-celular"], [/porta-treco/i, "Porta-objetos basculantes"], [/caixas de acr|porta-objeto/i, "Porta-objetos em acrílico"],
+    [/caixa t[ée]rmica/i, "Caixa térmica de 26,5 L"], [/tampo da mesa de proa/i, "Mesa de proa"], [/tampo da mesa de popa/i, "Mesa de popa"], [/mesa do banco do piloto/i, "Mesa rebatível no banco do piloto"],
+    [/guincho/i, "Guincho elétrico de 700 W"], [/trava de corrente/i, "Trava de corrente"], [/corrente inox/i, "Corrente de âncora em inox"], [/corrente/i, "Corrente de âncora"], [/[âa]ncora bruce/i, "Âncora Bruce de 7,5 kg"],
+    [/lan[çc]ador/i, "Lançador de âncora duplo"], [/cabo de [âa]ncora/i, "Cabo de âncora de 10 m"], [/carreta/i, "Carreta de encalhe"],
+    [/amortecedor/i, "Tampa do painel com amortecedores"], [/bomba de por/i, "Bomba de porão"], [/bateria/i, "Bateria náutica"], [/para-brisa/i, "Para-brisa em acrílico"],
+    [/bomba de pressuriza/i, "Água doce pressurizada"], [/apoio de bra[çc]o/i, "Banco do piloto com apoio de braço"], [/tanque de combust/i, "Tanque de combustível de 200 L"],
+    [/tanque de [áa]gua/i, "Tanque de água doce de 60 L"], [/bot[õo]es do painel/i, "Painel de comando completo"], [/apoio lateral do painel/i, "Apoio lateral no painel de comando"],
+    [/pega-m[ãa]o da escada/i, "Pega-mão na escada de popa"], [/escada de popa/i, "Escada de popa telescópica"], [/volante/i, "Volante Savoretti"], [/amarrador|cunho/i, "Cunhos de amarração"],
+    [/b[úu]ssola/i, "Bússola de navegação"], [/porta-copo/i, "Porta-copos em inox"], [/chave geral/i, "Chave geral"], [/extintor/i, "Extintor de incêndio com suporte"],
+    [/rel[óo]gio do n[íi]vel|n[íi]vel de combust/i, "Marcador de combustível"], [/porta lateral do banco/i, "Porta de acesso lateral no banco"], [/mastro de bandeira/i, "Mastro de bandeira em inox"],
+    [/buzina/i, "Buzina elétrica"], [/pega-m[ãa]o do flutuante/i, "Pega-mãos nos tubulões"], [/bandeira do brasil/i, "Bandeira do Brasil"], [/logomarca/i, "Logomarca Euronav em inox"],
+    [/escotilha do painel/i, "Escotilha no painel de comando"]];
+  function nomeProposta(nome) {
+    const n = String(nome || "").trim();
+    for (const [re, t] of PROP_NOME) if (re.test(n)) return t;
+    // item ainda sem nome comercial: tira medida, código e material solto do fim e deixa em frase
+    const limpo = n.replace(/\s+\d+([.,]\d+)?\s*(mm|cm|m|kg|w|gph|ah|l)\b/gi, "").replace(/\s+\d+(\.\d+)?\/?\d*''/g, "").replace(/\s+(pvc|p|g|pp|abs)$/i, "").trim() || n;
+    const f = frase(limpo); return f.charAt(0).toUpperCase() + f.slice(1);
+  }
+  const listaProposta = (nomes) => { const out = []; nomes.forEach((x) => { const t = nomeProposta(x); if (!out.includes(t)) out.push(t); }); return out; };
   function propLines(q) {
     const casco = q.lines.find((l) => l.key === "casco"), motor = q.lines.find((l) => l.key === "motor");
     if (!casco || !motor) return q.lines;
@@ -4171,7 +4205,7 @@ body.gated { overflow: hidden; }
       else if (l.key === "motor") sub = "Motor de popa com garantia do fabricante.";
       else if (l.key === "hyp") sub = "Tubos em Hypalon Orca, importado da Bélgica, no lugar do PVC Sansuy: mais resistentes a sol, combustível e abrasão.";
       else if (l.key === "gps") sub = l.incluso ? "Navegação no painel VesselView, que já vem com o motor." : "Navegação no console.";
-      else if (l.parcial) { const t = listaTxt(l.avulsos.map(frase)); sub = "Itens escolhidos: " + t + "."; }
+      else if (l.parcial) { const t = listaTxt(listaProposta(l.avulsos).map((x) => x.charAt(0).toLowerCase() + x.slice(1))); sub = "Itens escolhidos: " + t + "."; }
       else if (kitDesc[l.key]) sub = kitDesc[l.key];
       font(false, 8.5); const sl = sub ? doc.splitTextToSize(sub, CW - 62) : [];
       font(true, 10.5); const nl = doc.splitTextToSize(l.nome, CW - 62);
@@ -4219,8 +4253,8 @@ body.gated { overflow: hidden; }
 
     // ---- o que vem no barco ----
     const motL = q.lines.find((l) => l.key === "motor");
-    const grupos = [["Casco, motor e kit básico de série", (motL ? ["Motor " + String(motL.nome || "").replace(/^motor\s+/i, "")] : []).concat(kitItens("basico"))]];
-    q.lines.forEach((l) => { if (kitDesc[l.key] && l.key !== "basico") grupos.push([l.nome, l.parcial ? l.avulsos : kitItens(l.key)]); });
+    const grupos = [["Casco, motor e kit básico de série", (motL ? ["Motor " + String(motL.nome || "").replace(/^motor\s+/i, "")] : []).concat(listaProposta(kitItens("basico")))]];
+    q.lines.forEach((l) => { if (kitDesc[l.key] && l.key !== "basico") grupos.push([l.nome, listaProposta(l.parcial ? l.avulsos : kitItens(l.key))]); });
     const opc = [];
     if (q.lines.some((l) => l.key === "hyp")) opc.push("Tubos em Hypalon Orca no lugar do PVC Sansuy");
     if (q.lines.some((l) => l.key === "gps")) opc.push("GPS instalado no console");
