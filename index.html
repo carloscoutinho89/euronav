@@ -595,6 +595,9 @@ body.b3d-on::before { content: ""; position: fixed; inset: 0; background: rgba(0
 .at-3d-proa { position: absolute; top: 8px; left: 8px; z-index: 2; appearance: none; border: 1px solid rgba(0,0,0,.08); background: rgba(255,255,255,.85); color: var(--ink); font: inherit; font-size: .78rem; padding: 5px 10px; border-radius: 999px; cursor: pointer; }
 .at-3d-proa:hover { background: #fff; }
 .cfx-3d .at-3d-proa { top: 14px; left: 14px; background: rgba(0,0,0,.45); color: #eceef1; border-color: rgba(255,255,255,.18); }
+.b3d-bar .at-3d-proa, .cfx-3d .b3d-bar .at-3d-proa { position: static; border: 1px solid rgba(120,125,135,.45); background: rgba(20,22,26,.72); color: #eef0f3; font-size: .74rem; line-height: 1; padding: 7px 10px; border-radius: 999px; white-space: nowrap; }
+.b3d-bar .at-3d-proa:hover { background: rgba(20,22,26,.92); }
+.b3d-bar .at-3d-proa[aria-pressed="true"] { background: #eef0f3; color: #14161a; border-color: #eef0f3; }
 .at-3d-v { height: 290px; border-radius: var(--radius-m); background: radial-gradient(ellipse at 50% 35%, #F7F9FC 0%, #E7ECF2 70%, #DDE3EA 100%); cursor: grab; touch-action: pan-y; overflow: hidden; }
 .at-3d-v.arrastando { cursor: grabbing; }
 .at-3d-v canvas { display: block; }
@@ -613,6 +616,7 @@ body.cliente .f-cont-ed { display: none; }
 .at-cfx-acoes .c-link { font-size: .8rem; }
 .at-cor-t small { font-weight: 400; color: var(--muted); }
 .at-cor-sub { margin-top: 14px; }
+.at-cor-sub, #at-cor-listra { display: none; }   /* listra sempre branca: sem seletor */
 body.cfx-on { overflow: hidden; }
 .cfx { position: fixed; inset: 0; z-index: 140; background: #0e0f11; display: flex; flex-direction: column; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
 .cfx[hidden] { display: none; }
@@ -642,6 +646,27 @@ body.cfx-on { overflow: hidden; }
 .cfx-vbt[aria-pressed="true"] { border-color: #8fa6e6; box-shadow: 0 0 0 1px #8fa6e6; }
 .cfx-painel { overflow-y: auto; background: var(--bg); padding: 14px; display: flex; flex-direction: column; gap: 12px; }
 .cfx-painel .c-card { margin: 0; }
+/* Cores no configurador do Atendimento: mesmo visual do configurador público (bolinhas de cor, nome escolhido à direita) */
+.cfx-painel .at-cores { display: flex; flex-direction: column; gap: 0; }
+.cfx-painel .at-cor-g { padding: 14px 0 16px; border-top: 1px solid var(--line); }
+.cfx-painel .at-cor-g:first-child { border-top: 0; padding-top: 4px; }
+.cfx-painel .at-cor-tubo { order: 9; }
+.cfx-painel .at-cor-t { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin: 0 0 12px; font-size: .72rem; font-weight: 500; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.cfx-painel .at-cor-t small { display: none; }
+.cfx-painel .at-cor-sub, .cfx-painel #at-cor-listra { display: none; }
+.cfx-painel .at-cor-t[data-sel]::after { content: attr(data-sel); font-size: .94rem; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--ink); text-align: right; }
+.cfx-painel .at-cor-ops { gap: 12px; }
+.cfx-painel .at-cor { padding: 0; border: 0; background: none; border-radius: 50%; }
+.cfx-painel .at-cor > span:not(.at-cor-sw) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.cfx-painel .at-cor-sw { width: 38px; height: 38px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(128, 128, 128, .4); }
+.cfx-painel .at-cor:has(input:checked) { box-shadow: none; background: none; }
+.cfx-painel .at-cor:has(input:checked) .at-cor-sw { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--brand-blue); }
+.cfx-painel .at-cor:has(input:focus-visible) { outline: 0; }
+.cfx-painel .at-cor:has(input:focus-visible) .at-cor-sw { outline: 2px solid var(--brand-blue); outline-offset: 5px; }
+.cfx-painel #at-cor-proa { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.cfx-painel #at-cor-proa .at-cor { display: flex; justify-content: center; padding: 13px 14px; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--surface); }
+.cfx-painel #at-cor-proa .at-cor > span { position: static; width: auto; height: auto; clip: auto; overflow: visible; font-size: .98rem; }
+.cfx-painel #at-cor-proa .at-cor:has(input:checked) { border-color: var(--brand-blue); box-shadow: 0 0 0 1px var(--brand-blue); background: var(--blue-soft); }
 .cfx.escuro .cfx-painel { --bg: #131417; --surface: #1c1e22; --ink: #eceef1; --muted: #a2a6ae; --line: #30333a; --line-strong: #4a4e57; --blue-text: #a9bcf0; --blue-soft: #232a3d; --brand-blue: #8fa6e6; --btn-bg: #eceef1; --btn-ink: #131417; --later: #c3c6cc; --later-bg: #2a2d33; --done: #7fd0a0; --done-bg: #1c3327; --open: #eceef1; --open-bg: #1c1e22; --open-border: #eceef1; color: var(--ink); color-scheme: dark; }
 .cfx.escuro .cfx-painel .c-card { background: var(--surface); border-color: var(--line); color: var(--ink); }
 .cfx.escuro .cfx-painel select, .cfx.escuro .cfx-painel input[type="text"], .cfx.escuro .cfx-painel input[type="number"] { background-color: #131417; color: var(--ink); border-color: var(--line-strong); }
@@ -675,6 +700,7 @@ body.vendas #pv-senha-card { display: none; }
 body.so-vendas #modo-vendas { display: none; }
 .pv-card { margin-bottom: 16px; }
 .pv-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+.pv-row[hidden] { display: none; }
 .pv-row select { flex: 1 1 260px; min-width: 0; min-height: 42px; padding: 8px 10px; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--surface); color: var(--ink); font: inherit; }
 .pv-row .mv-l { flex: 1 1 180px; margin: 0; }
 .pv-row #pv-resumo { flex: 1 1 320px; font-size: .95rem; }
@@ -969,10 +995,10 @@ body.gated { overflow: hidden; }
     <p class="banner" id="v-banner" hidden></p>
     <div class="c-card pv-card" id="pv-estudo">
       <h2 class="c-h2" style="margin:0 0 4px">Estudar um atendimento</h2>
-      <p class="c-hint" style="margin:0 0 10px">Escolha um atendimento para trazer a configuração dele para cá (motor, kits, itens, tubos, GPS e desconto). Depois arraste o preço de fechamento para ver até onde a margem aguenta. O atendimento só muda se você aplicar o desconto.</p>
+      <p class="c-hint" style="margin:0 0 10px">Escolha um atendimento para trazer a configuração dele para cá (motor, kits, itens, tubos, GPS e desconto). Depois arraste o preço de fechamento para ver até onde a margem aguenta. O estudo fica só neste aparelho: não é gravado na planilha e não muda com a sincronização. O atendimento só muda se você aplicar o desconto.</p>
       <div class="pv-row"><select id="pv-at" aria-label="Atendimento a estudar"></select><button type="button" class="mv-bt forte" id="pv-carregar">Carregar na Precificação</button></div>
       <p class="pv-msg" id="pv-msg" aria-live="polite"></p>
-      <div class="pv-row" id="pv-aplicar-row" hidden><span id="pv-resumo"></span><button type="button" class="mv-bt forte" id="pv-aplicar">Aplicar este desconto ao atendimento</button></div>
+      <div class="pv-row" id="pv-aplicar-row" hidden><span id="pv-resumo"></span><button type="button" class="mv-bt forte" id="pv-aplicar">Aplicar este desconto ao atendimento</button><button type="button" class="mv-bt" id="pv-encerrar">Encerrar estudo</button></div>
     </div>
     <details class="c-card pv-card" id="pv-senha-card">
       <summary>Senha da Precificação no modo vendas</summary>
@@ -1134,6 +1160,7 @@ body.gated { overflow: hidden; }
               <p class="at-cor-t at-cor-sub">Listras do piso</p><div class="at-cor-ops" id="at-cor-listra" role="radiogroup" aria-label="Cor das listras do piso"></div></div>
             <div class="at-cor-g at-cor-tubo"><p class="at-cor-t">Tubulões <small id="at-cor-tubo-mat"></small></p><div class="at-cor-ops" id="at-cor-tubo" role="radiogroup" aria-label="Cor dos tubulões"></div></div>
             <div class="at-cor-g at-cor-cap"><p class="at-cor-t">Capotas <small>(mesma cor na popa e na proa, sem custo)</small></p><div class="at-cor-ops" id="at-cor-cap" role="radiogroup" aria-label="Cor das capotas"></div></div>
+            <div class="at-cor-g at-cor-cap"><p class="at-cor-t">Proa <small>(mesa e solário vêm de série; escolha o que mostrar)</small></p><div class="at-cor-ops" id="at-cor-proa" role="radiogroup" aria-label="Proa: mesa ou solário"></div></div>
           </div>
         </div>
         <div class="c-card">
@@ -3016,7 +3043,14 @@ body.gated { overflow: hidden; }
       hypPrice: hypAdd(), at };
   }
 
+  // Estudo de um atendimento na Precificação: fica só neste aparelho. Não é gravado na planilha nem trocado pela
+  // sincronização, para ninguém mexer no estudo de outra pessoa e o orçamento em estudo não mudar sozinho.
+  const PV_KEYS = ["motor", "kits", "kitItens", "tubo", "gps", "gpsAuto", "fechamento"];
   function saveV(patch) {
+    if (st.pvAt && patch) {
+      const resto = {}; Object.keys(patch).forEach((k) => { if (PV_KEYS.includes(k)) { if (st.pvLocal) st.pvLocal[k] = patch[k]; } else resto[k] = patch[k]; });
+      if (!Object.keys(resto).length) return; patch = resto;
+    }
     if (!st.vref || !st.canWrite) return;
     if (!st.vExists) { st.vExists = true; const full = Object.assign({}, st.v); enqueue("v", () => st.vref.set(full)); }
     else enqueue("v", () => st.vref.update(patch));
@@ -3276,23 +3310,21 @@ body.gated { overflow: hidden; }
     hyp: [["gelo", "Branco gelo", "#ECEBE2"], ["creme", "Creme", "#EDE3C8"]] };
   const TUBO_ANT = { gelo: "cinza", areia: "bege", grafite: "preto" }; // cores que saíram da lista: atendimentos e links antigos caem na mais próxima
   const tuboCor = (hyp, c) => { const l = TUBO_CORES[hyp ? "hyp" : "pvc"]; return l.find((x) => x[0] === c) || l.find((x) => x[0] === TUBO_ANT[c]) || l[0]; };
-  const coresTxt = () => { const c = atCores(); return "estofado " + corTxt(c.est) + ", piso em EVA " + corTxt(c.piso) + " com listras em " + corTxt(c.listra) + ", capotas em " + corTxt(c.cap) + " e tubulões " + tuboCor(st.at.hyp, st.at.corTubo)[1].toLowerCase(); };
+  const coresTxt = () => { const c = atCores(); return "estofado " + corTxt(c.est) + ", piso em EVA " + corTxt(c.piso) + " com listras brancas, capotas em " + corTxt(c.cap) + " e tubulões " + tuboCor(st.at.hyp, st.at.corTubo)[1].toLowerCase(); };
   // ---------- catálogo de cores: estofado (Sintético Náutico CB, estampa Delta), piso (Jett Deck) e capotas ----------
   const CAT = {
     // nome, cor do ícone (e alvo das fotos), cor do material no 3D
     est: [["Branco Ultra", "#EFEFEA", 0xF1EFEA], ["Ice Gray", "#DAD8CD", 0xD2D0C4], ["Marfim", "#D3C49C", 0xC9B88C], ["Areia", "#C0B395", 0xB3A585],
       ["Caramelo", "#BC9F70", 0xAD8E5E], ["Cinza Arizona", "#A6ABA8", 0x9A9F9C], ["Pueblo", "#C48D60", 0xB57C4E], ["Taupe", "#8F8372", 0x80745F]],
-    // nome, cor, listras disponíveis (a primeira é a sugerida)
-    piso: [["Ocre", "#8C6243", ["Preto", "Branco"]], ["Madeira", "#B89C6E", ["Preto", "Branco", "Azul"]], ["Areia", "#E6E2CB", ["Preto"]],
-      ["Cinza", "#8D8E8B", ["Branco", "Preto", "Azul", "Laranja", "Aqua"]], ["Preto", "#24272C", ["Cinza", "Ocre", "Madeira", "Areia", "Vermelho", "Branco"]],
-      ["Vermelho", "#AB2729", ["Preto"]], ["Branco", "#E0E1DD", ["Preto"]]],
+    // nome, cor, listra (sempre branca: é a do barco fotografado, e as fotos mostram o friso real)
+    piso: [["Cinza", "#8D8E8B", ["Branco"]], ["Madeira", "#B89C6E", ["Branco"]], ["Ocre", "#8C6243", ["Branco"]], ["Preto", "#24272C", ["Branco"]]],   // só as cores do catálogo que existem com listra branca, que é a da foto
     listra: { Preto: "#141414", Branco: "#E6E4DE", Azul: "#0B4596", Laranja: "#C6521F", Aqua: "#1A9C94", Ocre: "#A9805E", Madeira: "#D2BC88", Areia: "#DED8C8", Cinza: "#ACAFB8", Vermelho: "#CA2733" },
     capota: [["Cinza", "#76695B", 0x5E5347], ["Bege", "#CBA886", 0xA98866], ["Preto", "#191813", 0x141310], ["Azul", "#353B4E", 0x2A2F40], ["Verde", "#295646", 0x1F4336], ["Vinho", "#8E2D2F", 0x681C20]],   // nome, cor do ícone, cor da lona no 3D
     // cores que saíram da lista: atendimentos e links antigos caem na mais próxima
-    ant: { est: { Branco: "Branco Ultra", Bege: "Pueblo", Cinza: "Cinza Arizona" }, piso: { Bege: "Areia" } }
+    ant: { est: { Branco: "Branco Ultra", Bege: "Pueblo", Cinza: "Cinza Arizona" }, piso: { Bege: "Madeira", Areia: "Madeira", Vermelho: "Cinza", Branco: "Cinza" } }
   };
   const catEst = (n) => CAT.est.find((x) => x[0] === n) || CAT.est.find((x) => x[0] === CAT.ant.est[n]) || CAT.est[0];
-  const catPiso = (n) => CAT.piso.find((x) => x[0] === n) || CAT.piso.find((x) => x[0] === CAT.ant.piso[n]) || CAT.piso[3];
+  const catPiso = (n) => CAT.piso.find((x) => x[0] === n) || CAT.piso.find((x) => x[0] === CAT.ant.piso[n]) || CAT.piso[0];
   const catListra = (p, l) => { const ls = catPiso(p)[2]; return ls.includes(l) ? l : ls[0]; };
   const catCap = (n) => CAT.capota.find((x) => x[0] === n) || CAT.capota[0];
   const hexRgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
@@ -3459,6 +3491,12 @@ body.gated { overflow: hidden; }
     };
     corG("at-cor-est", "corEst", CAT.est); corG("at-cor-piso", "corPiso", CAT.piso, (n) => { st.at.corListra = catListra(n, st.at.corListra); });
     corG("at-cor-listra", "corListra", catPiso(st.at.corPiso)[2].map((l) => [l, CAT.listra[l]])); corG("at-cor-cap", "corCapota", CAT.capota);
+    { const h = $("at-cor-proa"); let sol = false; try { sol = !!B3D.solario; } catch (e) {}
+      if (h) { h.replaceChildren(); [["Mesa", false], ["Solário", true]].forEach(([n, v]) => {
+        const lab = el("label", "at-cor"); const inp = document.createElement("input"); inp.type = "radio"; inp.name = "at-cor-proa"; inp.value = n; inp.checked = sol === v;
+        inp.addEventListener("change", () => { try { if (!!B3D.solario !== v) $("at-3d-proa").click(); } catch (e) {} });
+        lab.append(inp, el("span", "", n)); h.appendChild(lab); }); } }
+    document.querySelectorAll("#at-card-cores .at-cor-ops").forEach((ops) => { const t = ops.previousElementSibling, c = ops.querySelector("input:checked"); if (t && t.classList.contains("at-cor-t")) { if (c) t.dataset.sel = c.closest("label").textContent.trim(); else delete t.dataset.sel; } });
     b3dAtualizar();
     cfxRender();
     { const h = $("at-cor-tubo"); const lst = TUBO_CORES[st.at.hyp ? "hyp" : "pvc"]; if (!lst.some((x) => x[0] === st.at.corTubo)) st.at.corTubo = tuboCor(st.at.hyp, st.at.corTubo)[0];
@@ -4807,36 +4845,35 @@ body.gated { overflow: hidden; }
       px[i] += (L2S[Math.round(Math.min(1, o0) * 4096)] - px[i]) * a; px[i + 1] += (L2S[Math.round(Math.min(1, o1) * 4096)] - px[i + 1]) * a; px[i + 2] += (L2S[Math.round(Math.min(1, o2) * 4096)] - px[i + 2]) * a;
     }
   }
-  // Listras do piso nas fotos: dentro da máscara do piso, os frisos são traços finos mais claros que o entorno.
-  // Cada traço recebe a cor de listra escolhida, com a luz e a sombra do ponto onde está.
-  function recolorListra(d, src, px, m, alvo) {
-    if (!alvo) return;
+  // Listras do piso nas fotos: cada foto traz o traçado dos frisos (linhas finas e retas, preparadas à parte).
+  // A cor de listra escolhida é pintada só sobre esse traçado, com a luz e a sombra do ponto onde está.
+  const linhasDados = (src, W, H) => new Promise((ok) => { const im = new Image(); im.onload = () => { const c = document.createElement("canvas"); c.width = W; c.height = H; const g = c.getContext("2d"); g.drawImage(im, 0, 0, W, H); ok(g.getImageData(0, 0, W, H).data); }; im.onerror = () => ok(null); im.src = src; });
+  const LISTRA_OPAC = 0.58;   // listra discreta: deixa o tom do piso aparecer por baixo, sem chamar a atenção
+  function recolorListra(d, src, px, m, ln, alvo) {
+    if (!alvo || !ln) return;
     const W = d.width, H = d.height, N = W * H, L = new Float32Array(N), M = new Float32Array(N);
     for (let i = 0, j = 0; j < N; i += 4, j++) if (m[i + 1] > 127) { M[j] = 1; L[j] = 0.2126 * S2L[src[i]] + 0.7152 * S2L[src[i + 1]] + 0.0722 * S2L[src[i + 2]]; }
-    const R = Math.max(3, Math.round(W / 150));
+    const R = Math.max(4, Math.round(W / 110));
     const borra = (A) => { // média em caixa, separável
       const T1 = new Float32Array(N), T2 = new Float32Array(N);
       for (let y = 0; y < H; y++) { let s = 0; const o = y * W; for (let x = -R; x < W; x++) { const e = x + R; if (e < W) s += A[o + e]; const sai = x - R - 1; if (sai >= 0) s -= A[o + sai]; if (x >= 0) T1[o + x] = s; } }
       for (let x = 0; x < W; x++) { let s = 0; for (let y = -R; y < H; y++) { const e = y + R; if (e < H) s += T1[e * W + x]; const sai = y - R - 1; if (sai >= 0) s -= T1[sai * W + x]; if (y >= 0) T2[y * W + x] = s; } }
       return T2; };
-    const bl = borra(L), bm = borra(M), cheio = (2 * R + 1) * (2 * R + 1);
-    const am = []; for (let j = 0; j < N; j += 7) if (M[j] && bm[j] > cheio * 0.9) am.push(bl[j] / bm[j]);
+    const bl = borra(L), bm = borra(M);
+    const am = []; for (let j = 0; j < N; j += 7) if (M[j] && bm[j] > 0) am.push(bl[j] / bm[j]);
     if (am.length < 40) return; am.sort((a, b) => a - b); const med = am[am.length >> 1] || 1e-3;
     const a0 = S2L[alvo[0]], a1 = S2L[alvo[1]], a2 = S2L[alvo[2]];
     for (let i = 0, j = 0; j < N; i += 4, j++) {
-      if (!M[j] || bm[j] < cheio * 0.8) continue;                      // fora do piso ou colado na borda da peça
-      const loc = bl[j] / bm[j]; if (loc <= 0) continue;
-      const w = Math.min(1, Math.max(0, (L[j] / loc - 1.1) / 0.13)); if (w <= 0) continue;
-      const luz = Math.min(1.5, Math.max(0.25, loc / med)) * 0.92;
+      const w = M[j] ? (ln[i] / 255) * LISTRA_OPAC : 0; if (w <= 0.02 || bm[j] <= 0) continue;
+      const luz = Math.min(1.35, Math.max(0.3, (bl[j] / bm[j]) / med)) * 0.95;
       const o0 = L2S[Math.round(Math.min(1, a0 * luz) * 4096)], o1 = L2S[Math.round(Math.min(1, a1 * luz) * 4096)], o2 = L2S[Math.round(Math.min(1, a2 * luz) * 4096)];
       px[i] += (o0 - px[i]) * w; px[i + 1] += (o1 - px[i + 1]) * w; px[i + 2] += (o2 - px[i + 2]) * w;
     }
   }
-  function recolorir(d, m, est, pisoListra) {
+  function recolorir(d, m, est, pisoListra, ln) {
     const src = new Uint8ClampedArray(d.data), px = d.data, [piso, listra] = String(pisoListra || "").split("/");   // "Preto/Vermelho": cor do piso e da listra
     recolorCanal(src, px, m, 0, COR_ALVO.est[est]); recolorCanal(src, px, m, 2, COR_ALVO.est[est], false); recolorCanal(src, px, m, 1, COR_ALVO.piso[piso]);
-    // o barco fotografado tem piso cinza com listra branca: nessa combinação a foto fica como está
-    if (listra && CAT.listra[listra] && !(piso === "Cinza" && listra === "Branco")) recolorListra(d, src, px, m, hexRgb(CAT.listra[listra]));
+    // a listra das fotos é a real do barco fotografado (branca); nada é desenhado por cima
   }
   const carregaImg = (src) => new Promise((ok, erro) => { const i = new Image(); i.onload = () => ok(i); i.onerror = erro; i.src = src; });
   async function fotoCor(k, est, piso) {
@@ -5383,12 +5420,12 @@ body.gated { overflow: hidden; }
         const mg = MR(0xC9CDD2, { metalness: 0.9, roughness: 0.38, envMapIntensity: 0.7 });
         const dom = new T.Mesh(new T.SphereGeometry(0.155, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2), mg); dom.rotation.x = Math.PI; dom.position.set(bx, by + 1.19, bz); gR.churr.add(dom);
         const tampa = new T.Mesh(new T.SphereGeometry(0.155, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2), mg); tampa.position.set(bx, by + 1.19, bz); tampa.rotation.z = -0.9; gR.churr.add(tampa); sombra(gR.churr); }
-      // mastro com a bandeira e luz de popa
-      { const m = new T.Mesh(new T.CylinderGeometry(0.012, 0.014, 0.75, 10), matR.inox); m.position.set(0.1, 0.63 + 0.375, 0.42); gR.mastro.add(m);
+      // mastro com a bandeira e a luz de navegação no topo: a boreste, no costado junto ao sofá de popa (posição do barco real)
+      const MX = 1.15, MY = 0.94, MZ = 0.95;
+      { const m = new T.Mesh(new T.CylinderGeometry(0.012, 0.014, 0.72, 10), matR.inox); m.position.set(MX, MY + 0.36, MZ); gR.mastro.add(m);
         const tb = tela(96, 64, (g, w, h) => { g.fillStyle = "#009739"; g.fillRect(0, 0, w, h); g.fillStyle = "#FEDD00"; g.beginPath(); g.moveTo(w / 2, 6); g.lineTo(w - 8, h / 2); g.lineTo(w / 2, h - 6); g.lineTo(8, h / 2); g.closePath(); g.fill(); g.fillStyle = "#012169"; g.beginPath(); g.arc(w / 2, h / 2, 12, 0, Math.PI * 2); g.fill(); }); tb.desenhar();
-        const f = new T.Mesh(new T.PlaneGeometry(0.22, 0.15), new T.MeshStandardMaterial({ map: tb, side: T.DoubleSide, roughness: 0.8 })); f.position.set(-0.01, 0.63 + 0.66, 0.42); gR.mastro.add(f); sombra(gR.mastro);
-        const lp = new T.Mesh(new T.CylinderGeometry(0.012, 0.012, 0.55, 10), matR.inox); lp.position.set(0.1, 0.63 + 0.275, -0.42); real.add(lp);
-        const ll = new T.Mesh(new T.CylinderGeometry(0.03, 0.03, 0.08, 16), M(0xffffff, { roughness: 0.1, transparent: true, opacity: 0.85 })); ll.position.set(0.1, 0.63 + 0.59, -0.42); real.add(ll); }
+        const f = new T.Mesh(new T.PlaneGeometry(0.22, 0.15), new T.MeshStandardMaterial({ map: tb, side: T.DoubleSide, roughness: 0.8 })); f.position.set(MX - 0.125, MY + 0.47, MZ); gR.mastro.add(f); sombra(gR.mastro);
+        const ll = new T.Mesh(new T.CylinderGeometry(0.03, 0.03, 0.08, 16), M(0xffffff, { roughness: 0.1, transparent: true, opacity: 0.85 })); ll.position.set(MX, MY + 0.72 + 0.04, MZ); gR.mastro.add(ll); const lb = new T.Mesh(new T.CylinderGeometry(0.026, 0.03, 0.03, 16), matR.inox); lb.position.set(MX, MY + 0.03, MZ); gR.mastro.add(lb); }
       // tela do GPS (opcional) na tampa do painel de boreste, medida no modelo
       { const n = new T.Vector3(0.6798, 0.7334, 0), mb = new T.Matrix4().makeBasis(new T.Vector3(0, 0, -1), new T.Vector3(-0.7334, 0.6798, 0), n);
         const tg = tela(256, 176, (g, w, h) => { g.fillStyle = "#0b2a4a"; g.fillRect(0, 0, w, h); g.fillStyle = "#d9c79a"; g.beginPath(); g.moveTo(0, h); g.lineTo(0, h * 0.55); g.bezierCurveTo(w * 0.25, h * 0.4, w * 0.4, h * 0.75, w * 0.62, h * 0.62); g.lineTo(w * 0.7, h); g.closePath(); g.fill();
@@ -5447,6 +5484,7 @@ body.gated { overflow: hidden; }
       bt("+", "Aproximar", () => { zoom = Math.max(ZMIN, zoom * 0.78); posCam(); }, "q");
       bt("−", "Afastar", () => { zoom = Math.min(ZMAX, zoom / 0.78); posCam(); }, "q");
       bt("Centralizar", "Voltar à vista inicial", () => { foco.copy(FOCO0); zoom = 1; incl = 0; posCam(); });
+      { const pb = document.getElementById("at-3d-proa"); if (pb) bar.appendChild(pb); }   // no Atendimento, o botão de mesa ou solário fica junto dos controles da vista
       host.appendChild(bar);
       // duplo clique (ou dois toques) num ponto do barco: a câmera passa a girar em torno dele e aproxima
       const raio = new T.Raycaster(), visivel = (o) => { for (let p = o; p; p = p.parent) if (!p.visible) return false; return true; };
@@ -5504,14 +5542,14 @@ body.gated { overflow: hidden; }
   const CFX_VISTAS = [["3d", "360°"], ["popa", "Popa"], ["cockpit", "Cockpit"], ["proa", "Proa"]];
   const CFX_COMBOS = [
     { nome: "Original", sub: "Cinza Arizona, tubos claros e capota cinza", est: "Cinza Arizona", piso: "Cinza", li: "Branco", hyp: false, ct: "cinza", cap: "Cinza" },
-    { nome: "Pérola", sub: "Tudo branco, com capota bege", est: "Branco Ultra", piso: "Branco", li: "Preto", hyp: false, ct: "cinza", cap: "Bege" },
+    { nome: "Pérola", sub: "Branco Ultra, piso cinza, capota bege", est: "Branco Ultra", piso: "Cinza", li: "Branco", hyp: false, ct: "cinza", cap: "Bege" },
     { nome: "Caramelo", sub: "Estofado caramelo, piso cinza e capota bege", est: "Caramelo", piso: "Cinza", li: "Branco", hyp: false, ct: "cinza", cap: "Bege" },
-    { nome: "Areia", sub: "Tons de areia com capota cinza", est: "Areia", piso: "Areia", li: "Preto", hyp: false, ct: "bege", cap: "Cinza" },
-    { nome: "Marinho", sub: "Ice Gray, tubos e capota azul marinho", est: "Ice Gray", piso: "Cinza", li: "Azul", hyp: false, ct: "marinho", cap: "Azul" },
-    { nome: "Royal", sub: "Branco, tubos azul royal e capota azul", est: "Branco Ultra", piso: "Cinza", li: "Azul", hyp: false, ct: "royal", cap: "Azul" },
-    { nome: "Noite", sub: "Taupe com piso, tubos e capota pretos", est: "Taupe", piso: "Preto", li: "Cinza", hyp: false, ct: "preto", cap: "Preto" },
-    { nome: "Bordô", sub: "Marfim, piso madeira e capota vinho", est: "Marfim", piso: "Madeira", li: "Preto", hyp: false, ct: "cinza", cap: "Vinho" },
-    { nome: "Inglês", sub: "Caramelo, piso ocre, tubos e capota verdes", est: "Caramelo", piso: "Ocre", li: "Preto", hyp: false, ct: "verde", cap: "Verde" },
+    { nome: "Areia", sub: "Areia, piso madeira, capota cinza", est: "Areia", piso: "Madeira", li: "Branco", hyp: false, ct: "bege", cap: "Cinza" },
+    { nome: "Marinho", sub: "Ice Gray, tubos e capota azul marinho", est: "Ice Gray", piso: "Cinza", li: "Branco", hyp: false, ct: "marinho", cap: "Azul" },
+    { nome: "Royal", sub: "Branco, tubos azul royal e capota azul", est: "Branco Ultra", piso: "Cinza", li: "Branco", hyp: false, ct: "royal", cap: "Azul" },
+    { nome: "Noite", sub: "Taupe com piso, tubos e capota pretos", est: "Taupe", piso: "Preto", li: "Branco", hyp: false, ct: "preto", cap: "Preto" },
+    { nome: "Bordô", sub: "Marfim, piso madeira e capota vinho", est: "Marfim", piso: "Madeira", li: "Branco", hyp: false, ct: "cinza", cap: "Vinho" },
+    { nome: "Inglês", sub: "Caramelo, piso ocre, tubos e capota verdes", est: "Caramelo", piso: "Ocre", li: "Branco", hyp: false, ct: "verde", cap: "Verde" },
     { nome: "Creme", sub: "Hypalon creme, marfim e capota bege", est: "Marfim", piso: "Madeira", li: "Branco", hyp: true, ct: "creme", cap: "Bege" }];
   const cfx = { aberto: false, vista: "3d", marcas: [], cache: new Map(), pedido: 0 };
   function cfxMover(no, destino) { const m = document.createComment("cfx"); no.parentNode.insertBefore(m, no); destino.appendChild(no); cfx.marcas.push([m, no]); }
@@ -5563,7 +5601,7 @@ body.gated { overflow: hidden; }
     const c = document.createElement("canvas"); c.width = W; c.height = H; const g = c.getContext("2d"); g.drawImage(im, 0, 0);
     const d = g.getImageData(0, 0, W, H);
     const c2 = document.createElement("canvas"); c2.width = W; c2.height = H; const g2 = c2.getContext("2d"); g2.drawImage(mi, 0, 0, W, H);
-    recolorir(d, g2.getImageData(0, 0, W, H).data, est, piso); g.putImageData(d, 0, 0);
+    recolorir(d, g2.getImageData(0, 0, W, H).data, est, piso, f.linhas ? await linhasDados(f.linhas, W, H) : null); g.putImageData(d, 0, 0);
     const url = c.toDataURL("image/jpeg", 0.9); cfx.cache.set(chave, url); return url;
   }
   async function cfxFoto() {
@@ -5768,6 +5806,8 @@ body.gated { overflow: hidden; }
       const k = a && a.dataset ? a.dataset.v : null;
       const keep = k ? st.v[k] : undefined;
       st.v = Object.assign(JSON.parse(JSON.stringify(DEFAULT_V)), snap.data());
+      st.vServ = {}; PV_KEYS.forEach((k) => { st.vServ[k] = st.v[k]; });
+      if (st.pvAt && st.pvLocal) Object.assign(st.v, JSON.parse(JSON.stringify(st.pvLocal)));   // estudo em andamento: a sincronização não troca o orçamento em estudo
       if (k) st.v[k] = keep;
       st.vExists = true;
     }
@@ -5788,10 +5828,10 @@ body.gated { overflow: hidden; }
   window.addEventListener("hashchange", () => { if (cfx.aberto && location.hash.indexOf("atendimento") < 0) cfxFechar(); setTimeout(b3dAtualizar, 80); });
   $("at-cfx-abrir").addEventListener("click", cfxAbrir); $("cfx-ok").addEventListener("click", cfxFechar);
   { // fundo escuro ou claro no painel de opções do configurador; a escolha fica gravada no aparelho
-    const CH = "euronav.cfxTema", ler = () => { try { return localStorage.getItem(CH) === "escuro"; } catch (e) { return false; } };
+    const CH = "euronav.cfxTema", ler = () => { try { return localStorage.getItem(CH) !== "claro"; } catch (e) { return true; } };   // escuro por padrão, como o configurador público
     const pintar = (esc) => { $("cfx").classList.toggle("escuro", esc); const b = $("cfx-tema"); b.textContent = esc ? "Fundo claro" : "Fundo escuro"; b.setAttribute("aria-pressed", esc ? "true" : "false"); };
     pintar(ler()); $("cfx-tema").addEventListener("click", () => { const esc = !$("cfx").classList.contains("escuro"); try { localStorage.setItem(CH, esc ? "escuro" : "claro"); } catch (e) {} pintar(esc); }); }
-  $("at-3d-proa").addEventListener("click", () => { B3D.solario = !B3D.solario; const b = $("at-3d-proa"); b.textContent = B3D.solario ? "Proa: solário" : "Proa: mesa"; b.setAttribute("aria-pressed", B3D.solario ? "true" : "false"); b3dAtualizar(); });
+  $("at-3d-proa").addEventListener("click", () => { B3D.solario = !B3D.solario; const b = $("at-3d-proa"); b.textContent = B3D.solario ? "Proa: solário" : "Proa: mesa"; b.setAttribute("aria-pressed", B3D.solario ? "true" : "false"); document.querySelectorAll("#at-cor-proa input").forEach((i, k) => { i.checked = (k === 1) === !!B3D.solario; }); { const t = $("at-cor-proa").previousElementSibling; if (t) t.dataset.sel = B3D.solario ? "Solário" : "Mesa"; } b3dAtualizar(); });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && cfx.aberto && !$("at-3d").classList.contains("grande")) cfxFechar(); });
   $("at-cfg-copiar").addEventListener("click", () => copiarLinkCliente("at-cfg-msg")); $("cfx-copiar").addEventListener("click", () => copiarLinkCliente("cfx-resumo"));
   $("at-cfg-importar").addEventListener("click", importarLink);
@@ -5821,10 +5861,11 @@ body.gated { overflow: hidden; }
     const c = d.config || {}, kits = {}; KITS.forEach((k) => { if (k.key !== "basico") kits[k.key] = !!(c.kits && c.kits[k.key]); });
     const q = { kits, kitItens: JSON.parse(JSON.stringify(c.kitItens || {})), tubo: c.hyp ? "hypalon" : "pvc", gps: !!c.gps, gpsAuto: false, fechamento: null };
     const pa = atPrice(Object.assign(JSON.parse(JSON.stringify(AT_DEF)), c, { desc: 0 })); if (c.motor || (pa && pa.mid)) q.motor = c.motor || pa.mid; // sem motor escolhido, vale o motor padrão do Atendimento
-    Object.assign(st.v, q); st.pvAt = id;
+    if (!st.pvAt) { st.vAntes = {}; PV_KEYS.forEach((k) => { st.vAntes[k] = st.v[k]; }); }
+    Object.assign(st.v, q); st.pvAt = id; st.pvLocal = JSON.parse(JSON.stringify(q)); if (!("motor" in st.pvLocal)) st.pvLocal.motor = st.v.motor;
     const v0 = vendaCompute(), desc = Math.max(0, num(c.desc));
-    if (v0 && desc > 0) { const d2 = Math.min(desc, v0.at && v0.at.maxDesc != null ? v0.at.maxDesc : desc); q.fechamento = st.v.fechamento = Math.round(v0.tabela - d2 * (1 + v0.ipi) - (v0.hypOn ? v0.hypPrice * (1 + v0.ipi) : 0)); }
-    recalc(); saveV(q);
+    if (v0 && desc > 0) { const d2 = Math.min(desc, v0.at && v0.at.maxDesc != null ? v0.at.maxDesc : desc); q.fechamento = st.v.fechamento = st.pvLocal.fechamento = Math.round(v0.tabela - d2 * (1 + v0.ipi) - (v0.hypOn ? v0.hypPrice * (1 + v0.ipi) : 0)); }
+    recalc();
     setText("pv-msg", "Configuração de " + (d.nome || "atendimento") + " carregada. Arraste o preço de fechamento para estudar a margem.");
   }
   function pvAplicar() {
@@ -5834,9 +5875,14 @@ body.gated { overflow: hidden; }
     const nome = d.nome || "cliente";
     setText("pv-msg", q && q.desc < desc - 1 ? "O desconto estudado passa do piso do Atendimento. Foi aplicado o máximo permitido, " + money(q.desc) + ", ao atendimento de " + nome + "." : (desc > 0 ? "Desconto de " + money(desc) + " aplicado ao atendimento de " + nome + "." : "O atendimento de " + nome + " ficou sem desconto."));
   }
+  function pvEncerrar() {
+    const volta = st.vServ || st.vAntes; st.pvAt = null; st.pvLocal = null;
+    if (volta) PV_KEYS.forEach((k) => { st.v[k] = volta[k]; });
+    recalc(); setText("pv-msg", "Estudo encerrado. A Precificação voltou à configuração geral.");
+  }
   (function buildEstudo() {
     if (!$("pv-at")) return;
-    $("pv-carregar").addEventListener("click", pvCarregar); $("pv-aplicar").addEventListener("click", pvAplicar);
+    $("pv-carregar").addEventListener("click", pvCarregar); $("pv-aplicar").addEventListener("click", pvAplicar); $("pv-encerrar").addEventListener("click", pvEncerrar);
     $("pv-s-ok").addEventListener("click", async () => {
       const a = $("pv-s1").value, b = $("pv-s2").value;
       if (a.length < 4) { setText("pv-s-msg", "Use pelo menos 4 caracteres."); return; }

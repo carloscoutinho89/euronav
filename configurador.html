@@ -81,6 +81,13 @@ button { font: inherit; color: inherit; }
 .combo .dup { margin: 3px; }
 .resumo { margin: 16px 0 12px; font-size: .86rem; color: var(--muted); line-height: 1.5; }
 .resumo b { color: var(--ink); font-weight: 600; }
+.contato { margin: 4px 0 12px; padding-top: 16px; border-top: 1px solid var(--line); }
+.contato .ct-p { margin: 0 0 12px; font-size: .84rem; color: var(--muted); line-height: 1.45; }
+.ct-l { display: block; margin: 0 0 10px; }
+.ct-l span { display: block; margin-bottom: 5px; font-size: .78rem; color: var(--muted); }
+.ct-l input { width: 100%; box-sizing: border-box; min-height: 44px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 4px; background: transparent; color: var(--ink); font: inherit; font-size: 1rem; }
+.ct-l input:focus-visible { outline: 2px solid var(--accent2); outline-offset: 1px; }
+.ct-erro { margin: 0; min-height: 1.2em; font-size: .82rem; color: #e0786e; }
 .cta { display: grid; gap: 8px; }
 .cta a { text-decoration: none; text-align: center; }
 .nota { margin-top: 14px; font-size: .72rem; color: var(--muted); line-height: 1.45; }
@@ -101,6 +108,7 @@ body.vitrine .aviso-vitrine { display: block; }
   .seta { display: none; }
 }
 .sec h2.sub2 { margin-top: 20px; }
+.sec h2.sub2, #d-li { display: none; }   /* listra sempre branca: sem seletor */
 </style>
 </head>
 <body>
@@ -141,9 +149,17 @@ body.vitrine .aviso-vitrine { display: block; }
     <div class="sec"><h2>Opcionais</h2><div class="opts" id="d-opc"></div></div>
     <div class="sec"><h2>Motor <b id="n-motor"></b></h2><div class="duas" id="d-motor"></div></div>
     <p class="resumo" id="resumo"></p>
+    <div class="contato">
+      <h2>Fale com um atendente</h2>
+      <p class="ct-p">Informe seu nome e sua cidade. Ao tocar no botão, o WhatsApp abre com a sua configuração pronta para enviar à Euronav.</p>
+      <label class="ct-l"><span>Seu nome</span><input type="text" id="ct-nome" autocomplete="name" maxlength="60"></label>
+      <label class="ct-l"><span>Cidade e estado</span><input type="text" id="ct-cidade" autocomplete="address-level2" maxlength="60"></label>
+      <p class="ct-erro" id="ct-erro" aria-live="polite"></p>
+    </div>
     <div class="cta">
-      <a class="bt forte" id="b-quero" href="https://www.instagram.com/euronavbr/" target="_blank" rel="noopener">Quero esta configuração</a>
+      <button class="bt forte" type="button" id="b-quero">Enviar pelo WhatsApp</button>
       <button class="bt" type="button" id="b-share2">Copiar link desta configuração</button>
+      <a class="bt" href="https://www.instagram.com/euronavbr/" target="_blank" rel="noopener">Instagram @euronavbr</a>
     </div>
     <p class="nota">A vista 360° usa o modelo 3D do projeto do Euro Sette e mostra a cor dos tubulões; capota de proa, churrasqueira e tela do GPS são representações. As vistas de popa, cockpit e proa são fotos reais do Euro Sette, com as cores de estofado e piso aplicadas digitalmente; a cor dos tubulões e das capotas aparece na vista 3D. Itens e cores sujeitos a confirmação na proposta.</p>
   </aside>
@@ -158,17 +174,15 @@ body.vitrine .aviso-vitrine { display: block; }
     // nome, cor do ícone (e alvo das fotos), cor do material no 3D
     est: [["Branco Ultra", "#EFEFEA", 0xF1EFEA], ["Ice Gray", "#DAD8CD", 0xD2D0C4], ["Marfim", "#D3C49C", 0xC9B88C], ["Areia", "#C0B395", 0xB3A585],
       ["Caramelo", "#BC9F70", 0xAD8E5E], ["Cinza Arizona", "#A6ABA8", 0x9A9F9C], ["Pueblo", "#C48D60", 0xB57C4E], ["Taupe", "#8F8372", 0x80745F]],
-    // nome, cor, listras disponíveis (a primeira é a sugerida)
-    piso: [["Ocre", "#8C6243", ["Preto", "Branco"]], ["Madeira", "#B89C6E", ["Preto", "Branco", "Azul"]], ["Areia", "#E6E2CB", ["Preto"]],
-      ["Cinza", "#8D8E8B", ["Branco", "Preto", "Azul", "Laranja", "Aqua"]], ["Preto", "#24272C", ["Cinza", "Ocre", "Madeira", "Areia", "Vermelho", "Branco"]],
-      ["Vermelho", "#AB2729", ["Preto"]], ["Branco", "#E0E1DD", ["Preto"]]],
+    // nome, cor, listra (sempre branca: é a do barco fotografado, e as fotos mostram o friso real)
+    piso: [["Cinza", "#8D8E8B", ["Branco"]], ["Madeira", "#B89C6E", ["Branco"]], ["Ocre", "#8C6243", ["Branco"]], ["Preto", "#24272C", ["Branco"]]],   // só as cores do catálogo que existem com listra branca, que é a da foto
     listra: { Preto: "#141414", Branco: "#E6E4DE", Azul: "#0B4596", Laranja: "#C6521F", Aqua: "#1A9C94", Ocre: "#A9805E", Madeira: "#D2BC88", Areia: "#DED8C8", Cinza: "#ACAFB8", Vermelho: "#CA2733" },
     capota: [["Cinza", "#76695B", 0x5E5347], ["Bege", "#CBA886", 0xA98866], ["Preto", "#191813", 0x141310], ["Azul", "#353B4E", 0x2A2F40], ["Verde", "#295646", 0x1F4336], ["Vinho", "#8E2D2F", 0x681C20]],   // nome, cor do ícone, cor da lona no 3D
     // cores que saíram da lista: atendimentos e links antigos caem na mais próxima
-    ant: { est: { Branco: "Branco Ultra", Bege: "Pueblo", Cinza: "Cinza Arizona" }, piso: { Bege: "Areia" } }
+    ant: { est: { Branco: "Branco Ultra", Bege: "Pueblo", Cinza: "Cinza Arizona" }, piso: { Bege: "Madeira", Areia: "Madeira", Vermelho: "Cinza", Branco: "Cinza" } }
   };
   const catEst = (n) => CAT.est.find((x) => x[0] === n) || CAT.est.find((x) => x[0] === CAT.ant.est[n]) || CAT.est[0];
-  const catPiso = (n) => CAT.piso.find((x) => x[0] === n) || CAT.piso.find((x) => x[0] === CAT.ant.piso[n]) || CAT.piso[3];
+  const catPiso = (n) => CAT.piso.find((x) => x[0] === n) || CAT.piso.find((x) => x[0] === CAT.ant.piso[n]) || CAT.piso[0];
   const catListra = (p, l) => { const ls = catPiso(p)[2]; return ls.includes(l) ? l : ls[0]; };
   const catCap = (n) => CAT.capota.find((x) => x[0] === n) || CAT.capota[0];
   const hexRgb = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
@@ -182,14 +196,14 @@ body.vitrine .aviso-vitrine { display: block; }
   const corTubo = (t, c) => { const l = TUBOS[t] || TUBOS.pvc; return l.find((x) => x[0] === c) || l.find((x) => x[0] === TUBO_ANT[c]) || l[0]; };
   const COMBOS = [
     { nome: "Original", sub: "Cinza Arizona, tubos claros e capota cinza", est: "Cinza Arizona", piso: "Cinza", li: "Branco", tubo: "pvc", ct: "cinza", cap: "Cinza" },
-    { nome: "Pérola", sub: "Tudo branco, com capota bege", est: "Branco Ultra", piso: "Branco", li: "Preto", tubo: "pvc", ct: "cinza", cap: "Bege" },
+    { nome: "Pérola", sub: "Branco Ultra, piso cinza, capota bege", est: "Branco Ultra", piso: "Cinza", li: "Branco", tubo: "pvc", ct: "cinza", cap: "Bege" },
     { nome: "Caramelo", sub: "Estofado caramelo, piso cinza e capota bege", est: "Caramelo", piso: "Cinza", li: "Branco", tubo: "pvc", ct: "cinza", cap: "Bege" },
-    { nome: "Areia", sub: "Tons de areia com capota cinza", est: "Areia", piso: "Areia", li: "Preto", tubo: "pvc", ct: "bege", cap: "Cinza" },
-    { nome: "Marinho", sub: "Ice Gray, tubos e capota azul marinho", est: "Ice Gray", piso: "Cinza", li: "Azul", tubo: "pvc", ct: "marinho", cap: "Azul" },
-    { nome: "Royal", sub: "Branco, tubos azul royal e capota azul", est: "Branco Ultra", piso: "Cinza", li: "Azul", tubo: "pvc", ct: "royal", cap: "Azul" },
-    { nome: "Noite", sub: "Taupe com piso, tubos e capota pretos", est: "Taupe", piso: "Preto", li: "Cinza", tubo: "pvc", ct: "preto", cap: "Preto" },
-    { nome: "Bordô", sub: "Marfim, piso madeira e capota vinho", est: "Marfim", piso: "Madeira", li: "Preto", tubo: "pvc", ct: "cinza", cap: "Vinho" },
-    { nome: "Inglês", sub: "Caramelo, piso ocre, tubos e capota verdes", est: "Caramelo", piso: "Ocre", li: "Preto", tubo: "pvc", ct: "verde", cap: "Verde" },
+    { nome: "Areia", sub: "Areia, piso madeira, capota cinza", est: "Areia", piso: "Madeira", li: "Branco", tubo: "pvc", ct: "bege", cap: "Cinza" },
+    { nome: "Marinho", sub: "Ice Gray, tubos e capota azul marinho", est: "Ice Gray", piso: "Cinza", li: "Branco", tubo: "pvc", ct: "marinho", cap: "Azul" },
+    { nome: "Royal", sub: "Branco, tubos azul royal e capota azul", est: "Branco Ultra", piso: "Cinza", li: "Branco", tubo: "pvc", ct: "royal", cap: "Azul" },
+    { nome: "Noite", sub: "Taupe com piso, tubos e capota pretos", est: "Taupe", piso: "Preto", li: "Branco", tubo: "pvc", ct: "preto", cap: "Preto" },
+    { nome: "Bordô", sub: "Marfim, piso madeira e capota vinho", est: "Marfim", piso: "Madeira", li: "Branco", tubo: "pvc", ct: "cinza", cap: "Vinho" },
+    { nome: "Inglês", sub: "Caramelo, piso ocre, tubos e capota verdes", est: "Caramelo", piso: "Ocre", li: "Branco", tubo: "pvc", ct: "verde", cap: "Verde" },
     { nome: "Creme", sub: "Hypalon creme, marfim e capota bege", est: "Marfim", piso: "Madeira", li: "Branco", tubo: "hyp", ct: "creme", cap: "Bege" }
   ];
   const VISTAS = [["360", "360°"], ["popa", "Popa"], ["cockpit", "Cockpit"], ["proa", "Proa"]];
@@ -637,12 +651,12 @@ body.vitrine .aviso-vitrine { display: block; }
         const mg = MR(0xC9CDD2, { metalness: 0.9, roughness: 0.38, envMapIntensity: 0.7 });
         const dom = new T.Mesh(new T.SphereGeometry(0.155, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2), mg); dom.rotation.x = Math.PI; dom.position.set(bx, by + 1.19, bz); gR.churr.add(dom);
         const tampa = new T.Mesh(new T.SphereGeometry(0.155, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2), mg); tampa.position.set(bx, by + 1.19, bz); tampa.rotation.z = -0.9; gR.churr.add(tampa); sombra(gR.churr); }
-      // mastro com a bandeira e luz de popa
-      { const m = new T.Mesh(new T.CylinderGeometry(0.012, 0.014, 0.75, 10), matR.inox); m.position.set(0.1, 0.63 + 0.375, 0.42); gR.mastro.add(m);
+      // mastro com a bandeira e a luz de navegação no topo: a boreste, no costado junto ao sofá de popa (posição do barco real)
+      const MX = 1.15, MY = 0.94, MZ = 0.95;
+      { const m = new T.Mesh(new T.CylinderGeometry(0.012, 0.014, 0.72, 10), matR.inox); m.position.set(MX, MY + 0.36, MZ); gR.mastro.add(m);
         const tb = tela(96, 64, (g, w, h) => { g.fillStyle = "#009739"; g.fillRect(0, 0, w, h); g.fillStyle = "#FEDD00"; g.beginPath(); g.moveTo(w / 2, 6); g.lineTo(w - 8, h / 2); g.lineTo(w / 2, h - 6); g.lineTo(8, h / 2); g.closePath(); g.fill(); g.fillStyle = "#012169"; g.beginPath(); g.arc(w / 2, h / 2, 12, 0, Math.PI * 2); g.fill(); }); tb.desenhar();
-        const f = new T.Mesh(new T.PlaneGeometry(0.22, 0.15), new T.MeshStandardMaterial({ map: tb, side: T.DoubleSide, roughness: 0.8 })); f.position.set(-0.01, 0.63 + 0.66, 0.42); gR.mastro.add(f); sombra(gR.mastro);
-        const lp = new T.Mesh(new T.CylinderGeometry(0.012, 0.012, 0.55, 10), matR.inox); lp.position.set(0.1, 0.63 + 0.275, -0.42); real.add(lp);
-        const ll = new T.Mesh(new T.CylinderGeometry(0.03, 0.03, 0.08, 16), M(0xffffff, { roughness: 0.1, transparent: true, opacity: 0.85 })); ll.position.set(0.1, 0.63 + 0.59, -0.42); real.add(ll); }
+        const f = new T.Mesh(new T.PlaneGeometry(0.22, 0.15), new T.MeshStandardMaterial({ map: tb, side: T.DoubleSide, roughness: 0.8 })); f.position.set(MX - 0.125, MY + 0.47, MZ); gR.mastro.add(f); sombra(gR.mastro);
+        const ll = new T.Mesh(new T.CylinderGeometry(0.03, 0.03, 0.08, 16), M(0xffffff, { roughness: 0.1, transparent: true, opacity: 0.85 })); ll.position.set(MX, MY + 0.72 + 0.04, MZ); gR.mastro.add(ll); const lb = new T.Mesh(new T.CylinderGeometry(0.026, 0.03, 0.03, 16), matR.inox); lb.position.set(MX, MY + 0.03, MZ); gR.mastro.add(lb); }
       // tela do GPS (opcional) na tampa do painel de boreste, medida no modelo
       { const n = new T.Vector3(0.6798, 0.7334, 0), mb = new T.Matrix4().makeBasis(new T.Vector3(0, 0, -1), new T.Vector3(-0.7334, 0.6798, 0), n);
         const tg = tela(256, 176, (g, w, h) => { g.fillStyle = "#0b2a4a"; g.fillRect(0, 0, w, h); g.fillStyle = "#d9c79a"; g.beginPath(); g.moveTo(0, h); g.lineTo(0, h * 0.55); g.bezierCurveTo(w * 0.25, h * 0.4, w * 0.4, h * 0.75, w * 0.62, h * 0.62); g.lineTo(w * 0.7, h); g.closePath(); g.fill();
@@ -701,6 +715,7 @@ body.vitrine .aviso-vitrine { display: block; }
       bt("+", "Aproximar", () => { zoom = Math.max(ZMIN, zoom * 0.78); posCam(); }, "q");
       bt("−", "Afastar", () => { zoom = Math.min(ZMAX, zoom / 0.78); posCam(); }, "q");
       bt("Centralizar", "Voltar à vista inicial", () => { foco.copy(FOCO0); zoom = 1; incl = 0; posCam(); });
+      { const pb = document.getElementById("at-3d-proa"); if (pb) bar.appendChild(pb); }   // no Atendimento, o botão de mesa ou solário fica junto dos controles da vista
       host.appendChild(bar);
       // duplo clique (ou dois toques) num ponto do barco: a câmera passa a girar em torno dele e aproxima
       const raio = new T.Raycaster(), visivel = (o) => { for (let p = o; p; p = p.parent) if (!p.visible) return false; return true; };
@@ -777,36 +792,35 @@ body.vitrine .aviso-vitrine { display: block; }
       px[i] += (L2S[Math.round(Math.min(1, o0) * 4096)] - px[i]) * a; px[i + 1] += (L2S[Math.round(Math.min(1, o1) * 4096)] - px[i + 1]) * a; px[i + 2] += (L2S[Math.round(Math.min(1, o2) * 4096)] - px[i + 2]) * a;
     }
   }
-  // Listras do piso nas fotos: dentro da máscara do piso, os frisos são traços finos mais claros que o entorno.
-  // Cada traço recebe a cor de listra escolhida, com a luz e a sombra do ponto onde está.
-  function recolorListra(d, src, px, m, alvo) {
-    if (!alvo) return;
+  // Listras do piso nas fotos: cada foto traz o traçado dos frisos (linhas finas e retas, preparadas à parte).
+  // A cor de listra escolhida é pintada só sobre esse traçado, com a luz e a sombra do ponto onde está.
+  const linhasDados = (src, W, H) => new Promise((ok) => { const im = new Image(); im.onload = () => { const c = document.createElement("canvas"); c.width = W; c.height = H; const g = c.getContext("2d"); g.drawImage(im, 0, 0, W, H); ok(g.getImageData(0, 0, W, H).data); }; im.onerror = () => ok(null); im.src = src; });
+  const LISTRA_OPAC = 0.58;   // listra discreta: deixa o tom do piso aparecer por baixo, sem chamar a atenção
+  function recolorListra(d, src, px, m, ln, alvo) {
+    if (!alvo || !ln) return;
     const W = d.width, H = d.height, N = W * H, L = new Float32Array(N), M = new Float32Array(N);
     for (let i = 0, j = 0; j < N; i += 4, j++) if (m[i + 1] > 127) { M[j] = 1; L[j] = 0.2126 * S2L[src[i]] + 0.7152 * S2L[src[i + 1]] + 0.0722 * S2L[src[i + 2]]; }
-    const R = Math.max(3, Math.round(W / 150));
+    const R = Math.max(4, Math.round(W / 110));
     const borra = (A) => { // média em caixa, separável
       const T1 = new Float32Array(N), T2 = new Float32Array(N);
       for (let y = 0; y < H; y++) { let s = 0; const o = y * W; for (let x = -R; x < W; x++) { const e = x + R; if (e < W) s += A[o + e]; const sai = x - R - 1; if (sai >= 0) s -= A[o + sai]; if (x >= 0) T1[o + x] = s; } }
       for (let x = 0; x < W; x++) { let s = 0; for (let y = -R; y < H; y++) { const e = y + R; if (e < H) s += T1[e * W + x]; const sai = y - R - 1; if (sai >= 0) s -= T1[sai * W + x]; if (y >= 0) T2[y * W + x] = s; } }
       return T2; };
-    const bl = borra(L), bm = borra(M), cheio = (2 * R + 1) * (2 * R + 1);
-    const am = []; for (let j = 0; j < N; j += 7) if (M[j] && bm[j] > cheio * 0.9) am.push(bl[j] / bm[j]);
+    const bl = borra(L), bm = borra(M);
+    const am = []; for (let j = 0; j < N; j += 7) if (M[j] && bm[j] > 0) am.push(bl[j] / bm[j]);
     if (am.length < 40) return; am.sort((a, b) => a - b); const med = am[am.length >> 1] || 1e-3;
     const a0 = S2L[alvo[0]], a1 = S2L[alvo[1]], a2 = S2L[alvo[2]];
     for (let i = 0, j = 0; j < N; i += 4, j++) {
-      if (!M[j] || bm[j] < cheio * 0.8) continue;                      // fora do piso ou colado na borda da peça
-      const loc = bl[j] / bm[j]; if (loc <= 0) continue;
-      const w = Math.min(1, Math.max(0, (L[j] / loc - 1.1) / 0.13)); if (w <= 0) continue;
-      const luz = Math.min(1.5, Math.max(0.25, loc / med)) * 0.92;
+      const w = M[j] ? (ln[i] / 255) * LISTRA_OPAC : 0; if (w <= 0.02 || bm[j] <= 0) continue;
+      const luz = Math.min(1.35, Math.max(0.3, (bl[j] / bm[j]) / med)) * 0.95;
       const o0 = L2S[Math.round(Math.min(1, a0 * luz) * 4096)], o1 = L2S[Math.round(Math.min(1, a1 * luz) * 4096)], o2 = L2S[Math.round(Math.min(1, a2 * luz) * 4096)];
       px[i] += (o0 - px[i]) * w; px[i + 1] += (o1 - px[i + 1]) * w; px[i + 2] += (o2 - px[i + 2]) * w;
     }
   }
-  function recolorir(d, m, est, pisoListra) {
+  function recolorir(d, m, est, pisoListra, ln) {
     const src = new Uint8ClampedArray(d.data), px = d.data, [piso, listra] = String(pisoListra || "").split("/");   // "Preto/Vermelho": cor do piso e da listra
     recolorCanal(src, px, m, 0, COR_ALVO.est[est]); recolorCanal(src, px, m, 2, COR_ALVO.est[est], false); recolorCanal(src, px, m, 1, COR_ALVO.piso[piso]);
-    // o barco fotografado tem piso cinza com listra branca: nessa combinação a foto fica como está
-    if (listra && CAT.listra[listra] && !(piso === "Cinza" && listra === "Branco")) recolorListra(d, src, px, m, hexRgb(CAT.listra[listra]));
+    // a listra das fotos é a real do barco fotografado (branca); nada é desenhado por cima
   }
   async function fotoCor(k, est, piso) {
     const chave = k + "|" + est + "|" + piso; if (cache.has(chave)) return cache.get(chave);
@@ -817,7 +831,7 @@ body.vitrine .aviso-vitrine { display: block; }
     const c = document.createElement("canvas"); c.width = W; c.height = H; const g = c.getContext("2d"); g.drawImage(im, 0, 0);
     const d = g.getImageData(0, 0, W, H);
     const c2 = document.createElement("canvas"); c2.width = W; c2.height = H; const g2 = c2.getContext("2d"); g2.drawImage(mi, 0, 0, W, H);
-    recolorir(d, g2.getImageData(0, 0, W, H).data, est, piso); g.putImageData(d, 0, 0);
+    recolorir(d, g2.getImageData(0, 0, W, H).data, est, piso, f.linhas ? await linhasDados(f.linhas, W, H) : null); g.putImageData(d, 0, 0);
     const url = c.toDataURL("image/jpeg", 0.9); cache.set(chave, url); return url;
   }
   let pedido = 0;
@@ -849,7 +863,8 @@ body.vitrine .aviso-vitrine { display: block; }
     document.querySelectorAll("[data-tema]").forEach((b) => b.addEventListener("click", () => tema(b.dataset.tema)));
     $("v-ant").addEventListener("click", () => passo(-1)); $("v-prox").addEventListener("click", () => passo(1));
     $("b-reset").addEventListener("click", () => { Object.assign(E, PADRAO); render(); });
-    $("b-share").addEventListener("click", compartilhar); $("b-share2").addEventListener("click", compartilhar);
+    $("b-share").addEventListener("click", compartilhar); $("b-share2").addEventListener("click", compartilhar); $("b-quero").addEventListener("click", enviarWhats);
+    try { const c = JSON.parse(localStorage.getItem("euronav-ct") || "{}"); if (c.nome) $("ct-nome").value = c.nome; if (c.cidade) $("ct-cidade").value = c.cidade; } catch (e) { /* segue */ }
     $("b-vitrine").addEventListener("click", vitrine);
   }
   const passo = (d) => { const i = VISTAS.findIndex((v) => v[0] === E.vista); E.vista = VISTAS[(i + d + VISTAS.length) % VISTAS.length][0]; render(); };
@@ -869,14 +884,24 @@ body.vitrine .aviso-vitrine { display: block; }
     document.querySelectorAll("#d-motor .opt").forEach((b) => pressionado(b, b.dataset.v === E.motor));
     document.querySelectorAll("#d-opc .opt").forEach((b) => pressionado(b, !!E[b.dataset.k]));
     $("n-est").textContent = E.est; $("n-piso").textContent = E.piso; $("n-tubo").textContent = (E.tubo === "hyp" ? "Hypalon" : "PVC") + " · " + corTubo(E.tubo, E.ct)[1]; $("n-motor").textContent = E.motor === "yamaha" ? "Yamaha" : "Mercury";
-    const opc = OPC.filter(([k]) => E[k]).map(([, t]) => t.toLowerCase());
+    const opc = OPC.filter(([k]) => E[k]).map(([, t]) => t.toLowerCase().replace(/\bgps\b/, "GPS"));
     $("resumo").innerHTML = "";
     const r = $("resumo"); const add = (t, b) => { const e = document.createElement(b ? "b" : "span"); e.textContent = t; r.appendChild(e); };
-    add("Seu Euro Sette: "); add("estofado " + nomeCor(E.est) + ", piso em EVA " + nomeCor(E.piso) + " com listras em " + nomeCor(E.li) + ", capotas em " + nomeCor(E.cap) + ", tubulões em " + (E.tubo === "hyp" ? "Hypalon" : "PVC") + " " + corTubo(E.tubo, E.ct)[1].toLowerCase() + ", motor " + (E.motor === "yamaha" ? "Yamaha" : "Mercury"), true);
+    add("Seu Euro Sette: "); add("estofado " + nomeCor(E.est) + ", piso em EVA " + nomeCor(E.piso) + " com listras brancas, capotas em " + nomeCor(E.cap) + ", tubulões em " + (E.tubo === "hyp" ? "Hypalon" : "PVC") + " " + corTubo(E.tubo, E.ct)[1].toLowerCase() + ", motor " + (E.motor === "yamaha" ? "Yamaha" : "Mercury"), true);
     add(opc.length ? ", com " + (opc.length > 1 ? opc.slice(0, -1).join(", ") + " e " + opc[opc.length - 1] : opc[0]) + "." : ".");
     gravarHash(); mostrarFoto(); b3dAtualizar();
   }
   function aviso(t) { const el = $("toast"); el.textContent = t; el.classList.add("on"); clearTimeout(aviso.t); aviso.t = setTimeout(() => el.classList.remove("on"), 2200); }
+  // ---------- contato: abre o WhatsApp da Euronav com a configuração montada ----------
+  const WHATS = "5581996820025";
+  function enviarWhats() {
+    const nome = $("ct-nome").value.trim(), cidade = $("ct-cidade").value.trim();
+    if (nome.length < 2) { $("ct-erro").textContent = "Informe o seu nome para enviarmos a configuração."; $("ct-nome").focus(); return; }
+    $("ct-erro").textContent = ""; try { localStorage.setItem("euronav-ct", JSON.stringify({ nome, cidade })); } catch (e) { /* segue */ }
+    const url = location.href.split("#")[0] + hashAtual(), resumo = $("resumo").textContent.replace(/^Seu Euro Sette:\s*/, "");
+    const msg = "Olá! Meu nome é " + nome + (cidade ? ", de " + cidade : "") + ". Montei meu Euro Sette no configurador e gostaria de falar com um atendente.\n\nMinha configuração: " + resumo + "\n\nLink da configuração: " + url;
+    const a = document.createElement("a"); a.href = "https://wa.me/" + WHATS + "?text=" + encodeURIComponent(msg); a.target = "_blank"; a.rel = "noopener"; document.body.appendChild(a); a.click(); a.remove();
+  }
   async function compartilhar() {
     const url = location.href.split("#")[0] + hashAtual();
     try { if (navigator.share && /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) { await navigator.share({ title: "Meu Euro Sette", url }); return; } } catch (e) { /* segue para copiar */ }
