@@ -700,12 +700,20 @@ body.vendas.tem-preco .tab:not([data-view="atendimento"]):not([data-view="ficha"
 body.vendas #pv-senha-card { display: none; }
 body.so-vendas #modo-vendas { display: none; }
 .pv-card { margin-bottom: 16px; }
-.v-marg-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px 16px; margin: 10px 0 4px; }
-.v-marg-row[hidden] { display: none; }
-.v-marg { display: block; }
-.v-marg span { display: block; margin-bottom: 4px; font-size: .78rem; color: var(--muted); }
-.v-marg input { width: 120px; min-height: 42px; padding: 8px 10px; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--surface); color: var(--ink); font: inherit; font-size: 1rem; }
-.v-marg-row .c-hint { flex: 1 1 240px; margin: 0; }
+/* Precificação do vendedor: o preço se move pela margem (16% a 40%), com deslizante e setas; o deslizante em reais some */
+.v-mbox { display: none; margin-top: 6px; }
+.v-mmode .v-mbox { display: block; }
+.v-mmode #v-slider, .v-mmode #v-ticks { display: none; }
+.v-mval { display: flex; align-items: baseline; gap: 10px; margin-bottom: 2px; }
+.v-mval span { font-weight: 600; }
+.v-mval b { font-family: var(--font-display); font-size: 1.7rem; font-variant-numeric: tabular-nums; }
+.v-mctl { display: flex; align-items: center; gap: 10px; }
+.v-mctl .v-msl { flex: 1 1 auto; min-width: 0; margin: 0; height: 44px; }
+.v-mb { flex: none; width: 52px; height: 52px; border: 1px solid var(--line-strong); border-radius: 50%; background: var(--surface); color: var(--ink); font-size: 1.1rem; line-height: 1; cursor: pointer; touch-action: manipulation; }
+.v-mb:hover { background: var(--blue-soft); }
+.v-mb:active { background: var(--brand-blue); color: #fff; }
+.v-mfim { display: flex; justify-content: space-between; margin: 0 62px; font-size: .8rem; color: var(--muted); }
+.v-mbox .c-hint { margin: 6px 0 0; }
 /* fila de contatos on-line (vindos do configurador público), separada dos atendimentos */
 .lead-card { margin-bottom: 16px; }
 .vis-nums { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-top: 10px; }
@@ -1081,13 +1089,19 @@ body.gated { overflow: hidden; }
         <div class="c-card">
           <h2 class="c-h2">Composição de custo</h2>
           <table class="c-comp"><tbody id="v-lines"></tbody></table>
-          <div class="v-close">
+          <div class="v-close" id="v-close">
             <div class="v-close-h"><span>Preço de fechamento</span><b id="v-final">–</b></div>
             <input type="range" id="v-slider" class="v-slider" min="0" max="1000" step="1000" value="0" aria-label="Preço de fechamento">
             <div class="v-ticks" id="v-ticks" aria-hidden="true"></div>
             <div class="v-legend" id="v-legend"></div>
-            <div class="v-marg-row" id="v-marg-row" hidden>
-              <label class="v-marg"><span>Margem (%)</span><input type="number" id="v-marg" min="16" max="40" step="0.5" inputmode="decimal" aria-describedby="v-faixa"></label>
+            <div class="v-mbox" id="v-mbox">
+              <div class="v-mval"><span>Margem</span><b id="v-mnum">–</b></div>
+              <div class="v-mctl">
+                <button type="button" class="v-mb" id="v-mmenos" aria-label="Diminuir a margem em 0,25 ponto (preço menor)">&#9664;</button>
+                <input type="range" id="v-msl" class="v-slider v-msl" min="16" max="40" step="0.25" value="16" aria-label="Margem entre 16% e 40%">
+                <button type="button" class="v-mb" id="v-mmais" aria-label="Aumentar a margem em 0,25 ponto (preço maior)">&#9654;</button>
+              </div>
+              <div class="v-mfim" aria-hidden="true"><span>16%</span><span>40%</span></div>
               <p class="c-hint" id="v-faixa" aria-live="polite"></p>
             </div>
             <div class="v-close-f"><span class="c-hint" id="v-delta"></span><button type="button" class="c-link v-reset" id="v-reset" hidden>Voltar ao preço do Atendimento</button></div>
@@ -3141,13 +3155,15 @@ body.gated { overflow: hidden; }
     const hypCur = () => { if (st.v.tubo !== "hypalon") return 0; const sc = vScen(); return hypAdd() * (1 + (sc ? ipiOf(sc) : 0.065)); };
     sl.addEventListener("input", () => { st.v.fechamento = num(sl.value) - hypCur(); renderVenda(); renderResult(); renderFicha(); });
     sl.addEventListener("change", () => { st.v.fechamento = num(sl.value) - hypCur(); renderVenda(); renderResult(); saveV({ fechamento: st.v.fechamento }); });
-    { const mi = $("v-marg"); if (mi) {
-      const aplicarMargem = (grava) => {
-        const vr0 = vendaCompute(); if (!vr0 || !faixaVend()) return; let m = num(mi.value) / 100; if (!isFinite(m) || mi.value === "") return;
-        m = Math.min(MARGEM_VEND_MAX, Math.max(MARGEM_VEND_MIN, m)); const preco = vr0.solveM(m); if (preco == null) return;
-        st.v.fechamento = Math.round(preco) - hypCur(); renderVenda(); renderResult(); renderFicha(); if (grava) { mi.value = (Math.round(m * 1000) / 10).toFixed(1); saveV({ fechamento: st.v.fechamento }); }
+    { const msl = $("v-msl"); if (msl) {
+      const irPara = (m, grava) => {
+        const vr0 = vendaCompute(); if (!vr0 || !faixaVend()) return;
+        m = Math.min(40, Math.max(16, m)); const preco = vr0.solveM(m / 100); if (preco == null) return;
+        st.v.fechamento = Math.round(preco) - hypCur(); renderVenda(); renderResult(); renderFicha(); if (grava) saveV({ fechamento: st.v.fechamento });
       };
-      mi.addEventListener("input", () => aplicarMargem(false)); mi.addEventListener("change", () => aplicarMargem(true));
+      const passo = (d) => { const vr0 = vendaCompute(); const cur = vr0 && vr0.margem != null ? vr0.margem * 100 : 16; irPara(Math.round(cur * 4) / 4 + d * 0.25, true); };
+      msl.addEventListener("input", () => irPara(num(msl.value), false)); msl.addEventListener("change", () => irPara(num(msl.value), true));
+      $("v-mmenos").addEventListener("click", () => passo(-1)); $("v-mmais").addEventListener("click", () => passo(1));
     } }
     $("v-reset").addEventListener("click", () => { st.v.fechamento = null; renderVenda(); renderResult(); saveV({ fechamento: null }); });
     $("v-tubo-hyp").addEventListener("change", (e) => { st.v.tubo = e.target.checked ? "hypalon" : "pvc"; recalc(); saveV({ tubo: st.v.tubo }); });
@@ -3214,11 +3230,14 @@ body.gated { overflow: hidden; }
     if (lim) { lo = Math.ceil(vr.p16 / 1000) * 1000; hi = vr.p40 != null ? Math.floor(vr.p40 / 1000) * 1000 : lo + 1000; if (hi <= lo) hi = lo + 1000; }
     sl.min = String(lo); sl.max = String(hi); sl.step = "1000";
     if (sl !== a) sl.value = String(Math.min(hi, Math.max(lo, Math.round(vr.final / 1000) * 1000)));
-    { const row = $("v-marg-row"); row.hidden = !lim; const mi = $("v-marg");
+    { $("v-close").classList.toggle("v-mmode", lim);
       if (lim) {
-        if (mi !== a) mi.value = vr.margem == null ? "" : (Math.round(vr.margem * 1000) / 10).toFixed(1);
+        const mm = vr.margem == null ? 16 : vr.margem * 100, msl = $("v-msl");
+        setText("v-mnum", mm.toFixed(1).replace(".", ",") + "%");
+        if (msl !== a) msl.value = String(Math.min(40, Math.max(16, Math.round(mm * 4) / 4)));
+        msl.setAttribute("aria-valuetext", mm.toFixed(1).replace(".", ",") + "% de margem, preço de " + money(vr.final));
         const fora = vr.margem != null && (vr.margem < MARGEM_VEND_MIN - 0.0005 || vr.margem > MARGEM_VEND_MAX + 0.0005);
-        setText("v-faixa", "Faixa permitida: " + money(lo) + " (margem de 16%) a " + money(hi) + " (40%)." + (fora ? " O preço do Atendimento está fora da faixa; ao mexer, o valor entra nela." : ""));
+        setText("v-faixa", "Faixa permitida: " + money(lo) + " (16%) a " + money(hi) + " (40%)." + (fora ? " O preço do Atendimento está fora da faixa; ao mexer, o valor entra nela." : ""));
       } else setText("v-faixa", ""); }
     sl.setAttribute("aria-valuetext", money(vr.final));
     const tk = $("v-ticks"); tk.replaceChildren();
