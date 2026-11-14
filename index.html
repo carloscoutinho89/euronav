@@ -700,6 +700,12 @@ body.vendas.tem-preco .tab:not([data-view="atendimento"]):not([data-view="ficha"
 body.vendas #pv-senha-card { display: none; }
 body.so-vendas #modo-vendas { display: none; }
 .pv-card { margin-bottom: 16px; }
+.v-marg-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px 16px; margin: 10px 0 4px; }
+.v-marg-row[hidden] { display: none; }
+.v-marg { display: block; }
+.v-marg span { display: block; margin-bottom: 4px; font-size: .78rem; color: var(--muted); }
+.v-marg input { width: 120px; min-height: 42px; padding: 8px 10px; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--surface); color: var(--ink); font: inherit; font-size: 1rem; }
+.v-marg-row .c-hint { flex: 1 1 240px; margin: 0; }
 /* fila de contatos on-line (vindos do configurador público), separada dos atendimentos */
 .lead-card { margin-bottom: 16px; }
 .vis-nums { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-top: 10px; }
@@ -1080,6 +1086,10 @@ body.gated { overflow: hidden; }
             <input type="range" id="v-slider" class="v-slider" min="0" max="1000" step="1000" value="0" aria-label="Preço de fechamento">
             <div class="v-ticks" id="v-ticks" aria-hidden="true"></div>
             <div class="v-legend" id="v-legend"></div>
+            <div class="v-marg-row" id="v-marg-row" hidden>
+              <label class="v-marg"><span>Margem (%)</span><input type="number" id="v-marg" min="16" max="40" step="0.5" inputmode="decimal" aria-describedby="v-faixa"></label>
+              <p class="c-hint" id="v-faixa" aria-live="polite"></p>
+            </div>
             <div class="v-close-f"><span class="c-hint" id="v-delta"></span><button type="button" class="c-link v-reset" id="v-reset" hidden>Voltar ao preço do Atendimento</button></div>
           </div>
           <div class="c-stack" id="v-bar" role="img" aria-label="Composição do custo"></div>
@@ -3025,6 +3035,9 @@ body.gated { overflow: hidden; }
     KITS.forEach((k) => { if (k.key !== "basico") kits[k.key] = !(v.kits && v.kits[k.key] === false); });
     return { motor: motorId(), kits, kitItens: v.kitItens || {}, hyp: v.tubo === "hypalon", gps: !!v.gps, desc: 0 };
   }
+  // No modo vendas (vendedor), o preço de fechamento só pode ficar entre estas duas margens (resultado ÷ preço).
+  const MARGEM_VEND_MIN = 0.16, MARGEM_VEND_MAX = 0.40;
+  const faixaVend = () => document.body.classList.contains("vendas");
   function vendaCompute() {
     const sc = vScen(); if (!sc) return null;
     const cfg = cfgVenda();
@@ -3061,7 +3074,7 @@ body.gated { overflow: hidden; }
     const ma = num(sc.margemAlvo) / 100;
     return { sc, r, lines, tabela, desconto, final, net, ipi, ipiV, tx, ic, icmsCred, icmsAdj, credBase, credRate, aliq, fed: tx.total, custo, custoItens, hypC, hypOn: cfg.hyp, impostos, resultado, rate: tx.rate,
       margem: final > 0 ? resultado / final : null,
-      equilibrio: solve(0), precoAlvo: solve(ma), ma, minR: at.minR, piso: solve(at.minR),
+      equilibrio: solve(0), precoAlvo: solve(ma), ma, minR: at.minR, piso: solve(at.minR), solveM: solve, p16: solve(MARGEM_VEND_MIN), p40: solve(MARGEM_VEND_MAX),
       hypPrice: hypAdd(), at };
   }
 
@@ -3128,6 +3141,14 @@ body.gated { overflow: hidden; }
     const hypCur = () => { if (st.v.tubo !== "hypalon") return 0; const sc = vScen(); return hypAdd() * (1 + (sc ? ipiOf(sc) : 0.065)); };
     sl.addEventListener("input", () => { st.v.fechamento = num(sl.value) - hypCur(); renderVenda(); renderResult(); renderFicha(); });
     sl.addEventListener("change", () => { st.v.fechamento = num(sl.value) - hypCur(); renderVenda(); renderResult(); saveV({ fechamento: st.v.fechamento }); });
+    { const mi = $("v-marg"); if (mi) {
+      const aplicarMargem = (grava) => {
+        const vr0 = vendaCompute(); if (!vr0 || !faixaVend()) return; let m = num(mi.value) / 100; if (!isFinite(m) || mi.value === "") return;
+        m = Math.min(MARGEM_VEND_MAX, Math.max(MARGEM_VEND_MIN, m)); const preco = vr0.solveM(m); if (preco == null) return;
+        st.v.fechamento = Math.round(preco) - hypCur(); renderVenda(); renderResult(); renderFicha(); if (grava) { mi.value = (Math.round(m * 1000) / 10).toFixed(1); saveV({ fechamento: st.v.fechamento }); }
+      };
+      mi.addEventListener("input", () => aplicarMargem(false)); mi.addEventListener("change", () => aplicarMargem(true));
+    } }
     $("v-reset").addEventListener("click", () => { st.v.fechamento = null; renderVenda(); renderResult(); saveV({ fechamento: null }); });
     $("v-tubo-hyp").addEventListener("change", (e) => { st.v.tubo = e.target.checked ? "hypalon" : "pvc"; recalc(); saveV({ tubo: st.v.tubo }); });
     $("v-motor").addEventListener("change", (e) => {
@@ -3188,10 +3209,17 @@ body.gated { overflow: hidden; }
     }
     setText("v-final", money(vr.final));
     const sl = $("v-slider");
-    const lo = Math.max(0, Math.floor(vr.custo / 1000) * 1000);
-    const hi = Math.ceil(Math.max(vr.tabela, vr.piso || 0, vr.final) * 1.15 / 5000) * 5000;
+    const lim = faixaVend() && vr.p16 != null;
+    let lo = Math.max(0, Math.floor(vr.custo / 1000) * 1000), hi = Math.ceil(Math.max(vr.tabela, vr.piso || 0, vr.final) * 1.15 / 5000) * 5000;
+    if (lim) { lo = Math.ceil(vr.p16 / 1000) * 1000; hi = vr.p40 != null ? Math.floor(vr.p40 / 1000) * 1000 : lo + 1000; if (hi <= lo) hi = lo + 1000; }
     sl.min = String(lo); sl.max = String(hi); sl.step = "1000";
-    if (sl !== a) sl.value = String(Math.round(vr.final / 1000) * 1000);
+    if (sl !== a) sl.value = String(Math.min(hi, Math.max(lo, Math.round(vr.final / 1000) * 1000)));
+    { const row = $("v-marg-row"); row.hidden = !lim; const mi = $("v-marg");
+      if (lim) {
+        if (mi !== a) mi.value = vr.margem == null ? "" : (Math.round(vr.margem * 1000) / 10).toFixed(1);
+        const fora = vr.margem != null && (vr.margem < MARGEM_VEND_MIN - 0.0005 || vr.margem > MARGEM_VEND_MAX + 0.0005);
+        setText("v-faixa", "Faixa permitida: " + money(lo) + " (margem de 16%) a " + money(hi) + " (40%)." + (fora ? " O preço do Atendimento está fora da faixa; ao mexer, o valor entra nela." : ""));
+      } else setText("v-faixa", ""); }
     sl.setAttribute("aria-valuetext", money(vr.final));
     const tk = $("v-ticks"); tk.replaceChildren();
     const lg = $("v-legend"); lg.replaceChildren();
@@ -5937,9 +5965,9 @@ body.gated { overflow: hidden; }
       if (cur && st.ats.has(cur)) sel.value = cur; }
     $("pv-carregar").disabled = !rows.length;
     const d = st.pvAt ? st.ats.get(st.pvAt) : null, vr = d ? vendaCompute() : null;
-    $("pv-aplicar-row").hidden = !(d && vr);
+    $("pv-aplicar-row").hidden = !(d && vr); { const ap = $("pv-aplicar"); const acima = !!(vr && vr.desconto < -1); ap.disabled = acima; ap.title = acima ? "O preço estudado está acima do preço do Atendimento; só dá para aplicar descontos." : ""; }
     if (d && vr) { const desc = Math.max(0, Math.round(vr.desconto / (1 + vr.ipi)));
-      setText("pv-resumo", "Estudando " + (d.nome || "o atendimento") + ": fechamento de " + money(vr.final) + (desc > 0 ? ", com desconto de " + money(desc) + " antes do IPI" : ", sem desconto") + ". Resultado de " + money(vr.resultado) + " (" + pct(vr.margem) + ")."); }
+      setText("pv-resumo", "Estudando " + (d.nome || "o atendimento") + ": fechamento de " + money(vr.final) + (desc > 0 ? ", com desconto de " + money(desc) + " antes do IPI" : (vr.desconto < -1 ? ", " + money(-vr.desconto) + " acima do preço do Atendimento (acima do preço não há desconto a aplicar)" : ", sem desconto")) + ". Resultado de " + money(vr.resultado) + " (" + pct(vr.margem) + ")."); }
     setText("pv-s-st", window.EURONAV_PRECO.tem() ? "Senha definida. No modo vendas, a aba Precificação aparece e pede essa senha." : "Sem senha definida: a aba Precificação não aparece no modo vendas.");
     $("pv-s-rem").hidden = !window.EURONAV_PRECO.tem();
   }

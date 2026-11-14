@@ -876,7 +876,7 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
     $("b-share").addEventListener("click", compartilhar); $("b-share2").addEventListener("click", () => { if (!validarContato()) return; registrarContato("link copiado"); compartilhar(); }); $("b-quero").addEventListener("click", enviarWhats); contarVisita();
     // catálogo técnico: PDF hospedado junto do site; o botão só aparece se o arquivo existir
     { const bc = $("b-cat"); try { fetch(bc.getAttribute("href"), { method: "HEAD", cache: "no-store" }).then((r) => { if (r.ok) bc.hidden = false; }).catch(() => {}); } catch (e) { /* segue */ }
-      bc.addEventListener("click", () => { registrarContato("catálogo técnico"); }); } $("b-insta").addEventListener("click", (e) => { if (!validarContato()) { e.preventDefault(); return; } registrarContato("Instagram"); });
+      bc.addEventListener("click", (e) => { if (!validarContato(true, "baixar o catálogo")) { e.preventDefault(); return; } registrarContato("catálogo técnico"); }); } $("b-insta").addEventListener("click", (e) => { if (!validarContato()) { e.preventDefault(); return; } registrarContato("Instagram"); });
     try { const c = JSON.parse(localStorage.getItem("euronav-ct") || "{}"); if (c.nome) $("ct-nome").value = c.nome; if (c.tel) $("ct-tel").value = c.tel; if (c.email) $("ct-email").value = c.email; } catch (e) { /* segue */ }
     $("b-vitrine").addEventListener("click", vitrine);
   }
@@ -932,11 +932,11 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
     return true;
   }
   // Os três botões de contato pedem nome e telefone antes de seguir (o e-mail é opcional, mas é conferido se vier preenchido).
-  function validarContato() {
+  function validarContato(soNomeTel, acao) {
     const c = dadosContato(); let msg = "", campo = "";
-    if (c.nome.length < 2) { msg = "Informe o seu nome para continuar."; campo = "ct-nome"; }
-    else if (!telOk(c.tel)) { msg = "Informe o seu telefone com DDD, para o atendente retornar."; campo = "ct-tel"; }
-    else if (c.email && !emailOk(c.email)) { msg = "Confira o e-mail informado."; campo = "ct-email"; }
+    if (c.nome.length < 2) { msg = "Informe o seu nome para " + (acao || "continuar") + "."; campo = "ct-nome"; }
+    else if (!telOk(c.tel)) { msg = "Informe o seu telefone com DDD para " + (acao || "continuar") + "."; campo = "ct-tel"; }
+    else if (!soNomeTel && c.email && !emailOk(c.email)) { msg = "Confira o e-mail informado."; campo = "ct-email"; }
     $("ct-erro").textContent = msg;
     if (msg) { const el = $(campo); try { el.scrollIntoView({ block: "center", behavior: "smooth" }); } catch (e) { /* segue */ } el.focus({ preventScroll: true }); return false; }
     return true;
