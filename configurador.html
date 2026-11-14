@@ -105,10 +105,15 @@ body.vitrine .aviso-vitrine { display: block; }
   .vis { height: 58vh; flex: none; }
   .top { padding: 12px 14px; } .marca span { display: none; }
   .acoes .bt { padding: 7px 10px; }
+  .acoes { flex-wrap: wrap; justify-content: flex-end; }
   .selo { top: auto; bottom: 12px; right: 12px; }
   .vis:not(.foto) .selo { bottom: 84px; }
   .seta { display: none; }
 }
+a.bt, a.bt:visited { color: var(--ink); text-decoration: none; }
+a.bt.forte, a.bt.forte:visited { color: #fff; }
+.acoes [hidden] { display: none; }
+@media (max-width: 600px) { #b-vitrine { display: none; } .acoes .bt { letter-spacing: .08em; padding: 7px 9px; } }
 .sec h2.sub2 { margin-top: 20px; }
 .sec h2.sub2, #d-li { display: none; }   /* listra sempre branca: sem seletor */
 </style>
@@ -118,6 +123,7 @@ body.vitrine .aviso-vitrine { display: block; }
   <div class="marca"><svg class="logo" viewBox="169.87 251.16 502.02 92.63" role="img" aria-label="Euronav"><path class="w" d="M 185.03 327.74 L 229.56 327.74 C 232.53 327.74 234.85 327.06 236.49 325.70 C 237.94 324.19 238.76 322.36 238.96 320.21 L 240.79 300.62 L 190.23 300.62 C 186.73 300.62 183.42 301.40 180.30 302.97 C 176.35 304.96 174.01 307.65 173.27 311.04 L 170.86 336.83 C 172.16 340.80 176.08 342.79 182.61 342.79 L 238.66 342.71 L 239.22 335.89 L 190.15 335.89 C 186.78 335.58 184.93 334.45 184.59 332.52 Z M 194.44 306.81 L 227.98 306.81 L 227.08 316.53 C 226.94 318 226.35 319.30 225.30 320.45 C 224.19 321.18 222.37 321.55 219.87 321.55 L 185.61 321.55 L 186.42 312.92 C 186.60 311.04 187.52 309.53 189.19 308.38 C 190.70 307.33 192.45 306.81 194.44 306.81 Z M 300.33 300.62 L 296.98 336.60 L 263.74 336.60 C 261.70 336.60 260.05 336.10 258.78 335.11 C 257.32 333.96 256.69 332.42 256.87 330.48 L 259.66 300.62 L 245.55 300.62 L 242.62 331.97 C 242.66 335.42 244.62 338.19 248.50 340.28 C 251.64 341.95 254.93 342.79 258.38 342.79 L 310.58 342.79 L 314.52 300.62 Z M 358.94 300.62 L 319.28 300.62 L 315.34 342.79 L 329.68 342.79 L 333.05 306.81 L 353.58 306.81 C 355.62 306.81 357.30 307.31 358.62 308.30 C 360.07 309.45 360.71 310.99 360.53 312.92 L 360.13 317.24 L 374.40 317.24 L 374.95 311.28 C 374.86 307.83 372.84 305.08 368.90 303.05 C 365.76 301.43 362.44 300.62 358.94 300.62 Z M 433.07 300.62 L 380.71 300.62 L 377.78 331.97 C 377.82 335.42 379.78 338.19 383.66 340.28 C 386.80 341.95 390.09 342.79 393.54 342.79 L 445.74 342.79 L 448.69 311.28 C 448.59 307.83 446.65 305.08 442.87 303.05 C 439.83 301.43 436.57 300.62 433.07 300.62 Z M 431.98 336.60 L 398.90 336.60 C 396.86 336.60 395.21 336.10 393.94 335.11 C 392.48 333.96 391.84 332.42 392.02 330.48 L 394.24 306.81 L 427.63 306.81 C 429.66 306.81 431.26 307.31 432.42 308.30 C 433.78 309.45 434.37 310.99 434.19 312.92 Z M 506.80 300.62 L 454.44 300.62 L 450.50 342.79 L 465.08 342.79 L 468.44 306.81 L 501.36 306.81 C 503.40 306.81 505.11 307.33 506.50 308.38 C 507.89 309.42 508.50 310.94 508.31 312.92 L 505.52 342.79 L 519.87 342.79 L 522.81 311.28 C 522.71 307.83 520.70 305.08 516.76 303.05 C 513.62 301.43 510.30 300.62 506.80 300.62 Z M 580.37 300.62 L 528.56 300.62 L 527.98 306.81 L 574.93 306.81 C 576.97 306.81 578.71 307.36 580.15 308.46 C 581.59 309.55 582.22 311.07 582.04 313.00 L 581.82 315.35 L 537.92 315.35 C 531.29 315.35 527.48 317.78 526.50 322.64 L 525.35 334.95 C 526.07 340.17 530.26 342.79 537.95 342.79 L 593.28 342.79 L 596.21 311.44 C 596.11 308.04 594.12 305.30 590.24 303.21 C 587.01 301.48 583.72 300.62 580.37 300.62 Z M 545.42 335.81 C 542.16 335.50 540.35 334.37 540.01 332.44 L 540.67 325.39 C 540.84 323.56 541.63 322.41 543.03 321.94 C 543.79 321.68 545.39 321.55 547.85 321.55 L 581.24 321.55 L 579.91 335.81 Z M 656.61 300.62 L 653.25 336.60 L 634.67 336.60 L 614.06 321.55 L 616.01 300.62 L 601.98 300.62 L 600.03 321.55 L 629.47 342.79 L 666.94 342.79 L 670.88 300.62 Z M 656.61 300.62 "/><path class="a" d="M 487.59 252.16 L 471.12 274.21 L 454.65 296.25 L 483.80 287.72 L 487.59 282.64 L 491.38 287.72 L 520.53 296.25 L 504.06 274.21 Z M 487.59 252.16 "/></svg><span>Euro Sette · Configurador</span></div>
   <div class="acoes">
     <button class="bt" type="button" id="b-share">Compartilhar</button>
+    <a class="bt" id="b-cat" href="catalogo-euro-sette.pdf" target="_blank" rel="noopener" hidden>Catálogo técnico</a>
     <button class="bt" type="button" id="b-vitrine">Modo vitrine</button>
   </div>
 </header>
@@ -867,7 +873,10 @@ body.vitrine .aviso-vitrine { display: block; }
     document.querySelectorAll("[data-tema]").forEach((b) => b.addEventListener("click", () => tema(b.dataset.tema)));
     $("v-ant").addEventListener("click", () => passo(-1)); $("v-prox").addEventListener("click", () => passo(1));
     $("b-reset").addEventListener("click", () => { Object.assign(E, PADRAO); render(); });
-    $("b-share").addEventListener("click", compartilhar); $("b-share2").addEventListener("click", () => { if (!validarContato()) return; registrarContato("link copiado"); compartilhar(); }); $("b-quero").addEventListener("click", enviarWhats); $("b-insta").addEventListener("click", (e) => { if (!validarContato()) { e.preventDefault(); return; } registrarContato("Instagram"); });
+    $("b-share").addEventListener("click", compartilhar); $("b-share2").addEventListener("click", () => { if (!validarContato()) return; registrarContato("link copiado"); compartilhar(); }); $("b-quero").addEventListener("click", enviarWhats); contarVisita();
+    // catálogo técnico: PDF hospedado junto do site; o botão só aparece se o arquivo existir
+    { const bc = $("b-cat"); try { fetch(bc.getAttribute("href"), { method: "HEAD", cache: "no-store" }).then((r) => { if (r.ok) bc.hidden = false; }).catch(() => {}); } catch (e) { /* segue */ }
+      bc.addEventListener("click", () => { registrarContato("catálogo técnico"); }); } $("b-insta").addEventListener("click", (e) => { if (!validarContato()) { e.preventDefault(); return; } registrarContato("Instagram"); });
     try { const c = JSON.parse(localStorage.getItem("euronav-ct") || "{}"); if (c.nome) $("ct-nome").value = c.nome; if (c.tel) $("ct-tel").value = c.tel; if (c.email) $("ct-email").value = c.email; } catch (e) { /* segue */ }
     $("b-vitrine").addEventListener("click", vitrine);
   }
@@ -897,6 +906,14 @@ body.vitrine .aviso-vitrine { display: block; }
   }
   function aviso(t) { const el = $("toast"); el.textContent = t; el.classList.add("on"); clearTimeout(aviso.t); aviso.t = setTimeout(() => el.classList.remove("on"), 2200); }
   // ---------- contato: abre o WhatsApp da Euronav com a configuração montada ----------
+  function contarVisita() {
+    try {
+      if (localStorage.getItem("euronav-senha")) return;                        // aparelho da equipe, logado no painel
+      const hoje = new Date().toISOString().slice(0, 10); if (localStorage.getItem("euronav-vis") === hoje) return;
+      localStorage.setItem("euronav-vis", hoje);
+      fetch(API_LEAD, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ acao: "visita" }), keepalive: true, redirect: "follow" }).catch(() => {});
+    } catch (e) { /* segue */ }
+  }
   const WHATS = "5581996820025";
   const API_LEAD = window.EURONAV_API_LEAD || "https://script.google.com/macros/s/AKfycbwGjZAsu5fIpKSEDR63I_cLmiTQWHhoCKJImXoE4C6H_3gWPV4PC6SujvM9zLXTk7_A/exec";
   const dadosContato = () => ({ nome: $("ct-nome").value.trim(), tel: $("ct-tel").value.trim(), email: $("ct-email").value.trim() });

@@ -702,6 +702,10 @@ body.so-vendas #modo-vendas { display: none; }
 .pv-card { margin-bottom: 16px; }
 /* fila de contatos on-line (vindos do configurador público), separada dos atendimentos */
 .lead-card { margin-bottom: 16px; }
+.vis-nums { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-top: 10px; }
+.vis-n { padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius); }
+.vis-n b { display: block; font-size: 1.5rem; line-height: 1.2; }
+.vis-n span { font-size: .84rem; color: var(--muted); }
 .lead-em-at { padding: 12px 14px; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--blue-soft); }
 .lead-h { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 12px; margin: 0 0 4px; }
 .lead-h h2 { margin: 0; font-size: 1.05rem; }
@@ -1299,6 +1303,7 @@ body.gated { overflow: hidden; }
       </div>
       <div class="crm-filtros"><label class="c-f crm-per"><span>Atendente</span><select id="crm-at"><option value="">Todos</option></select></label><label class="c-f crm-per"><span>Período (pela data do atendimento)</span><select id="crm-per"><option value="tudo">Todo o período</option><option value="mes">Este mês</option><option value="90">Últimos 90 dias</option><option value="ano">Este ano</option></select></label></div>
     </div>
+    <div class="c-card lead-card" id="crm-visitas" hidden></div>
     <div class="c-card lead-card" id="crm-leads" hidden></div>
     <div class="crm-kpis" id="crm-kpis"></div>
     <div class="crm-grid">
@@ -1554,6 +1559,7 @@ body.gated { overflow: hidden; }
     let j; try { j = await r.json(); } catch (e) { throw mkErr("unavailable"); }
     if (!j || !j.ok) throw mkErr(j && (j.erro === "senha" || j.erro === "senha-padrao") ? j.erro : "unavailable");
     perfilSet(j.perfil);
+    if (j.visitas) { window.EURONAV_VISITAS = j.visitas; try { window.dispatchEvent(new Event("euronav-visitas")); } catch (e) {} }
     return j;
   }
 
@@ -3732,6 +3738,20 @@ body.gated { overflow: hidden; }
       });
     });
   }
+  // Visitas ao configurador público: contagem por dia, enviada pela planilha só ao perfil de gestão.
+  function renderVisitas() {
+    const host = $("crm-visitas"); if (!host) return; const v = window.EURONAV_VISITAS;
+    if (!v || !v.dias) { host.hidden = true; return; }
+    host.hidden = false; host.replaceChildren();
+    const soma = (n) => { let t = 0; for (let i = 0; i < n; i++) { const d = new Date(v.hoje + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() - i); t += num(v.dias[d.toISOString().slice(0, 10)]); } return t; };
+    const leads30 = Array.from(st.ats.values()).filter((d) => d && d.origem === "online" && d.criadoEm && (Date.now() - new Date(d.criadoEm).getTime()) < 30 * 86400000).length, v30 = soma(30);
+    const h = el("div", "lead-h"); h.appendChild(el("h2", "c-h3", "Visitas ao configurador")); host.appendChild(h);
+    host.appendChild(el("p", "c-hint", "Cada aparelho conta uma vez por dia. Aparelhos da equipe, logados no painel, não contam." + (v30 ? " Nos últimos 30 dias, " + leads30 + (leads30 === 1 ? " contato deixado" : " contatos deixados") + " para " + v30 + (v30 === 1 ? " visita." : " visitas.") : "")));
+    const g = el("div", "vis-nums");
+    [["Hoje", soma(1)], ["Últimos 7 dias", soma(7)], ["Últimos 30 dias", v30], ["Total", num(v.total)]].forEach(([t, n]) => { const c = el("div", "vis-n"); c.append(el("b", "", String(n)), el("span", "", t)); g.appendChild(c); });
+    host.appendChild(g);
+  }
+  window.addEventListener("euronav-visitas", () => { try { renderVisitas(); } catch (e) {} });
   function atDelete(id) {
     const d = st.ats.get(id); if (!d || !st.acol) return;
     const eraAtual = st.atId === id;
@@ -4773,7 +4793,7 @@ body.gated { overflow: hidden; }
   }
   function renderCRM() {
     const host = $("crm-kpis"); if (!host) return;
-    renderLeads(); crmAtOptions();
+    renderLeads(); renderVisitas(); crmAtOptions();
     const rows = crmRows();
     const by = (s) => rows.filter((r) => r.status === s);
     const sum = (rs, k) => rs.reduce((t, r) => t + num(r[k]), 0);
