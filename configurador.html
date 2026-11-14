@@ -81,12 +81,14 @@ button { font: inherit; color: inherit; }
 .combo .dup { margin: 3px; }
 .resumo { margin: 16px 0 12px; font-size: .86rem; color: var(--muted); line-height: 1.5; }
 .resumo b { color: var(--ink); font-weight: 600; }
+.dica { margin: 10px 0 0; font-size: .78rem; color: var(--muted); line-height: 1.4; }
 .contato { margin: 4px 0 12px; padding-top: 16px; border-top: 1px solid var(--line); }
 .contato .ct-p { margin: 0 0 12px; font-size: .84rem; color: var(--muted); line-height: 1.45; }
 .ct-l { display: block; margin: 0 0 10px; }
 .ct-l span { display: block; margin-bottom: 5px; font-size: .78rem; color: var(--muted); }
 .ct-l input { width: 100%; box-sizing: border-box; min-height: 44px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 4px; background: transparent; color: var(--ink); font: inherit; font-size: 1rem; }
 .ct-l input:focus-visible { outline: 2px solid var(--accent2); outline-offset: 1px; }
+.ct-isca { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 .ct-erro { margin: 0; min-height: 1.2em; font-size: .82rem; color: #e0786e; }
 .cta { display: grid; gap: 8px; }
 .cta a { text-decoration: none; text-align: center; }
@@ -144,22 +146,24 @@ body.vitrine .aviso-vitrine { display: block; }
     <div class="sec"><h2>Piso em EVA <b id="n-piso"></b></h2><div class="dots" id="d-piso" role="group" aria-label="Cor do piso"></div>
       <h2 class="sub2">Listras do piso <b id="n-li"></b></h2><div class="dots" id="d-li" role="group" aria-label="Cor das listras do piso"></div></div>
     <div class="sec"><h2>Capotas <b id="n-cap"></b></h2><div class="dots" id="d-cap" role="group" aria-label="Cor das capotas"></div></div>
-    <div class="sec"><h2>Proa <b id="n-proa"></b></h2><div class="duas" id="d-proa"></div></div>
+    <div class="sec"><h2>Proa <b id="n-proa"></b></h2><div class="duas" id="d-proa"></div><p class="dica">O Euro Sette já vem com os dois: mesa e solário. Aqui você escolhe só como ver a proa.</p></div>
     <div class="sec"><h2>Tubulões <b id="n-tubo"></b></h2><div class="duas" id="d-tubo"></div><div class="dots tcor" id="d-tcor" role="group" aria-label="Cor dos tubulões"></div></div>
     <div class="sec"><h2>Opcionais</h2><div class="opts" id="d-opc"></div></div>
     <div class="sec"><h2>Motor <b id="n-motor"></b></h2><div class="duas" id="d-motor"></div></div>
     <p class="resumo" id="resumo"></p>
     <div class="contato">
       <h2>Fale com um atendente</h2>
-      <p class="ct-p">Informe seu nome e sua cidade. Ao tocar no botão, o WhatsApp abre com a sua configuração pronta para enviar à Euronav.</p>
+      <p class="ct-p">Deixe seu nome e telefone para enviar, copiar ou compartilhar a sua configuração. Um atendente da Euronav entra em contato com ela em mãos.</p>
       <label class="ct-l"><span>Seu nome</span><input type="text" id="ct-nome" autocomplete="name" maxlength="60"></label>
-      <label class="ct-l"><span>Cidade e estado</span><input type="text" id="ct-cidade" autocomplete="address-level2" maxlength="60"></label>
+      <label class="ct-l"><span>Telefone (WhatsApp)</span><input type="tel" id="ct-tel" autocomplete="tel" inputmode="tel" maxlength="24" placeholder="(81) 90000-0000"></label>
+      <label class="ct-l"><span>E-mail</span><input type="email" id="ct-email" autocomplete="email" inputmode="email" maxlength="100"></label>
+      <label class="ct-isca" aria-hidden="true">Site<input type="text" id="ct-site" tabindex="-1" autocomplete="off"></label>
       <p class="ct-erro" id="ct-erro" aria-live="polite"></p>
     </div>
     <div class="cta">
       <button class="bt forte" type="button" id="b-quero">Enviar pelo WhatsApp</button>
       <button class="bt" type="button" id="b-share2">Copiar link desta configuração</button>
-      <a class="bt" href="https://www.instagram.com/euronavbr/" target="_blank" rel="noopener">Instagram @euronavbr</a>
+      <a class="bt" id="b-insta" href="https://www.instagram.com/euronavbr/" target="_blank" rel="noopener">Instagram @euronavbr</a>
     </div>
     <p class="nota">A vista 360° usa o modelo 3D do projeto do Euro Sette e mostra a cor dos tubulões; capota de proa, churrasqueira e tela do GPS são representações. As vistas de popa, cockpit e proa são fotos reais do Euro Sette, com as cores de estofado e piso aplicadas digitalmente; a cor dos tubulões e das capotas aparece na vista 3D. Itens e cores sujeitos a confirmação na proposta.</p>
   </aside>
@@ -857,14 +861,14 @@ body.vitrine .aviso-vitrine { display: block; }
     dots("d-est", "est", CAT.est); dots("d-piso", "piso", CAT.piso, (n) => { E.li = catListra(n, E.li); }); dots("d-cap", "cap", CAT.capota);
     const dupla = (host, campo, itens) => itens.forEach(([v, t, s]) => { const b = document.createElement("button"); b.type = "button"; b.className = "opt"; b.dataset.v = v; b.innerHTML = "<span></span>"; b.firstChild.textContent = t; const sm = document.createElement("small"); sm.textContent = s; b.firstChild.appendChild(sm); b.addEventListener("click", () => { E[campo] = v; if (campo === "tubo") E.ct = corTubo(v, E.ct)[0]; render(); }); $(host).appendChild(b); });
     dupla("d-tubo", "tubo", [["pvc", "PVC Sansuy", "7 cores"], ["hyp", "Hypalon Orca", "Creme ou branco gelo"]]);
-    dupla("d-proa", "proa", [["mesa", "Mesa", "Sofá em U com mesa"], ["sol", "Solário", "Almofadas fechando o vão"]]);
+    dupla("d-proa", "proa", [["mesa", "Ver com a mesa", "Sofá em U com a mesa montada"], ["sol", "Ver como solário", "Mesa baixada, com o estofado por cima"]]);
     dupla("d-motor", "motor", [["mercury", "Mercury", "Branco"], ["yamaha", "Yamaha", "Cinza"]]);
     OPC.forEach(([k, t, s]) => { const b = document.createElement("button"); b.type = "button"; b.className = "opt"; b.dataset.k = k; const sp = document.createElement("span"); sp.textContent = t; const sm = document.createElement("small"); sm.textContent = s; sp.appendChild(sm); const sw = document.createElement("i"); sw.className = "sw"; b.append(sp, sw); b.addEventListener("click", () => { E[k] = !E[k]; render(); }); $("d-opc").appendChild(b); });
     document.querySelectorAll("[data-tema]").forEach((b) => b.addEventListener("click", () => tema(b.dataset.tema)));
     $("v-ant").addEventListener("click", () => passo(-1)); $("v-prox").addEventListener("click", () => passo(1));
     $("b-reset").addEventListener("click", () => { Object.assign(E, PADRAO); render(); });
-    $("b-share").addEventListener("click", compartilhar); $("b-share2").addEventListener("click", compartilhar); $("b-quero").addEventListener("click", enviarWhats);
-    try { const c = JSON.parse(localStorage.getItem("euronav-ct") || "{}"); if (c.nome) $("ct-nome").value = c.nome; if (c.cidade) $("ct-cidade").value = c.cidade; } catch (e) { /* segue */ }
+    $("b-share").addEventListener("click", compartilhar); $("b-share2").addEventListener("click", () => { if (!validarContato()) return; registrarContato("link copiado"); compartilhar(); }); $("b-quero").addEventListener("click", enviarWhats); $("b-insta").addEventListener("click", (e) => { if (!validarContato()) { e.preventDefault(); return; } registrarContato("Instagram"); });
+    try { const c = JSON.parse(localStorage.getItem("euronav-ct") || "{}"); if (c.nome) $("ct-nome").value = c.nome; if (c.tel) $("ct-tel").value = c.tel; if (c.email) $("ct-email").value = c.email; } catch (e) { /* segue */ }
     $("b-vitrine").addEventListener("click", vitrine);
   }
   const passo = (d) => { const i = VISTAS.findIndex((v) => v[0] === E.vista); E.vista = VISTAS[(i + d + VISTAS.length) % VISTAS.length][0]; render(); };
@@ -878,7 +882,7 @@ body.vitrine .aviso-vitrine { display: block; }
     dl.querySelectorAll(".dot").forEach((b) => pressionado(b, b.dataset.c === E.li));
     document.querySelectorAll("#d-cap .dot").forEach((b) => pressionado(b, b.dataset.c === E.cap)); $("n-li").textContent = E.li; $("n-cap").textContent = E.cap;
     document.querySelectorAll("#d-tubo .opt").forEach((b) => pressionado(b, b.dataset.v === E.tubo));
-    document.querySelectorAll("#d-proa .opt").forEach((b) => pressionado(b, b.dataset.v === E.proa)); $("n-proa").textContent = E.proa === "sol" ? "Solário" : "Mesa";
+    document.querySelectorAll("#d-proa .opt").forEach((b) => pressionado(b, b.dataset.v === E.proa)); $("n-proa").textContent = "Mesa e solário de série";
     const dt = $("d-tcor"); if (dt.dataset.mat !== E.tubo) { dt.dataset.mat = E.tubo; dt.replaceChildren(); TUBOS[E.tubo].forEach(([k, n, hex]) => { const b = document.createElement("button"); b.type = "button"; b.className = "dot"; b.style.background = hex; b.title = n; b.setAttribute("aria-label", "Tubulões " + n); b.dataset.c = k; b.addEventListener("click", () => { E.ct = k; render(); }); dt.appendChild(b); }); }
     dt.querySelectorAll(".dot").forEach((b) => pressionado(b, b.dataset.c === E.ct));
     document.querySelectorAll("#d-motor .opt").forEach((b) => pressionado(b, b.dataset.v === E.motor));
@@ -894,12 +898,37 @@ body.vitrine .aviso-vitrine { display: block; }
   function aviso(t) { const el = $("toast"); el.textContent = t; el.classList.add("on"); clearTimeout(aviso.t); aviso.t = setTimeout(() => el.classList.remove("on"), 2200); }
   // ---------- contato: abre o WhatsApp da Euronav com a configuração montada ----------
   const WHATS = "5581996820025";
+  const API_LEAD = window.EURONAV_API_LEAD || "https://script.google.com/macros/s/AKfycbwGjZAsu5fIpKSEDR63I_cLmiTQWHhoCKJImXoE4C6H_3gWPV4PC6SujvM9zLXTk7_A/exec";
+  const dadosContato = () => ({ nome: $("ct-nome").value.trim(), tel: $("ct-tel").value.trim(), email: $("ct-email").value.trim() });
+  const telOk = (v) => v.replace(/\D/g, "").length >= 10, emailOk = (v) => /^\S+@\S+\.\S+$/.test(v);
+  const linkCfg = () => location.href.split("#")[0] + hashAtual();
+  // Registra o contato como atendimento on-line no CRM. Roda ao clicar em qualquer botão de contato, se os dados estiverem preenchidos.
+  let ultimoLead = "";
+  function registrarContato(canal) {
+    const c = dadosContato(); if (c.nome.length < 2 || !(telOk(c.tel) || emailOk(c.email))) return false;
+    try { localStorage.setItem("euronav-ct", JSON.stringify(c)); } catch (e) { /* segue */ }
+    let id = ""; try { id = localStorage.getItem("euronav-lead") || ""; } catch (e) { /* segue */ }
+    if (!/^on-[a-z0-9]{16,40}$/.test(id)) { id = "on-" + Array.from(crypto.getRandomValues(new Uint8Array(12))).map((x) => (x % 36).toString(36)).join("") + Date.now().toString(36); try { localStorage.setItem("euronav-lead", id); } catch (e) { /* segue */ } }
+    const corpo = JSON.stringify({ acao: "lead", id, nome: c.nome, tel: c.tel, email: c.email, canal, site: $("ct-site").value, link: linkCfg(), resumo: $("resumo").textContent.replace(/^Seu Euro Sette:\s*/, "") });
+    if (corpo === ultimoLead) return true; ultimoLead = corpo;
+    try { fetch(API_LEAD, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: corpo, keepalive: true, redirect: "follow" }).catch(() => { ultimoLead = ""; }); } catch (e) { ultimoLead = ""; }
+    return true;
+  }
+  // Os três botões de contato pedem nome e telefone antes de seguir (o e-mail é opcional, mas é conferido se vier preenchido).
+  function validarContato() {
+    const c = dadosContato(); let msg = "", campo = "";
+    if (c.nome.length < 2) { msg = "Informe o seu nome para continuar."; campo = "ct-nome"; }
+    else if (!telOk(c.tel)) { msg = "Informe o seu telefone com DDD, para o atendente retornar."; campo = "ct-tel"; }
+    else if (c.email && !emailOk(c.email)) { msg = "Confira o e-mail informado."; campo = "ct-email"; }
+    $("ct-erro").textContent = msg;
+    if (msg) { const el = $(campo); try { el.scrollIntoView({ block: "center", behavior: "smooth" }); } catch (e) { /* segue */ } el.focus({ preventScroll: true }); return false; }
+    return true;
+  }
   function enviarWhats() {
-    const nome = $("ct-nome").value.trim(), cidade = $("ct-cidade").value.trim();
-    if (nome.length < 2) { $("ct-erro").textContent = "Informe o seu nome para enviarmos a configuração."; $("ct-nome").focus(); return; }
-    $("ct-erro").textContent = ""; try { localStorage.setItem("euronav-ct", JSON.stringify({ nome, cidade })); } catch (e) { /* segue */ }
-    const url = location.href.split("#")[0] + hashAtual(), resumo = $("resumo").textContent.replace(/^Seu Euro Sette:\s*/, "");
-    const msg = "Olá! Meu nome é " + nome + (cidade ? ", de " + cidade : "") + ". Montei meu Euro Sette no configurador e gostaria de falar com um atendente.\n\nMinha configuração: " + resumo + "\n\nLink da configuração: " + url;
+    if (!validarContato()) return;
+    const c = dadosContato(); registrarContato("WhatsApp");
+    const resumo = $("resumo").textContent.replace(/^Seu Euro Sette:\s*/, "");
+    const msg = "Olá! Meu nome é " + c.nome + ". Montei meu Euro Sette no configurador e gostaria de falar com um atendente.\n\nMinha configuração: " + resumo + "\n\nLink da configuração: " + linkCfg();
     const a = document.createElement("a"); a.href = "https://wa.me/" + WHATS + "?text=" + encodeURIComponent(msg); a.target = "_blank"; a.rel = "noopener"; document.body.appendChild(a); a.click(); a.remove();
   }
   async function compartilhar() {

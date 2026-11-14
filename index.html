@@ -616,6 +616,7 @@ body.cliente .f-cont-ed { display: none; }
 .at-cfx-acoes .c-link { font-size: .8rem; }
 .at-cor-t small { font-weight: 400; color: var(--muted); }
 .at-cor-sub { margin-top: 14px; }
+.at-cor-nota { margin: 8px 0 0; font-size: .8rem; color: var(--muted); line-height: 1.4; }
 .at-cor-sub, #at-cor-listra { display: none; }   /* listra sempre branca: sem seletor */
 body.cfx-on { overflow: hidden; }
 .cfx { position: fixed; inset: 0; z-index: 140; background: #0e0f11; display: flex; flex-direction: column; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
@@ -699,6 +700,19 @@ body.vendas.tem-preco .tab:not([data-view="atendimento"]):not([data-view="ficha"
 body.vendas #pv-senha-card { display: none; }
 body.so-vendas #modo-vendas { display: none; }
 .pv-card { margin-bottom: 16px; }
+/* fila de contatos on-line (vindos do configurador público), separada dos atendimentos */
+.lead-card { margin-bottom: 16px; }
+.lead-em-at { padding: 12px 14px; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--blue-soft); }
+.lead-h { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 12px; margin: 0 0 4px; }
+.lead-h h2 { margin: 0; font-size: 1.05rem; }
+.lead-n { display: inline-block; min-width: 1.6em; padding: 1px 8px; border-radius: 999px; background: var(--brand-blue); color: #fff; font-size: .82rem; font-weight: 600; text-align: center; }
+.lead-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; padding: 12px 0; border-top: 1px solid var(--line); }
+.lead-info { flex: 1 1 320px; min-width: 0; }
+.lead-info b { font-size: 1rem; }
+.lead-info p { margin: 2px 0 0; font-size: .88rem; color: var(--muted); overflow-wrap: anywhere; }
+.lead-info p.lead-ct { color: var(--ink); }
+.lead-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.lead-acoes select { min-height: 40px; padding: 6px 8px; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--surface); color: var(--ink); font: inherit; font-size: .9rem; }
 .pv-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
 .pv-row[hidden] { display: none; }
 .pv-row select { flex: 1 1 260px; min-width: 0; min-height: 42px; padding: 8px 10px; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--surface); color: var(--ink); font: inherit; }
@@ -1134,6 +1148,7 @@ body.gated { overflow: hidden; }
     </form>
     <div class="c-card at-hist" id="at-hist" hidden>
       <div class="at-hist-h"><h2 class="c-h3" style="margin:0">Atendimentos</h2><button class="c-link" type="button" id="at-hist-close">Fechar</button></div>
+      <div class="lead-card lead-em-at" id="at-leads" hidden></div>
       <input type="search" id="at-hist-q" class="at-hist-q" placeholder="Buscar por nome, telefone ou observação" aria-label="Buscar atendimento" autocomplete="off">
       <div class="at-hist-list" id="at-hist-list"></div>
     </div>
@@ -1160,7 +1175,7 @@ body.gated { overflow: hidden; }
               <p class="at-cor-t at-cor-sub">Listras do piso</p><div class="at-cor-ops" id="at-cor-listra" role="radiogroup" aria-label="Cor das listras do piso"></div></div>
             <div class="at-cor-g at-cor-tubo"><p class="at-cor-t">Tubulões <small id="at-cor-tubo-mat"></small></p><div class="at-cor-ops" id="at-cor-tubo" role="radiogroup" aria-label="Cor dos tubulões"></div></div>
             <div class="at-cor-g at-cor-cap"><p class="at-cor-t">Capotas <small>(mesma cor na popa e na proa, sem custo)</small></p><div class="at-cor-ops" id="at-cor-cap" role="radiogroup" aria-label="Cor das capotas"></div></div>
-            <div class="at-cor-g at-cor-cap"><p class="at-cor-t">Proa <small>(mesa e solário vêm de série; escolha o que mostrar)</small></p><div class="at-cor-ops" id="at-cor-proa" role="radiogroup" aria-label="Proa: mesa ou solário"></div></div>
+            <div class="at-cor-g at-cor-cap"><p class="at-cor-t">Proa</p><div class="at-cor-ops" id="at-cor-proa" role="radiogroup" aria-label="Como ver a proa: com a mesa ou como solário"></div><p class="at-cor-nota">O barco já vem com os dois: mesa e solário. Aqui você escolhe só como ver a proa.</p></div>
           </div>
         </div>
         <div class="c-card">
@@ -1183,7 +1198,7 @@ body.gated { overflow: hidden; }
           <div class="at-3d" id="at-3d">
             <div class="at-3d-v" id="at-3d-v" role="img" aria-label="Modelo 3D do Euro Sette com as cores e os opcionais escolhidos"></div>
             <button class="at-3d-big" id="at-3d-big" type="button" aria-pressed="false">Ampliar</button>
-            <button class="at-3d-proa" id="at-3d-proa" type="button" aria-pressed="false" title="Alterna a proa entre mesa e solário (os dois vêm de série)">Proa: mesa</button>
+            <button class="at-3d-proa" id="at-3d-proa" type="button" aria-pressed="false" title="O barco vem com mesa e solário; este botão só troca a vista da proa">Vendo: mesa</button>
             <p class="at-3d-leg">Modelo 3D do projeto, com as cores e os opcionais escolhidos. Arraste para girar; em "Ampliar", use a roda do mouse ou dois dedos para aproximar.</p>
           </div>
           <div class="at-cfx-acoes">
@@ -1284,6 +1299,7 @@ body.gated { overflow: hidden; }
       </div>
       <div class="crm-filtros"><label class="c-f crm-per"><span>Atendente</span><select id="crm-at"><option value="">Todos</option></select></label><label class="c-f crm-per"><span>Período (pela data do atendimento)</span><select id="crm-per"><option value="tudo">Todo o período</option><option value="mes">Este mês</option><option value="90">Últimos 90 dias</option><option value="ano">Este ano</option></select></label></div>
     </div>
+    <div class="c-card lead-card" id="crm-leads" hidden></div>
     <div class="crm-kpis" id="crm-kpis"></div>
     <div class="crm-grid">
       <div class="c-card"><h2 class="c-h3">Funil de vendas</h2><div id="crm-funil"></div></div>
@@ -3492,11 +3508,11 @@ body.gated { overflow: hidden; }
     corG("at-cor-est", "corEst", CAT.est); corG("at-cor-piso", "corPiso", CAT.piso, (n) => { st.at.corListra = catListra(n, st.at.corListra); });
     corG("at-cor-listra", "corListra", catPiso(st.at.corPiso)[2].map((l) => [l, CAT.listra[l]])); corG("at-cor-cap", "corCapota", CAT.capota);
     { const h = $("at-cor-proa"); let sol = false; try { sol = !!B3D.solario; } catch (e) {}
-      if (h) { h.replaceChildren(); [["Mesa", false], ["Solário", true]].forEach(([n, v]) => {
+      if (h) { h.replaceChildren(); [["Ver com a mesa", false], ["Ver como solário", true]].forEach(([n, v]) => {
         const lab = el("label", "at-cor"); const inp = document.createElement("input"); inp.type = "radio"; inp.name = "at-cor-proa"; inp.value = n; inp.checked = sol === v;
         inp.addEventListener("change", () => { try { if (!!B3D.solario !== v) $("at-3d-proa").click(); } catch (e) {} });
         lab.append(inp, el("span", "", n)); h.appendChild(lab); }); } }
-    document.querySelectorAll("#at-card-cores .at-cor-ops").forEach((ops) => { const t = ops.previousElementSibling, c = ops.querySelector("input:checked"); if (t && t.classList.contains("at-cor-t")) { if (c) t.dataset.sel = c.closest("label").textContent.trim(); else delete t.dataset.sel; } });
+    document.querySelectorAll("#at-card-cores .at-cor-ops").forEach((ops) => { const t = ops.previousElementSibling, c = ops.querySelector("input:checked"); if (t && t.classList.contains("at-cor-t")) { if (ops.id === "at-cor-proa") t.dataset.sel = "Mesa e solário de série"; else if (c) t.dataset.sel = c.closest("label").textContent.trim(); else delete t.dataset.sel; } });
     b3dAtualizar();
     cfxRender();
     { const h = $("at-cor-tubo"); const lst = TUBO_CORES[st.at.hyp ? "hyp" : "pvc"]; if (!lst.some((x) => x[0] === st.at.corTubo)) st.at.corTubo = tuboCor(st.at.hyp, st.at.corTubo)[0];
@@ -3561,14 +3577,18 @@ body.gated { overflow: hidden; }
   function atPersist() {
     const id = st.atId; if (!id || !atCur() || !st.acol || !st.canWrite) return;
     clearTimeout(atTimer);
-    atTimer = setTimeout(() => {
-      const q = atCompute();
-      const patch = { config: atConfig(), atualizadoEm: nowIso() };
-      if (q) { patch.total = Math.round(q.total); patch.desconto = Math.round(q.desc); patch.subtotal = Math.round(q.S); patch.resultado = Math.round(q.resultado); patch.margem = q.margem == null ? null : Math.round(q.margem * 10000) / 10000; }
-      const d = st.ats.get(id); if (d) Object.assign(d, patch);
-      atWrite(id, () => st.acol.doc(id).update(patch));
-      renderAtHist();
-    }, 700);
+    atTimer = setTimeout(() => atPersistNow(id), 700);
+  }
+  // Grava já o orçamento do atendimento (configuração e totais), sem esperar o agendamento.
+  function atPersistNow(id, extra) {
+    clearTimeout(atTimer);
+    if (!id || st.atId !== id || !st.acol || !st.canWrite) return;
+    const q = atCompute();
+    const patch = Object.assign({ config: atConfig(), atualizadoEm: nowIso() }, extra || {});
+    if (q) { patch.total = Math.round(q.total); patch.desconto = Math.round(q.desc); patch.subtotal = Math.round(q.S); patch.resultado = Math.round(q.resultado); patch.margem = q.margem == null ? null : Math.round(q.margem * 10000) / 10000; }
+    const d = st.ats.get(id); if (d) Object.assign(d, patch);
+    atWrite(id, () => st.acol.doc(id).update(patch));
+    renderAtHist();
   }
   function ctCollect() {
     const c = {};
@@ -3624,7 +3644,9 @@ body.gated { overflow: hidden; }
     const qv = norm($("at-hist-q").value);
     host.replaceChildren();
     if (!st.atsLoaded) { host.appendChild(el("p", "c-hint", "Carregando…")); return; }
+    renderLeads();
     const rows = Array.from(st.ats.entries())
+      .filter(([, d]) => !ehLead(d))
       .filter(([, d]) => !qv || norm(d.nome).includes(qv) || norm(d.tel).includes(qv) || norm(d.obs).includes(qv))
       .sort((x, y) => String(y[1].atualizadoEm || "").localeCompare(String(x[1].atualizadoEm || "")));
     if (!rows.length) { host.appendChild(el("p", "c-hint", st.ats.size ? "Nenhum atendimento encontrado com essa busca." : "Ainda não há atendimentos. Use Novo atendimento para criar o primeiro.")); return; }
@@ -3650,6 +3672,12 @@ body.gated { overflow: hidden; }
     const c = d.config || {};
     st.at = Object.assign(JSON.parse(JSON.stringify(AT_DEF)), { motor: c.motor || "", kits: Object.assign({}, AT_DEF.kits, c.kits || {}), kitItens: JSON.parse(JSON.stringify(c.kitItens || {})), hyp: !!c.hyp, gps: !!c.gps, desc: num(c.desc), corEst: c.corEst || AT_DEF.corEst, corPiso: c.corPiso || AT_DEF.corPiso, corListra: c.corListra || "", corCapota: c.corCapota || AT_DEF.corCapota, corTubo: c.corTubo || "gelo"});
     try { localStorage.setItem(AT_KEY, JSON.stringify(st.at)); } catch (e) {}
+    // contato vindo do configurador público: na primeira abertura, a configuração montada pelo cliente entra no orçamento
+    if (d.onlinePend && d.linkCfg && st.canWrite && st.acol) {
+      // uma gravação só: orçamento configurado, saída da fila e, se veio da fila, o atendente escolhido
+      const ex = Object.assign({ onlinePend: false }, st.leadExtra || {}); st.leadExtra = null;
+      try { if (aplicarLink(d.linkCfg)) { d.onlinePend = false; try { localStorage.setItem(AT_KEY, JSON.stringify(st.at)); } catch (e2) {} atPersistNow(id, ex); } } catch (e) {}
+    }
     ctFill(d.comprador);
     $("at-contrato").hidden = true; $("at-hist").hidden = true; $("at-form").hidden = true;
     $("at-hist-btn").setAttribute("aria-expanded", "false");
@@ -3670,6 +3698,39 @@ body.gated { overflow: hidden; }
     ctFill({ nome, tel });
     $("at-contrato").hidden = true;
     renderAtend(); renderAtHist();
+  }
+  // Contato on-line: veio do configurador público e ainda não foi assumido por ninguém da equipe.
+  // Fica numa fila própria; só entra na lista de atendimentos e nos números do CRM depois de "Atender".
+  function ehLead(d) { return !!d && d.origem === "online" && d.onlinePend === true; }
+  function renderLeads() {
+    const leads = Array.from(st.ats.entries()).filter(([, d]) => ehLead(d)).sort((x, y) => String(y[1].atualizadoEm || "").localeCompare(String(x[1].atualizadoEm || "")));
+    const hb = $("at-hist-btn"); if (hb) hb.textContent = leads.length ? "Atendimentos · " + leads.length + " on-line a tratar" : "Atendimentos";
+    ["crm-leads", "at-leads"].forEach((hid) => {
+      const host = $(hid); if (!host) return; host.replaceChildren();
+      if (!leads.length && hid === "at-leads") { host.hidden = true; return; }
+      host.hidden = false;
+      const h = el("div", "lead-h"); h.append(el("h2", "c-h3", "Contatos on-line a tratar"), el("span", "lead-n", String(leads.length))); host.appendChild(h);
+      host.appendChild(el("p", "c-hint", leads.length ? "Vieram do configurador público. Ao atender, o contato vira um atendimento com a configuração que o cliente montou. Enquanto estão aqui, não entram nos números do CRM." : "Nenhum contato on-line aguardando."));
+      leads.forEach(([id, d]) => {
+        const row = el("div", "lead-row"), info = el("div", "lead-info");
+        info.appendChild(el("b", "", d.nome || "Sem nome"));
+        info.appendChild(el("p", "lead-ct", [d.tel, d.email].filter(Boolean).join(" · ") || "Sem telefone ou e-mail"));
+        const quando = d.criadoEm ? new Date(d.criadoEm).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "";
+        const resumo = String(d.obs || "").replace(/^Contato pelo configurador on-line(\s*\([^)]*\))?\.\s*/, "").replace(/\s*E-mail: \S+\.?$/, "");
+        info.appendChild(el("p", "", (quando ? "Recebido em " + quando + ". " : "") + resumo));
+        const ac = el("div", "lead-acoes"), sel = document.createElement("select"); sel.setAttribute("aria-label", "Atendente que vai assumir o contato de " + (d.nome || "cliente"));
+        sel.appendChild(new Option("Sem atendente", "")); atendentes().forEach((n) => sel.appendChild(new Option(n, n)));
+        const ok = el("button", "mv-bt forte", "Atender"); ok.type = "button"; const no = el("button", "mv-bt", "Descartar"); no.type = "button";
+        ok.disabled = no.disabled = !st.canWrite;
+        ok.addEventListener("click", () => {
+          const quem = sel.value; d.atendente = quem; st.leadExtra = { atendente: quem }; atOpen(id); st.leadExtra = null;
+          if (d.onlinePend) { d.onlinePend = false; atWrite(id, () => st.acol.doc(id).update({ atendente: quem, onlinePend: false })); }   // link sem configuração: assume mesmo assim
+          renderLeads(); renderAtHist(); if (typeof renderCRM === "function") renderCRM(); location.hash = "#atendimento";
+        });
+        no.addEventListener("click", () => { if (window.confirm("Descartar o contato de " + (d.nome || "cliente") + "? Ele sai da fila e não vira atendimento.")) { atDelete(id); renderLeads(); if (typeof renderCRM === "function") renderCRM(); } });
+        ac.append(sel, ok, no); row.append(info, ac); host.appendChild(row);
+      });
+    });
   }
   function atDelete(id) {
     const d = st.ats.get(id); if (!d || !st.acol) return;
@@ -3819,7 +3880,7 @@ body.gated { overflow: hidden; }
     const sel = $("crm-at"); if (!sel) return;
     const cur = sel.value;
     const nomes = atendentes().slice(); let sem = false;
-    st.ats.forEach((d) => { const n = String(d.atendente || "").trim(); if (!n) sem = true; else if (!nomes.includes(n)) nomes.push(n); });
+    st.ats.forEach((d) => { if (ehLead(d)) return; const n = String(d.atendente || "").trim(); if (!n) sem = true; else if (!nomes.includes(n)) nomes.push(n); });
     sel.replaceChildren(new Option("Todos", ""));
     nomes.forEach((n) => sel.appendChild(new Option(n, n)));
     if (sem) sel.appendChild(new Option("Sem atendente", "__sem"));
@@ -4701,6 +4762,7 @@ body.gated { overflow: hidden; }
     else if (per === "ano") ini = new Date(now.getFullYear(), 0, 1);
     const out = [];
     st.ats.forEach((d, id) => {
+      if (ehLead(d)) return;                      // contato on-line ainda na fila: fora dos números do CRM
       const c = new Date(d.criadoEm);
       if (ini && !(c >= ini)) return;
       if (atF === "__sem" ? !!d.atendente : (atF && (d.atendente || "") !== atF)) return;
@@ -4711,7 +4773,7 @@ body.gated { overflow: hidden; }
   }
   function renderCRM() {
     const host = $("crm-kpis"); if (!host) return;
-    crmAtOptions();
+    renderLeads(); crmAtOptions();
     const rows = crmRows();
     const by = (s) => rows.filter((r) => r.status === s);
     const sum = (rs, k) => rs.reduce((t, r) => t + num(r[k]), 0);
@@ -5623,7 +5685,12 @@ body.gated { overflow: hidden; }
   function importarLink() {
     if (!st.atId || !st.at) { setText("at-cfg-msg", "Abra ou crie um atendimento primeiro."); return; }
     const txt = window.prompt("Cole o link que o cliente montou no configurador:"); if (!txt) return;
-    const i = txt.indexOf("#"); if (i < 0) { setText("at-cfg-msg", "Esse link não traz uma configuração. Peça ao cliente para usar o botão Compartilhar."); return; }
+    if (!aplicarLink(txt)) { setText("at-cfg-msg", "Esse link não traz uma configuração. Peça ao cliente para usar o botão Compartilhar."); return; }
+    atSave(); renderAtend(); setText("at-cfg-msg", "Configuração do cliente aplicada. Confira o orçamento abaixo.");
+  }
+  // Aplica ao atendimento aberto a configuração de um link do configurador (cores, tubulões, motor e opcionais).
+  function aplicarLink(txt) {
+    const i = String(txt || "").indexOf("#"); if (i < 0 || !st.at) return false;
     const h = new URLSearchParams(txt.slice(i + 1));
     if (h.get("e")) st.at.corEst = catEst(h.get("e"))[0];
     if (h.get("p")) st.at.corPiso = catPiso(h.get("p"))[0];
@@ -5643,7 +5710,7 @@ body.gated { overflow: hidden; }
       else st.at.kits = Object.assign({}, st.at.kits, { [kit]: true });
     });
     if (o.includes("gps")) st.at.gps = true;
-    atSave(); renderAtend(); setText("at-cfg-msg", "Configuração do cliente aplicada. Confira o orçamento abaixo.");
+    return true;
   }
   function cfgLink() {
     const a = $("at-3d-cfg"); if (!a || !st.at) return;
@@ -5831,7 +5898,7 @@ body.gated { overflow: hidden; }
     const CH = "euronav.cfxTema", ler = () => { try { return localStorage.getItem(CH) !== "claro"; } catch (e) { return true; } };   // escuro por padrão, como o configurador público
     const pintar = (esc) => { $("cfx").classList.toggle("escuro", esc); const b = $("cfx-tema"); b.textContent = esc ? "Fundo claro" : "Fundo escuro"; b.setAttribute("aria-pressed", esc ? "true" : "false"); };
     pintar(ler()); $("cfx-tema").addEventListener("click", () => { const esc = !$("cfx").classList.contains("escuro"); try { localStorage.setItem(CH, esc ? "escuro" : "claro"); } catch (e) {} pintar(esc); }); }
-  $("at-3d-proa").addEventListener("click", () => { B3D.solario = !B3D.solario; const b = $("at-3d-proa"); b.textContent = B3D.solario ? "Proa: solário" : "Proa: mesa"; b.setAttribute("aria-pressed", B3D.solario ? "true" : "false"); document.querySelectorAll("#at-cor-proa input").forEach((i, k) => { i.checked = (k === 1) === !!B3D.solario; }); { const t = $("at-cor-proa").previousElementSibling; if (t) t.dataset.sel = B3D.solario ? "Solário" : "Mesa"; } b3dAtualizar(); });
+  $("at-3d-proa").addEventListener("click", () => { B3D.solario = !B3D.solario; const b = $("at-3d-proa"); b.textContent = B3D.solario ? "Vendo: solário" : "Vendo: mesa"; b.setAttribute("aria-pressed", B3D.solario ? "true" : "false"); document.querySelectorAll("#at-cor-proa input").forEach((i, k) => { i.checked = (k === 1) === !!B3D.solario; });  b3dAtualizar(); });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && cfx.aberto && !$("at-3d").classList.contains("grande")) cfxFechar(); });
   $("at-cfg-copiar").addEventListener("click", () => copiarLinkCliente("at-cfg-msg")); $("cfx-copiar").addEventListener("click", () => copiarLinkCliente("cfx-resumo"));
   $("at-cfg-importar").addEventListener("click", importarLink);
@@ -5842,7 +5909,7 @@ body.gated { overflow: hidden; }
   function pvRender() {
     document.body.classList.toggle("tem-preco", window.EURONAV_PRECO.tem());
     const sel = $("pv-at"); if (!sel) return;
-    const rows = Array.from(st.ats.entries()).sort((x, y) => String(y[1].atualizadoEm || "").localeCompare(String(x[1].atualizadoEm || "")));
+    const rows = Array.from(st.ats.entries()).filter(([, d]) => !ehLead(d)).sort((x, y) => String(y[1].atualizadoEm || "").localeCompare(String(x[1].atualizadoEm || "")));
     const sig = rows.map(([id, d]) => id + "|" + (d.nome || "") + "|" + (d.total || 0)).join(";") + (st.atsLoaded ? "" : "?");
     if (sel.dataset.sig !== sig) { sel.dataset.sig = sig; const cur = sel.value || st.pvAt || st.atId || ""; sel.replaceChildren();
       if (!rows.length) { const o = el("option", "", st.atsLoaded ? "Nenhum atendimento ainda" : "Carregando…"); o.value = ""; sel.appendChild(o); }
