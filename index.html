@@ -3376,7 +3376,7 @@ body.gated { overflow: hidden; }
   const AT_KEY = "euronav-atendimento";
   const AT_DEF = { motor: "", kits: { conforto: false, lazer: false, fundeio: false, extras: false }, kitItens: {}, hyp: false, gps: false, desc: 0, corEst: "Branco Ultra", corPiso: "Cinza", corListra: "Branco", corCapota: "Cinza", corTubo: "gelo" };
   const TUBO_CORES = { pvc: [["cinza", "Cinza claro", "#C9C6B8"], ["marinho", "Azul marinho", "#232C4A"], ["royal", "Azul royal", "#2A3F9E"], ["preto", "Preto", "#232422"], ["vermelho", "Vermelho", "#A63840"], ["verde", "Verde", "#5A635B"], ["bege", "Bege", "#C6AD82"]],
-    hyp: [["gelo", "Branco gelo", "#ECEBE2"], ["creme", "Creme", "#EDE3C8"]] };
+    hyp: [["gelo", "Ice white", "#E6EAED"], ["creme", "Off white", "#E3DED4"], ["yoro", "Yellow Oro", "#E6DA5E"], ["sunflower", "Sun Flower", "#D28C32"], ["ycolorado", "Yellow Colorado", "#E1C541"]] };
   const TUBO_ANT = { gelo: "cinza", areia: "bege", grafite: "preto" }; // cores que saíram da lista: atendimentos e links antigos caem na mais próxima
   const tuboCor = (hyp, c) => { const l = TUBO_CORES[hyp ? "hyp" : "pvc"]; return l.find((x) => x[0] === c) || l.find((x) => x[0] === TUBO_ANT[c]) || l[0]; };
   const coresTxt = () => { const c = atCores(); return "estofado " + corTxt(c.est) + ", piso em EVA " + corTxt(c.piso) + " com listras brancas, capotas em " + corTxt(c.cap) + " e tubulões " + tuboCor(st.at.hyp, st.at.corTubo)[1].toLowerCase(); };
@@ -5580,7 +5580,7 @@ body.gated { overflow: hidden; }
       const pp = o.pisoHex ? [o.pisoHex, o.listraHex || "#E6E4DE"] : (B3D_PISO[o.piso] || B3D_PISO.Cinza); matR.piso.color.copy(C(pp[0])); matR.friso.color.copy(C(pp[1]));
       const tb = new T.Color(o.tuboCor || "#ecebe2"); matR.tubo.color.copy(C(tb.getHex()));
       // regra da projetista: acessórios de PVC cinza no tubulão claro (cinza claro ou branco gelo) e brancos nos tubulões de outras cores
-      matR.pvc.color.copy(C(["ecebe2", "c9c6b8"].includes(tb.getHexString().toLowerCase()) ? 0x8B8F95 : 0xF4F4F2));
+      matR.pvc.color.copy(C(["e6eaed", "c9c6b8"].includes(tb.getHexString().toLowerCase()) ? 0x8B8F95 : 0xF4F4F2));
       gR.mesa.visible = !o.solario; gR.sol.visible = !!o.solario; gR.guincho.visible = !!o.guincho; gR.capProa.visible = !!o.capProa && !B3D.semCapota; gR.capPopa.visible = !B3D.semCapota; gR.churr.visible = !!o.churr; gR.gps.visible = !!o.gps; gR.mastro.visible = o.mastro !== false;
     };
     const usarReal = typeof M3D_B64 === "string" && M3D_B64.length > 1000 && !!window.DecompressionStream && !M3D_ANTIGO;
@@ -5679,7 +5679,7 @@ body.gated { overflow: hidden; }
     { nome: "Noite", sub: "Taupe com piso, tubos e capota pretos", est: "Taupe", piso: "Preto", li: "Branco", hyp: false, ct: "preto", cap: "Preto" },
     { nome: "Bordô", sub: "Marfim, piso madeira e capota vinho", est: "Marfim", piso: "Madeira", li: "Branco", hyp: false, ct: "cinza", cap: "Vinho" },
     { nome: "Inglês", sub: "Caramelo, piso ocre, tubos e capota verdes", est: "Caramelo", piso: "Ocre", li: "Branco", hyp: false, ct: "verde", cap: "Verde" },
-    { nome: "Creme", sub: "Hypalon creme, marfim e capota bege", est: "Marfim", piso: "Madeira", li: "Branco", hyp: true, ct: "creme", cap: "Bege" }];
+    { nome: "Creme", sub: "Hypalon Off white, marfim e capota bege", est: "Marfim", piso: "Madeira", li: "Branco", hyp: true, ct: "creme", cap: "Bege" }];
   const cfx = { aberto: false, vista: "3d", marcas: [], cache: new Map(), pedido: 0 };
   function cfxMover(no, destino) { const m = document.createComment("cfx"); no.parentNode.insertBefore(m, no); destino.appendChild(no); cfx.marcas.push([m, no]); }
   function cfxMontar() {

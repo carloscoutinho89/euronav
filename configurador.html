@@ -100,20 +100,35 @@ body.vitrine .app { height: 100%; }
 .aviso-vitrine { display: none; position: absolute; left: 22px; bottom: 16px; z-index: 5; font-size: .76rem; color: var(--muted); }
 body.vitrine .aviso-vitrine { display: block; }
 @media (max-width: 900px) {
-  .app { grid-template-columns: 1fr; height: auto; }
-  .palco { border-right: 0; }
-  .vis { height: 58vh; flex: none; }
+  /* celular: o barco e a barra de vistas ficam fixos no topo enquanto se desce pelas opções */
+  .app { display: block; height: auto; min-height: 0; }
+  .palco { border-right: 0; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 30; background: var(--bg); box-shadow: 0 8px 16px rgba(0,0,0,.4); }
+  .vis { height: clamp(210px, 34vh, 380px); min-height: 0; flex: none; }
+  .titulo { top: 10px; left: 14px; } .titulo h1 { font-size: 1.2rem; } .titulo p { display: none; }
+  .barra { flex-wrap: nowrap; overflow-x: auto; padding: 8px 12px; gap: 6px; -webkit-overflow-scrolling: touch; }
+  .barra > * { flex: none; } .espaco { display: none; }
+  .vistas { overflow: visible; }
+  .vbt img, .vbt i { width: 44px; height: 28px; }
+  .painel { overflow: visible; }
   .top { padding: 12px 14px; } .marca span { display: none; }
   .acoes .bt { padding: 7px 10px; }
   .acoes { flex-wrap: wrap; justify-content: flex-end; }
   .selo { top: auto; bottom: 12px; right: 12px; }
-  .vis:not(.foto) .selo { bottom: 84px; }
+  .vis:not(.foto) .selo { display: none; }   /* no quadro fixo do celular o aviso cobriria o barco */
   .seta { display: none; }
 }
 a.bt, a.bt:visited { color: var(--ink); text-decoration: none; }
 a.bt.forte, a.bt.forte:visited { color: #fff; }
 .acoes [hidden] { display: none; }
 @media (max-width: 600px) { #b-vitrine { display: none; } .acoes .bt { letter-spacing: .08em; padding: 7px 9px; } }
+/* celular deitado: pouca altura, então volta ao layout de duas colunas com o painel rolando ao lado */
+@media (max-width: 900px) and (orientation: landscape) and (max-height: 520px) {
+  .app { display: grid; grid-template-columns: minmax(0, 1fr) 320px; height: calc(100% - 59px); min-height: 0; }
+  .palco { position: relative; top: auto; box-shadow: none; border-right: 1px solid var(--line); }
+  .vis { height: auto; flex: 1; min-height: 0; }
+  .titulo p { display: block; } .titulo h1 { font-size: 1.4rem; }
+  .painel { overflow-y: auto; }
+}
 .sec h2.sub2 { margin-top: 20px; }
 .sec h2.sub2, #d-li { display: none; }   /* listra sempre branca: sem seletor */
 </style>
@@ -200,7 +215,7 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
   const COR_ALVO = { est: Object.fromEntries(CAT.est.map(([n, h]) => [n, hexRgb(h)])), piso: Object.fromEntries(CAT.piso.filter(([n]) => n !== "Cinza").map(([n, h]) => [n, hexRgb(h)])) };
   const TUBOS = {
     pvc: [["cinza", "Cinza claro", "#C9C6B8"], ["marinho", "Azul marinho", "#232C4A"], ["royal", "Azul royal", "#2A3F9E"], ["preto", "Preto", "#232422"], ["vermelho", "Vermelho", "#A63840"], ["verde", "Verde", "#5A635B"], ["bege", "Bege", "#C6AD82"]],
-    hyp: [["gelo", "Branco gelo", "#ECEBE2"], ["creme", "Creme", "#EDE3C8"]]
+    hyp: [["gelo", "Ice white", "#E6EAED"], ["creme", "Off white", "#E3DED4"], ["yoro", "Yellow Oro", "#E6DA5E"], ["sunflower", "Sun Flower", "#D28C32"], ["ycolorado", "Yellow Colorado", "#E1C541"]]
   };
   const TUBO_ANT = { gelo: "cinza", areia: "bege", grafite: "preto" };
   const corTubo = (t, c) => { const l = TUBOS[t] || TUBOS.pvc; return l.find((x) => x[0] === c) || l.find((x) => x[0] === TUBO_ANT[c]) || l[0]; };
@@ -214,7 +229,7 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
     { nome: "Noite", sub: "Taupe com piso, tubos e capota pretos", est: "Taupe", piso: "Preto", li: "Branco", tubo: "pvc", ct: "preto", cap: "Preto" },
     { nome: "Bordô", sub: "Marfim, piso madeira e capota vinho", est: "Marfim", piso: "Madeira", li: "Branco", tubo: "pvc", ct: "cinza", cap: "Vinho" },
     { nome: "Inglês", sub: "Caramelo, piso ocre, tubos e capota verdes", est: "Caramelo", piso: "Ocre", li: "Branco", tubo: "pvc", ct: "verde", cap: "Verde" },
-    { nome: "Creme", sub: "Hypalon creme, marfim e capota bege", est: "Marfim", piso: "Madeira", li: "Branco", tubo: "hyp", ct: "creme", cap: "Bege" }
+    { nome: "Creme", sub: "Hypalon Off white, marfim e capota bege", est: "Marfim", piso: "Madeira", li: "Branco", tubo: "hyp", ct: "creme", cap: "Bege" }
   ];
   const VISTAS = [["360", "360°"], ["popa", "Popa"], ["cockpit", "Cockpit"], ["proa", "Proa"]];
   const OPC = [["cp", "Capota de proa", "Sombra extra na proa"], ["ch", "Churrasqueira", "A gás, com tábua e suporte"], ["gu", "Guincho elétrico", "Fundeio sem esforço"], ["gps", "GPS", "Navegação no console"]];
@@ -692,7 +707,7 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
       const pp = o.pisoHex ? [o.pisoHex, o.listraHex || "#E6E4DE"] : (B3D_PISO[o.piso] || B3D_PISO.Cinza); matR.piso.color.copy(C(pp[0])); matR.friso.color.copy(C(pp[1]));
       const tb = new T.Color(o.tuboCor || "#ecebe2"); matR.tubo.color.copy(C(tb.getHex()));
       // regra da projetista: acessórios de PVC cinza no tubulão claro (cinza claro ou branco gelo) e brancos nos tubulões de outras cores
-      matR.pvc.color.copy(C(["ecebe2", "c9c6b8"].includes(tb.getHexString().toLowerCase()) ? 0x8B8F95 : 0xF4F4F2));
+      matR.pvc.color.copy(C(["e6eaed", "c9c6b8"].includes(tb.getHexString().toLowerCase()) ? 0x8B8F95 : 0xF4F4F2));
       gR.mesa.visible = !o.solario; gR.sol.visible = !!o.solario; gR.guincho.visible = !!o.guincho; gR.capProa.visible = !!o.capProa && !B3D.semCapota; gR.capPopa.visible = !B3D.semCapota; gR.churr.visible = !!o.churr; gR.gps.visible = !!o.gps; gR.mastro.visible = o.mastro !== false;
     };
     const usarReal = typeof M3D_B64 === "string" && M3D_B64.length > 1000 && !!window.DecompressionStream && !M3D_ANTIGO;
@@ -866,7 +881,7 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
       b.addEventListener("click", () => { Object.assign(E, { est: c.est, piso: c.piso, li: c.li, cap: c.cap, tubo: c.tubo, ct: c.ct }); render(); }); ch.appendChild(b); });
     dots("d-est", "est", CAT.est); dots("d-piso", "piso", CAT.piso, (n) => { E.li = catListra(n, E.li); }); dots("d-cap", "cap", CAT.capota);
     const dupla = (host, campo, itens) => itens.forEach(([v, t, s]) => { const b = document.createElement("button"); b.type = "button"; b.className = "opt"; b.dataset.v = v; b.innerHTML = "<span></span>"; b.firstChild.textContent = t; const sm = document.createElement("small"); sm.textContent = s; b.firstChild.appendChild(sm); b.addEventListener("click", () => { E[campo] = v; if (campo === "tubo") E.ct = corTubo(v, E.ct)[0]; render(); }); $(host).appendChild(b); });
-    dupla("d-tubo", "tubo", [["pvc", "PVC Sansuy", "7 cores"], ["hyp", "Hypalon Orca", "Creme ou branco gelo"]]);
+    dupla("d-tubo", "tubo", [["pvc", "PVC Sansuy", "7 cores"], ["hyp", "Hypalon Orca", "5 cores"]]);
     dupla("d-proa", "proa", [["mesa", "Ver com a mesa", "Sofá em U com a mesa montada"], ["sol", "Ver como solário", "Mesa baixada, com o estofado por cima"]]);
     dupla("d-motor", "motor", [["mercury", "Mercury", "Branco"], ["yamaha", "Yamaha", "Cinza"]]);
     OPC.forEach(([k, t, s]) => { const b = document.createElement("button"); b.type = "button"; b.className = "opt"; b.dataset.k = k; const sp = document.createElement("span"); sp.textContent = t; const sm = document.createElement("small"); sm.textContent = s; sp.appendChild(sm); const sw = document.createElement("i"); sw.className = "sw"; b.append(sp, sw); b.addEventListener("click", () => { E[k] = !E[k]; render(); }); $("d-opc").appendChild(b); });
