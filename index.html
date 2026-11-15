@@ -1231,7 +1231,7 @@ body.gated { overflow: hidden; }
           </div>
           <div class="at-cfx-acoes">
             <button class="at-cfx-abrir" type="button" id="at-cfx-abrir">Abrir configurador com o cliente</button>
-            <p class="at-3d-cfgp"><a class="at-3d-cfg" id="at-3d-cfg" href="#" target="_blank" rel="noopener">Página pública ↗</a> · <button class="c-link" type="button" id="at-cfg-copiar">Copiar link para o cliente</button> · <button class="c-link" type="button" id="at-cfg-importar">Importar link do cliente</button></p>
+            <p class="at-3d-cfgp"><a class="at-3d-cfg" id="at-3d-cfg" href="#" target="_blank" rel="noopener">Página pública ↗</a> · <button class="c-link" type="button" id="at-cfg-copiar">Copiar link para o cliente</button> · <button class="c-link" type="button" id="at-cfg-precos">Link com preços para o cliente</button> · <button class="c-link" type="button" id="at-cfg-importar">Importar link do cliente</button></p>
             <p class="c-hint" id="at-cfg-msg" role="status"></p>
           </div>
           <h2 class="at-h">Seu Euro Sette</h2>
@@ -2245,7 +2245,7 @@ body.gated { overflow: hidden; }
   const FAIXA = [["7,75 m", "Comprimento"], ["3,05 m", "Boca"], ["11 pessoas", "A bordo"], ["1.438 kg", "Carga útil"], ["200 L", "Combustível"], ["150 a 225 hp", "Motorização"]];
   const KITS = [
     { key: "basico", nome: "Kit básico", curto: "Básico", desc: "Incluso no casco: estofados completos, capota de popa, piso EVA, som marinizado e âncora, além de combustível, porão, água, elétrica, comando, segurança, ferragens e flutuante.", cor: "#3B5999" },
-    { key: "conforto", nome: "Kit Conforto", curto: "Conforto", desc: "Banheiro com vaso sanitário elétrico e ducha, capota de proa e amortecedores em inox na tampa do painel.", cor: "#7C8088" },
+    { key: "conforto", nome: "Kit Conforto", curto: "Conforto", desc: "Banheiro com vaso sanitário elétrico e ducha e amortecedores em inox na tampa do painel.", cor: "#7C8088" },
     { key: "lazer", nome: "Kit Lazer", curto: "Lazer", desc: "Pia e fogão, churrasqueira a gás com tábua e suporte e caixa térmica de 26,5 L.", cor: "#8FA6D6" },
     { key: "fundeio", nome: "Kit Fundeio", curto: "Fundeio", desc: "Guincho elétrico, corrente inox de 6 mm, trava de corrente e cabo de âncora de 10 m.", cor: "#C9A227" },
     { key: "extras", nome: "Extras", curto: "Extras", desc: "Capota de proa e carreta de encalhe.", cor: "#5E8C6A" }
@@ -3405,9 +3405,10 @@ body.gated { overflow: hidden; }
   try { const s = localStorage.getItem(AT_KEY); if (s) Object.assign(st.at, JSON.parse(s)); } catch (e) {}
   function atSave() { try { localStorage.setItem(AT_KEY, JSON.stringify(st.at)); } catch (e) {} if (typeof atPersist === "function") atPersist(); }
   const up100 = (p) => (p > 0 ? Math.ceil(p / 100) * 100 : p);
+  let atMemo = null;   // durante a geração do orçamento com preços, o modelo de custos é calculado uma vez só
   function atPrice(A) {
     const sc = vScen(); if (!sc || !st.loadedI) return null;
-    const r = compute(sc), v = st.v, ipi = ipiOf(sc);
+    const r = (atMemo && atMemo.sc === sc) ? atMemo.r : compute(sc), v = st.v, ipi = ipiOf(sc);
     const mg = (has(v.atMargem) ? num(v.atMargem) : 30) / 100;
     const mm = (has(v.atMotor) ? num(v.atMotor) : 10) / 100;
     const minR = (has(v.atMin) ? num(v.atMin) : 15) / 100;
@@ -3448,6 +3449,7 @@ body.gated { overflow: hidden; }
     let S = priceAll(taxFed(custo * 1.3, sc).rate, icmsRes(custo * 1.3 * (1 + ipi)) / (custo * 1.3));
     const rate = taxFed(S, sc).rate, ish = S > 0 ? icmsRes(S * (1 + ipi)) / S : 0;
     S = priceAll(rate, ish);
+    if (A.soS) return { S, lines, ipi, mid };   // só o preço de tabela: dispensa a busca do desconto máximo
     const okAt = (base) => resAt(base) >= minR * (base + ipiOn(base));
     let maxDesc = 0;
     if (okAt(S)) {
@@ -5766,8 +5768,10 @@ body.gated { overflow: hidden; }
     st.at.corTubo = tuboCor(st.at.hyp, h.get("c") || st.at.corTubo)[0];
     const marca = h.get("m"), ms = motors();
     if (marca) { const pref = marca === "yamaha" ? "eq101" : "eq201"; const alvo = ms.find(([id]) => id === pref) || ms.find(([, it]) => new RegExp(marca, "i").test(it.item || "")); if (alvo) st.at.motor = alvo[0]; }
+    const mi = h.get("mi"); if (mi && ms.some(([id]) => id === mi)) { st.at.motor = mi; if (motorGps(mi)) { st.at.gps = true; st.at.gpsAuto = true; } }   // link com preços: o motor exato que o cliente escolheu
+    (h.get("kt") || "").split(".").filter((k) => KIT_KEYS.includes(k) && k !== "basico").forEach((k) => { st.at.kits = Object.assign({}, st.at.kits, { [k]: true }); });   // kits completos escolhidos
     const o = (h.get("o") || "").split(".").filter(Boolean);
-    [["cp", /capota de proa/i], ["ch", /churrasqueira/i], ["gu", /guincho/i]].forEach(([k, re]) => {
+    [["cp", /capota de proa/i], ["ch", /churrasqueira/i], ["gu", /guincho/i], ["ca", /carreta/i]].forEach(([k, re]) => {
       if (!o.includes(k)) return; let achado = null;
       st.items.forEach((it, id) => { if (!achado && it.grupo === "acessorios" && re.test(it.item || "")) achado = [id, kitOf(it)]; });
       if (!achado || achado[1] === "basico") return;
@@ -5778,6 +5782,75 @@ body.gated { overflow: hidden; }
     });
     if (o.includes("gps")) st.at.gps = true;
     return true;
+  }
+  // ---------- Orçamento com preços para o cliente ----------
+  // O link leva uma tabela só com PREÇOS DE VENDA: nenhum custo e nenhuma margem. A tabela cobre todas as combinações de
+  // motor, kits, capota de proa, carreta, Hypalon e GPS. O preço de cada combinação é a soma dos acréscimos mais um
+  // pequeno ajuste (os impostos mudam um pouco com o total), então o valor que o cliente vê é o que o Atendimento calcula.
+  const ORC_N = 7;   // bits: 0 conforto, 1 lazer, 2 fundeio, 3 capota de proa, 4 carreta, 5 hypalon, 6 gps
+  const b64url = (u8) => { let t = ""; u8.forEach((x) => { t += String.fromCharCode(x); }); return btoa(t).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); };
+  const deflateRaw = async (txt) => new Uint8Array(await new Response(new Blob([txt]).stream().pipeThrough(new CompressionStream("deflate-raw"))).arrayBuffer());
+  async function orcPayload(opts) {
+    opts = opts || {};
+    const ms = motors(); if (!ms.length || !vScen() || !st.loadedI) return null;
+    const ex = kitItensOrd("extras"), acha = (re) => { const x = ex.find(([, it]) => re.test(String(it.item || ""))); return x ? x[0] : null; };
+    const idCap = acha(/capota de proa/i), idCar = acha(/carreta/i);
+    const A = (mi, mk) => {
+      const kits = {}; ["conforto", "lazer", "fundeio"].forEach((k, i) => { if ((mk >> i) & 1) kits[k] = true; });
+      const ids = []; if (((mk >> 3) & 1) && idCap) ids.push(idCap); if (((mk >> 4) & 1) && idCar) ids.push(idCar);
+      return { motor: ms[mi][0], kits, kitItens: ids.length ? { extras: ids } : {}, hyp: !!((mk >> 5) & 1), gps: !!((mk >> 6) & 1), desc: 0, soS: true };
+    };
+    const M = ms.length, N = 1 << ORC_N, tab = new Array(M * N);
+    atMemo = { sc: vScen(), r: compute(vScen()) };
+    try {
+    for (let i = 0; i < M; i++) {
+      for (let mk = 0; mk < N; mk++) { const q = atPrice(A(i, mk)); if (!q) return null; tab[i * N + mk] = Math.round(q.S); }
+      if (opts.progresso) opts.progresso(i + 1, M);
+      if (!opts.rapido && i % 6 === 5) await new Promise((ok) => setTimeout(ok, 0));   // respira de vez em quando para a tela não travar
+    }
+    } catch (e) { atMemo = null; throw e; }
+    const r0 = Math.max(0, ms.findIndex(([, it]) => !it.incluiGps)), S0 = tab[r0 * N];
+    const dm = ms.map((_, i) => tab[i * N] - S0), dt = Array.from({ length: ORC_N }, (_, j) => tab[r0 * N + (1 << j)] - S0);
+    const u = tab.every((x) => x % 100 === 0) ? 100 : 1, res = new Array(M * N);
+    for (let i = 0; i < M; i++) for (let mk = 0; mk < N; mk++) { let pr = S0 + dm[i]; for (let j = 0; j < ORC_N; j++) if ((mk >> j) & 1) pr += dt[j]; res[i * N + mk] = Math.round((tab[i * N + mk] - pr) / u); }
+    const linha = (q, key) => { const l = q && q.lines.find((x) => x.key === key); return l ? Math.round(l.preco) : 0; };
+    const mlin = ms.map((_, i) => linha(atPrice(A(i, 0)), "motor"));
+    const tk = ["conforto", "lazer", "fundeio", "extras", "extras", "hyp", "gps"], tlin = tk.map((k, j) => linha(atPrice(A(r0, 1 << j)), k));
+    const kit = (k) => [kitInfo(k).nome, itensComerciais(k)];
+    const t = [["conforto"].concat(kit("conforto"), [tlin[0], dt[0]]), ["lazer"].concat(kit("lazer"), [tlin[1], dt[1]]), ["fundeio"].concat(kit("fundeio"), [tlin[2], dt[2]]),
+      idCap ? ["capota", "Capota de proa", ["Capota de proa"], tlin[3], dt[3]] : null, idCar ? ["carreta", "Carreta de encalhe", ["Carreta de encalhe"], tlin[4], dt[4]] : null,
+      ["hyp", "Tubos em Hypalon", [], tlin[5], dt[5]], ["gps", "GPS", ["Navegação no console"], tlin[6], dt[6]]];
+    atMemo = null;
+    const q0 = atPrice(A(r0, 0)), dias = Math.max(1, Math.round(num(st.v.propValidade) || 15)), val = new Date(Date.now() + dias * 86400000).toISOString().slice(0, 10);
+    const nome = String(((st.ats.get(st.atId) || {}).nome) || "").slice(0, 60);
+    const obj = { v: 1, n: nome, val, ip: Math.round(q0.ipi * 1000) / 10, u, s0: S0, ri: r0, m: ms.map(([id, it], i) => [id, String(it.item || ""), String(it.spec || ""), mlin[i], it.incluiGps ? 1 : 0, dm[i], it.destaque ? 1 : 0]), t, r: res };
+    const json = JSON.stringify(obj), z = await deflateRaw(json), out = { obj, q: b64url(z), bytes: z.length, json: json.length };
+    if (opts.amostras) { out.amostras = []; for (let k = 0; k < opts.amostras; k++) { const i = Math.floor(Math.random() * M), mk = Math.floor(Math.random() * N); out.amostras.push({ i, mk, S: tab[i * N + mk] }); } }
+    return out;
+  }
+  window.EURONAV_ORC = { gerar: orcPayload };
+  function orcParams() {
+    const q = atCompute(), mi = q && q.mid ? st.items.get(q.mid) : null, nm = String((mi && mi.item) || "");
+    const o = [[/capota de proa/i, "cp"], [/churrasqueira/i, "ch"], [/guincho/i, "gu"], [/carreta/i, "ca"]].filter(([re]) => b3dTemItem(re)).map(([, k]) => k);
+    if (st.at.gps || (q && motorGps(q.mid))) o.push("gps");
+    const pr = new URLSearchParams({ e: atCores().est, p: atCores().piso, li: atCores().listra, k: atCores().cap, c: tuboCor(st.at.hyp, st.at.corTubo)[0], t: st.at.hyp ? "hyp" : "pvc", m: /yamaha/i.test(nm) ? "yamaha" : "mercury", v: "360" });
+    if (o.length) pr.set("o", o.join("."));
+    const kt = ["conforto", "lazer", "fundeio"].filter((k) => st.at.kits && st.at.kits[k]); if (kt.length) pr.set("kt", kt.join("."));
+    if (q && q.mid) pr.set("mi", q.mid);
+    return pr;
+  }
+  async function copiarLinkOrcamento() {
+    const msg = (t) => setText("at-cfg-msg", t);
+    if (!st.atId || !st.at) { msg("Abra ou crie um atendimento primeiro."); return; }
+    const b = $("at-cfg-precos"); b.disabled = true; msg("Gerando o link com preços… leva alguns segundos.");
+    try {
+      const p = await orcPayload({ progresso: (i, n) => msg("Gerando o link com preços… " + Math.round(100 * i / n) + "%") });
+      if (!p) { msg("Os dados ainda estão carregando. Tente de novo em instantes."); return; }
+      const pr = orcParams(); pr.set("q", p.q);
+      const url = new URL(CONFIG_URL + "#" + pr.toString(), location.href).href;
+      try { await navigator.clipboard.writeText(url); msg("Link com preços copiado (" + url.length + " caracteres). Mostra os valores de hoje, válidos até " + p.obj.val.split("-").reverse().join("/") + ", e não leva custos nem margens."); }
+      catch (e) { window.prompt("Copie o link com preços:", url); }
+    } finally { b.disabled = false; }
   }
   function cfgLink() {
     const a = $("at-3d-cfg"); if (!a || !st.at) return;
@@ -5968,7 +6041,7 @@ body.gated { overflow: hidden; }
   $("at-3d-proa").addEventListener("click", () => { B3D.solario = !B3D.solario; const b = $("at-3d-proa"); b.textContent = B3D.solario ? "Vendo: solário" : "Vendo: mesa"; b.setAttribute("aria-pressed", B3D.solario ? "true" : "false"); document.querySelectorAll("#at-cor-proa input").forEach((i, k) => { i.checked = (k === 1) === !!B3D.solario; });  b3dAtualizar(); });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && cfx.aberto && !$("at-3d").classList.contains("grande")) cfxFechar(); });
   $("at-cfg-copiar").addEventListener("click", () => copiarLinkCliente("at-cfg-msg")); $("cfx-copiar").addEventListener("click", () => copiarLinkCliente("cfx-resumo"));
-  $("at-cfg-importar").addEventListener("click", importarLink);
+  $("at-cfg-importar").addEventListener("click", importarLink); $("at-cfg-precos").addEventListener("click", copiarLinkOrcamento);
   buildFotos();
   // ---------- Precificação: estudar um atendimento e senha própria no modo vendas ----------
   const pvHash = async (sal, senha) => { const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(sal + "|" + senha)); return Array.from(new Uint8Array(b)).map((x) => x.toString(16).padStart(2, "0")).join(""); };

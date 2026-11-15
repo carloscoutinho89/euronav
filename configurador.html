@@ -110,6 +110,7 @@ body.vitrine .aviso-vitrine { display: block; }
   .vistas { overflow: visible; }
   .vbt img, .vbt i { width: 44px; height: 28px; }
   .painel { overflow: visible; }
+  body.com-precos .vis { height: clamp(170px, 27vh, 300px); }
   .top { padding: 12px 14px; } .marca span { display: none; }
   .acoes .bt { padding: 7px 10px; }
   .acoes { flex-wrap: wrap; justify-content: flex-end; }
@@ -117,6 +118,31 @@ body.vitrine .aviso-vitrine { display: block; }
   .vis:not(.foto) .selo { display: none; }   /* no quadro fixo do celular o aviso cobriria o barco */
   .seta { display: none; }
 }
+/* ---- modo orçamento com preços (link gerado pelo atendente) ---- */
+.orc-sec, .orc-barra { display: none; }
+body.com-precos .orc-sec { display: block; }
+body.com-precos .orc-barra { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 8px 16px; background: #000; color: #fff; border-top: 1px solid var(--line); }
+body.com-precos #sec-opc, body.com-precos #sec-motor, body.com-precos #resumo, body.com-precos #b-vitrine { display: none; }
+.orc-barra span { font-size: .7rem; letter-spacing: .14em; text-transform: uppercase; color: #b9bcc2; }
+.orc-barra b { font-family: "Saira", sans-serif; font-size: 1.45rem; font-weight: 600; white-space: nowrap; }
+.orc-erro { margin: 0; padding: 10px 16px; background: #5a1d1d; color: #fff; font-size: .88rem; }
+.orc-card { margin-bottom: 8px; }
+.orc-opt { width: 100%; text-align: left; }
+.orc-opt em { font-style: normal; font-weight: 600; white-space: nowrap; margin-left: 12px; }
+.orc-opt[disabled] { opacity: .6; cursor: default; }
+.orc-opt[role="radio"][aria-pressed="true"], .orc-opt[role="checkbox"][aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.orc-det { margin: 2px 2px 0; font-size: .78rem; color: var(--muted); }
+.orc-det summary { cursor: pointer; padding: 6px 0; }
+.orc-det ul { margin: 2px 0 8px; padding-left: 18px; line-height: 1.5; }
+.orc-mais { margin-top: 4px; }
+.orc-mais-bt { appearance: none; border: 0; background: none; color: var(--accent2); font: inherit; font-size: .84rem; padding: 8px 0; cursor: pointer; text-decoration: underline; }
+.orc-tab { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.orc-tab td { padding: 6px 0; vertical-align: top; }
+.orc-tab td:last-child { text-align: right; white-space: nowrap; padding-left: 12px; }
+.orc-tab tr.sub td { border-top: 1px solid var(--line); padding-top: 10px; color: var(--muted); }
+.orc-tab tr.tot td { border-top: 1px solid var(--line); padding-top: 10px; font-weight: 600; font-size: 1.1rem; }
+.orc-nota { margin: 12px 0 0; font-size: .76rem; color: var(--muted); line-height: 1.5; }
+.orc-nota b { color: #e0a84a; font-weight: 600; }
 a.bt, a.bt:visited { color: var(--ink); text-decoration: none; }
 a.bt.forte, a.bt.forte:visited { color: #fff; }
 .acoes [hidden] { display: none; }
@@ -142,6 +168,7 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
     <button class="bt" type="button" id="b-vitrine">Modo vitrine</button>
   </div>
 </header>
+<p class="orc-erro" id="orc-erro" hidden>Este link de orçamento está incompleto. Peça um novo link ao seu atendente.</p>
 <main class="app">
   <section class="palco" aria-label="Visualização do barco">
     <div class="vis" id="vis">
@@ -160,6 +187,7 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
       <div class="seg" role="group" aria-label="Tema"><button type="button" data-tema="light">Claro</button><button type="button" data-tema="dark">Escuro</button></div>
       <button class="bt" type="button" id="b-reset">Restaurar</button>
     </div>
+    <div class="orc-barra" id="orc-barra"><span>Valor total · impostos incluídos</span><b id="orc-total">–</b></div>
   </section>
   <aside class="painel" aria-label="Personalização">
     <div class="sec"><h2>Combinações</h2><div class="combos" id="combos"></div></div>
@@ -169,8 +197,11 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
     <div class="sec"><h2>Capotas <b id="n-cap"></b></h2><div class="dots" id="d-cap" role="group" aria-label="Cor das capotas"></div></div>
     <div class="sec"><h2>Proa <b id="n-proa"></b></h2><div class="duas" id="d-proa"></div><p class="dica">O Euro Sette já vem com os dois: mesa e solário. Aqui você escolhe só como ver a proa.</p></div>
     <div class="sec"><h2>Tubulões <b id="n-tubo"></b></h2><div class="duas" id="d-tubo"></div><div class="dots tcor" id="d-tcor" role="group" aria-label="Cor dos tubulões"></div></div>
-    <div class="sec"><h2>Opcionais</h2><div class="opts" id="d-opc"></div></div>
-    <div class="sec"><h2>Motor <b id="n-motor"></b></h2><div class="duas" id="d-motor"></div></div>
+    <div class="sec" id="sec-opc"><h2>Opcionais</h2><div class="opts" id="d-opc"></div></div>
+    <div class="sec" id="sec-motor"><h2>Motor <b id="n-motor"></b></h2><div class="duas" id="d-motor"></div></div>
+    <div class="sec orc-sec" id="sec-orc-motor"><h2>Motor <b id="n-orc-motor"></b></h2><div id="orc-motores"></div></div>
+    <div class="sec orc-sec" id="sec-orc-kits"><h2>Kits e opcionais</h2><div id="orc-kits"></div></div>
+    <div class="sec orc-sec" id="sec-orc-res"><h2>Seu orçamento</h2><table class="orc-tab" id="orc-tab"></table><p class="orc-nota" id="orc-nota"></p></div>
     <p class="resumo" id="resumo"></p>
     <div class="contato">
       <h2>Fale com um atendente</h2>
@@ -235,6 +266,7 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
   const OPC = [["cp", "Capota de proa", "Sombra extra na proa"], ["ch", "Churrasqueira", "A gás, com tábua e suporte"], ["gu", "Guincho elétrico", "Fundeio sem esforço"], ["gps", "GPS", "Navegação no console"]];
   const PADRAO = { est: "Cinza Arizona", piso: "Cinza", li: "Branco", cap: "Cinza", tubo: "pvc", ct: "cinza", cp: false, ch: false, gu: false, gps: false, motor: "mercury", vista: "360", proa: "mesa" };
   const E = Object.assign({}, PADRAO);
+  let ORC = null, ORCQ = "", ORCERRO = false; const ORCS = { mi: 0, mk: 0 };   // modo orçamento com preços (tabela vinda do link)
   const nomeCor = (c) => c.toLowerCase();
   // ---------- estado no link ----------
   const lerHash = () => {
@@ -250,7 +282,12 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
     if (ok(h.get("v"), VISTAS.map((v) => v[0]))) E.vista = h.get("v");
     if (h.has("o")) { const o = h.get("o").split("."); OPC.forEach(([k]) => { E[k] = o.includes(k); }); }
   };
-  const hashAtual = () => { const o = OPC.map(([k]) => k).filter((k) => E[k]); const p = new URLSearchParams({ e: E.est, p: E.piso, li: E.li, k: E.cap, t: E.tubo, c: E.ct, m: E.motor, v: E.vista }); if (E.proa === "sol") p.set("pr", "sol"); if (o.length) p.set("o", o.join(".")); return "#" + p.toString(); };
+  const hashAtual = (comQ = true) => {
+    const o = OPC.map(([k]) => k).filter((k) => E[k]); if (ORC && ((ORCS.mk >> 4) & 1)) o.push("ca");
+    const p = new URLSearchParams({ e: E.est, p: E.piso, li: E.li, k: E.cap, t: E.tubo, c: E.ct, m: E.motor, v: E.vista }); if (E.proa === "sol") p.set("pr", "sol"); if (o.length) p.set("o", o.join("."));
+    if (ORC) { p.set("mi", ORC.m[ORCS.mi][0]); const kt = ["conforto", "lazer", "fundeio"].filter((k, j) => (ORCS.mk >> j) & 1); if (kt.length) p.set("kt", kt.join(".")); if (comQ) p.set("q", ORCQ); }
+    return "#" + p.toString();
+  };
   const gravarHash = () => { try { history.replaceState(null, "", hashAtual()); } catch (e) { /* ignora */ } };
   // ---------- 3D ----------
   const B3D = { estado: "off" };
@@ -871,6 +908,74 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
   // ---------- painel ----------
   const pressionado = (el, on) => el.setAttribute("aria-pressed", on ? "true" : "false");
   const dots = (host, campo, lista, aoMudar) => lista.forEach(([n, hex]) => { const b = document.createElement("button"); b.type = "button"; b.className = "dot"; b.style.background = hex; b.title = n; b.setAttribute("aria-label", n); b.dataset.c = n; b.addEventListener("click", () => { E[campo] = n; if (aoMudar) aoMudar(n); render(); }); $(host).appendChild(b); });
+  // ---------- modo orçamento com preços ----------
+  // O link do atendente traz (#q=) uma tabela só com preços de venda. O preço de cada combinação é a soma dos acréscimos
+  // mais um pequeno ajuste de impostos guardado na tabela, então o total é exatamente o que o Atendimento calcula.
+  const reais = (v) => "R$ " + Math.round(v).toLocaleString("pt-BR");
+  async function orcCarregar() {
+    const qv = new URLSearchParams(location.hash.slice(1)).get("q"); if (!qv) return;
+    try {
+      const bin = atob(qv.replace(/-/g, "+").replace(/_/g, "/")), u8 = Uint8Array.from(bin, (c) => c.charCodeAt(0));
+      const lido = new Response(new Blob([u8]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).text();
+      const txt = await Promise.race([lido, new Promise((ok, no) => setTimeout(() => no(new Error("tempo")), 5000))]), o = JSON.parse(txt);   // tabela truncada não pode travar a página
+      if (o.v !== 1 || !Array.isArray(o.m) || !o.m.length || !Array.isArray(o.r) || o.r.length !== o.m.length * 128) throw new Error("tabela");
+      ORC = o; ORCQ = qv;
+    } catch (e) { ORC = null; ORCERRO = true; }
+  }
+  const orcMk = (mi, mk) => { const m = ORC.m[mi]; let k = mk & ~(1 << 5) & ~(1 << 6); if (E.tubo === "hyp") k |= 1 << 5; if (!m[4] && ((mk >> 6) & 1)) k |= 1 << 6; return k; };
+  function orcCalcS(mi, mk, hyp) { const m = ORC.m[mi]; let k = mk & ~(1 << 5) & ~(1 << 6); if (hyp) k |= 1 << 5; if (!m[4] && ((mk >> 6) & 1)) k |= 1 << 6; let s = ORC.s0 + m[5]; for (let j = 0; j < 7; j++) if (((k >> j) & 1) && ORC.t[j]) s += ORC.t[j][4]; return s + (ORC.r[mi * 128 + k] || 0) * ORC.u; }
+  window.EURONAV_ORC_CALC = (mi, mk, hyp) => (ORC ? orcCalcS(mi, mk, hyp) : null);
+  function orcInicial() {
+    const h = new URLSearchParams(location.hash.slice(1)); let i = ORC.m.findIndex((m) => m[0] === h.get("mi")); if (i < 0) i = ORC.ri; ORCS.mi = i;
+    let mk = 0; (h.get("kt") || "").split(".").forEach((k) => { const j = ["conforto", "lazer", "fundeio"].indexOf(k); if (j >= 0) mk |= 1 << j; });
+    const o = (h.get("o") || "").split("."); if (o.includes("cp") && ORC.t[3]) mk |= 1 << 3; if (o.includes("ca") && ORC.t[4]) mk |= 1 << 4; if (o.includes("gps")) mk |= 1 << 6; ORCS.mk = mk;
+  }
+  function orcSync() { const m = ORC.m[ORCS.mi]; E.motor = /yamaha/i.test(m[1]) ? "yamaha" : "mercury"; E.cp = !!((ORCS.mk >> 3) & 1); E.ch = !!((ORCS.mk >> 1) & 1); E.gu = !!((ORCS.mk >> 2) & 1); E.gps = !!m[4] || !!((ORCS.mk >> 6) & 1); }
+  const orcMotorTxt = (m) => (m[2] ? m[2] + ". Garantia do fabricante." : "Garantia do fabricante");
+  function orcMontar() {
+    document.body.classList.add("com-precos");
+    document.title = "Euro Sette · Orçamento"; document.querySelector(".marca span").textContent = "Euro Sette · Orçamento";
+    document.querySelector(".titulo p").textContent = ORC.n ? "Orçamento para " + ORC.n : "Orçamento";
+    document.querySelector(".contato .ct-p").textContent = "Confirme seu nome e telefone. O atendente da Euronav recebe a sua escolha e o valor, e entra em contato para fechar os detalhes.";
+    const hm = $("orc-motores"), ordem = ORC.m.map((m, i) => i).sort((a, b) => (ORC.m[b][6] - ORC.m[a][6]) || (a - b));
+    const temDest = ORC.m.some((m) => m[6]); let vis = ordem.filter((i) => (temDest ? ORC.m[i][6] : ordem.indexOf(i) < 4) || i === ORCS.mi); const resto = ordem.filter((i) => !vis.includes(i));
+    const card = (i, host) => { const m = ORC.m[i], b = document.createElement("button"); b.type = "button"; b.className = "opt orc-opt"; b.setAttribute("role", "radio"); b.dataset.i = i;
+      const sp = document.createElement("span"), nb = document.createElement("b"); nb.textContent = m[1]; const sm = document.createElement("small"); sm.textContent = orcMotorTxt(m); sp.append(nb, sm);
+      const em = document.createElement("em"); em.textContent = reais(m[3]); b.append(sp, em); b.addEventListener("click", () => { ORCS.mi = i; render(); }); host.appendChild(b); };
+    vis.forEach((i) => card(i, hm));
+    if (resto.length) { const mais = document.createElement("div"); mais.className = "orc-mais"; mais.hidden = true; resto.forEach((i) => card(i, mais)); const bt = document.createElement("button"); bt.type = "button"; bt.className = "orc-mais-bt"; bt.textContent = "Ver mais motores (" + resto.length + ")";
+      bt.addEventListener("click", () => { mais.hidden = !mais.hidden; bt.textContent = mais.hidden ? "Ver mais motores (" + resto.length + ")" : "Mostrar menos motores"; }); hm.append(mais, bt); }
+    const hk = $("orc-kits"); [0, 1, 2, 3, 4, 6].forEach((j) => { const tj = ORC.t[j]; if (!tj) return;
+      const w = document.createElement("div"); w.className = "orc-card"; const b = document.createElement("button"); b.type = "button"; b.className = "opt orc-opt"; b.setAttribute("role", "checkbox"); b.dataset.j = j;
+      const sp = document.createElement("span"), nb = document.createElement("b"); nb.textContent = tj[1]; sp.appendChild(nb); const itens = tj[2] || [];
+      if (itens.length === 1) { const sm = document.createElement("small"); sm.textContent = itens[0]; sp.appendChild(sm); }
+      const em = document.createElement("em"); em.textContent = "+ " + reais(tj[3]); b.append(sp, em); b.addEventListener("click", () => { if (b.disabled) return; ORCS.mk ^= 1 << j; render(); }); w.appendChild(b);
+      if (itens.length > 1) { const d = document.createElement("details"); d.className = "orc-det"; const s = document.createElement("summary"); s.textContent = "Ver o que inclui"; const ul = document.createElement("ul"); itens.forEach((x) => { const li = document.createElement("li"); li.textContent = x; ul.appendChild(li); }); d.append(s, ul); w.appendChild(d); }
+      hk.appendChild(w); });
+  }
+  function orcRender() {
+    orcSync(); const mk = orcMk(ORCS.mi, ORCS.mk), S = orcCalcS(ORCS.mi, ORCS.mk, E.tubo === "hyp"), ipi = S * ORC.ip / 100, total = S + ipi, m = ORC.m[ORCS.mi];
+    $("orc-total").textContent = reais(total); $("n-orc-motor").textContent = m[1].replace(/^Motor\s+/i, "").split(",")[0];
+    document.querySelectorAll("#orc-motores .orc-opt").forEach((b) => b.setAttribute("aria-pressed", String(+b.dataset.i === ORCS.mi)));
+    const mais = document.querySelector("#orc-motores .orc-mais"); if (mais && mais.querySelector('[aria-pressed="true"]')) mais.hidden = false;
+    document.querySelectorAll("#orc-kits .orc-opt").forEach((b) => { const j = +b.dataset.j, gpsInc = j === 6 && m[4]; b.disabled = !!gpsInc; b.setAttribute("aria-pressed", String(gpsInc ? true : !!((ORCS.mk >> j) & 1))); const em = b.querySelector("em"); em.textContent = gpsInc ? "Incluso no motor" : "+ " + reais(ORC.t[j][3]); });
+    const hy = document.querySelector('#d-tubo .opt[data-v="hyp"] small'), pv = document.querySelector('#d-tubo .opt[data-v="pvc"] small'); if (hy) hy.textContent = "5 cores · + " + reais(ORC.t[5][3]); if (pv) pv.textContent = "7 cores · incluso";
+    // quadro do orçamento: o casco absorve o pequeno ajuste de impostos, para as linhas somarem exatamente o total
+    const linhas = []; let somaOut = m[3]; linhas.push(["Motor", m[1].replace(/^Motor\s+/i, ""), m[3]]);
+    [0, 1, 2, 3, 4].forEach((j) => { if (((mk >> j) & 1) && ORC.t[j]) { linhas.push(["", ORC.t[j][1], ORC.t[j][3]]); somaOut += ORC.t[j][3]; } });
+    if ((mk >> 5) & 1) { linhas.push(["", "Tubos em Hypalon Orca", ORC.t[5][3]]); somaOut += ORC.t[5][3]; }
+    if (m[4]) linhas.push(["", "GPS, incluído no motor", 0]); else if ((mk >> 6) & 1) { linhas.push(["", "GPS", ORC.t[6][3]]); somaOut += ORC.t[6][3]; }
+    const tb = $("orc-tab"); tb.replaceChildren();
+    const lin = (n, v, cls) => { const tr = document.createElement("tr"); if (cls) tr.className = cls; const a = document.createElement("td"), b = document.createElement("td"); a.textContent = n; b.textContent = v; tr.append(a, b); tb.appendChild(tr); };
+    lin("Casco Euro Sette com kit básico", reais(S - somaOut)); linhas.forEach(([, n, v]) => lin(n, v ? reais(v) : "Incluso"));
+    lin("Subtotal", reais(S), "sub"); lin("IPI (" + String(ORC.ip).replace(".", ",") + "%)", reais(ipi)); lin("Valor total", reais(total), "tot");
+    const hoje = new Date().toISOString().slice(0, 10), val = ORC.val.split("-").reverse().join("/");
+    $("orc-nota").innerHTML = ""; const nt = document.createElement("span"); nt.textContent = "Valores em reais, com impostos incluídos, válidos até " + val + ". Proposta sujeita à confirmação por escrito. A condição especial e o pagamento ficam com o atendente."; $("orc-nota").appendChild(nt);
+    if (hoje > ORC.val) { const ex = document.createElement("b"); ex.textContent = " Este orçamento venceu em " + val + ": peça ao atendente a atualização dos valores."; $("orc-nota").appendChild(ex); }
+    // texto que acompanha o contato: valor, motor, kits e cores
+    const nomes = [0, 1, 2, 3, 4].filter((j) => ((mk >> j) & 1) && ORC.t[j]).map((j) => ORC.t[j][1]); if ((mk >> 6) & 1 && !m[4]) nomes.push("GPS");
+    $("resumo").textContent = "Valor total " + reais(total) + " (impostos incluídos). " + m[1] + (nomes.length ? "; " + nomes.join(", ") : "") + (E.tubo === "hyp" ? "; tubulões em Hypalon " + corTubo(E.tubo, E.ct)[1].toLowerCase() : "") + ". Cores: estofado " + nomeCor(E.est) + ", piso " + nomeCor(E.piso) + ", capotas " + nomeCor(E.cap) + (E.tubo === "hyp" ? "" : ", tubulões PVC " + corTubo(E.tubo, E.ct)[1].toLowerCase()) + ".";
+  }
   function montar() {
     const vh = $("vistas"); VISTAS.forEach(([k, t]) => { const b = document.createElement("button"); b.type = "button"; b.className = "vbt"; b.dataset.v = k;
       if (k === "360") b.appendChild(document.createElement("i")); else { const i = document.createElement("img"); i.src = FOTOS[k].thumb; i.alt = ""; b.appendChild(i); }
@@ -888,7 +993,7 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
     document.querySelectorAll("[data-tema]").forEach((b) => b.addEventListener("click", () => tema(b.dataset.tema)));
     $("v-ant").addEventListener("click", () => passo(-1)); $("v-prox").addEventListener("click", () => passo(1));
     $("b-reset").addEventListener("click", () => { Object.assign(E, PADRAO); render(); });
-    $("b-share").addEventListener("click", compartilhar); $("b-share2").addEventListener("click", () => { if (!validarContato()) return; registrarContato("link copiado"); compartilhar(); }); $("b-quero").addEventListener("click", enviarWhats); contarVisita();
+    $("b-share").addEventListener("click", compartilhar); $("b-share2").addEventListener("click", () => { if (!validarContato()) return; registrarContato("link copiado"); compartilhar(); }); $("b-quero").addEventListener("click", enviarWhats); if (!ORC) contarVisita();
     // catálogo técnico: PDF hospedado junto do site; o botão só aparece se o arquivo existir
     { const bc = $("b-cat"); try { fetch(bc.getAttribute("href"), { method: "HEAD", cache: "no-store" }).then((r) => { if (r.ok) bc.hidden = false; }).catch(() => {}); } catch (e) { /* segue */ }
       bc.addEventListener("click", (e) => { if (!validarContato(true, "baixar o catálogo")) { e.preventDefault(); return; } registrarContato("catálogo técnico"); }); } $("b-insta").addEventListener("click", (e) => { if (!validarContato()) { e.preventDefault(); return; } registrarContato("Instagram"); });
@@ -917,6 +1022,7 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
     const r = $("resumo"); const add = (t, b) => { const e = document.createElement(b ? "b" : "span"); e.textContent = t; r.appendChild(e); };
     add("Seu Euro Sette: "); add("estofado " + nomeCor(E.est) + ", piso em EVA " + nomeCor(E.piso) + " com listras brancas, capotas em " + nomeCor(E.cap) + ", tubulões em " + (E.tubo === "hyp" ? "Hypalon" : "PVC") + " " + corTubo(E.tubo, E.ct)[1].toLowerCase() + ", motor " + (E.motor === "yamaha" ? "Yamaha" : "Mercury"), true);
     add(opc.length ? ", com " + (opc.length > 1 ? opc.slice(0, -1).join(", ") + " e " + opc[opc.length - 1] : opc[0]) + "." : ".");
+    if (ORC) orcRender();
     gravarHash(); mostrarFoto(); b3dAtualizar();
   }
   function aviso(t) { const el = $("toast"); el.textContent = t; el.classList.add("on"); clearTimeout(aviso.t); aviso.t = setTimeout(() => el.classList.remove("on"), 2200); }
@@ -933,7 +1039,7 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
   const API_LEAD = window.EURONAV_API_LEAD || "https://script.google.com/macros/s/AKfycbwGjZAsu5fIpKSEDR63I_cLmiTQWHhoCKJImXoE4C6H_3gWPV4PC6SujvM9zLXTk7_A/exec";
   const dadosContato = () => ({ nome: $("ct-nome").value.trim(), tel: $("ct-tel").value.trim(), email: $("ct-email").value.trim() });
   const telOk = (v) => v.replace(/\D/g, "").length >= 10, emailOk = (v) => /^\S+@\S+\.\S+$/.test(v);
-  const linkCfg = () => location.href.split("#")[0] + hashAtual();
+  const linkCfg = () => location.href.split("#")[0] + hashAtual(false);   // o link do contato não leva a tabela de preços
   // Registra o contato como atendimento on-line no CRM. Roda ao clicar em qualquer botão de contato, se os dados estiverem preenchidos.
   let ultimoLead = "";
   function registrarContato(canal) {
@@ -960,7 +1066,8 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
     if (!validarContato()) return;
     const c = dadosContato(); registrarContato("WhatsApp");
     const resumo = $("resumo").textContent.replace(/^Seu Euro Sette:\s*/, "");
-    const msg = "Olá! Meu nome é " + c.nome + ". Montei meu Euro Sette no configurador e gostaria de falar com um atendente.\n\nMinha configuração: " + resumo + "\n\nLink da configuração: " + linkCfg();
+    const intro = ORC ? ". Conferi o orçamento do meu Euro Sette e gostaria de falar com um atendente." : ". Montei meu Euro Sette no configurador e gostaria de falar com um atendente.";
+    const msg = "Olá! Meu nome é " + c.nome + intro + "\n\nMinha configuração: " + resumo + "\n\nLink da configuração: " + linkCfg();
     const a = document.createElement("a"); a.href = "https://wa.me/" + WHATS + "?text=" + encodeURIComponent(msg); a.target = "_blank"; a.rel = "noopener"; document.body.appendChild(a); a.click(); a.remove();
   }
   async function compartilhar() {
@@ -981,7 +1088,12 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
   function sairVitrine() { if (!vt) return; clearInterval(vt); vt = null; document.body.classList.remove("vitrine"); try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) { /* ignora */ } }
   // ---------- início ----------
   let t0 = "dark"; try { t0 = localStorage.getItem("es-tema") || "dark"; } catch (e) { /* ignora */ }
-  lerHash(); montar(); tema(t0); render(); carregar3D();
+  (async () => {
+    await orcCarregar(); lerHash();
+    if (ORC) { orcInicial(); orcSync(); }
+    if (ORCERRO) $("orc-erro").hidden = false;
+    montar(); if (ORC) orcMontar(); tema(t0); render(); carregar3D();
+  })();
   window.addEventListener("hashchange", () => { lerHash(); render(); });
 })();
 </script>
