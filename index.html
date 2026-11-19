@@ -330,6 +330,16 @@ details.c-group[open] > summary::after { content: "\2212"; }
 .at-semkit { display: flex; align-items: flex-start; gap: 10px; margin: 2px 0 12px; cursor: pointer; font-size: .92rem; }
 .at-semkit input { width: 20px; height: 20px; margin-top: 2px; flex: none; }
 .at-semkit small { display: block; margin-top: 2px; color: var(--muted); font-size: .8rem; line-height: 1.35; }
+.at-tipo { display: flex; gap: 8px; margin: 0 0 12px; }
+.at-tipo label { flex: 1 1 0; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 11px 10px; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--surface); cursor: pointer; font-size: .95rem; }
+.at-tipo label:has(input:checked) { border-color: var(--brand-blue); background: var(--blue-soft); font-weight: 600; box-shadow: 0 0 0 1px var(--brand-blue); }
+.at-tipo input { margin: 0; }
+.at-pj[hidden] { display: none; }
+.at-cnpj-acao { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+.at-cnpj-msg { margin: 0; flex: 1 1 220px; }
+.at-cnpj-msg[data-t="erro"] { color: #B3261E; font-weight: 600; }
+.at-cnpj-msg[data-t="aviso"] { color: #8A5A00; }
+.at-cnpj-msg[data-t="ok"] { color: #1E6B3A; }
 .at-sair { position: fixed; right: 12px; bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); z-index: 20; font: inherit; font-size: .86rem; font-weight: 500; color: #FFFFFF; background: #1C1C1E; border: 1px solid #5B5E63; border-radius: 999px; padding: 10px 18px; box-shadow: 0 2px 10px rgba(0,0,0,.35); cursor: pointer; }
 body.cliente { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 72px); }
 body.cliente .tabs, body.cliente .band .save-state, body.cliente .at-actions, body.cliente .at-semkit { display: none; }
@@ -1179,8 +1189,15 @@ body.gated { overflow: hidden; }
     </div>
     <form class="c-card at-form" id="at-form" hidden novalidate>
       <h2 class="c-h3" id="at-form-t" style="margin-top:0">Novo atendimento</h2>
+      <div class="at-tipo" role="radiogroup" aria-label="Tipo de cliente">
+        <label><input type="radio" name="at-f-tipo" value="pf" checked><span>Pessoa física</span></label>
+        <label><input type="radio" name="at-f-tipo" value="pj"><span>Pessoa jurídica</span></label>
+      </div>
       <div class="at-form-g">
-        <label class="c-f"><span>Nome do cliente</span><input type="text" id="at-f-nome" autocomplete="off" required></label>
+        <label class="c-f at-pj" hidden><span>CNPJ</span><input type="text" id="at-f-cnpj" inputmode="text" autocomplete="off" maxlength="18" placeholder="00.000.000/0000-00" autocapitalize="characters" spellcheck="false"></label>
+        <div class="at-pj at-form-w at-cnpj-acao" hidden><button class="c-chip" type="button" id="at-f-cnpj-bt">Buscar razão social pelo CNPJ</button><p class="c-hint at-cnpj-msg" id="at-f-cnpj-msg" role="status" hidden></p></div>
+        <label class="c-f at-pj at-form-w" hidden><span>Razão social</span><input type="text" id="at-f-razao" autocomplete="off"></label>
+        <label class="c-f"><span id="at-f-nome-l">Nome do cliente</span><input type="text" id="at-f-nome" autocomplete="off" required></label>
         <label class="c-f"><span>Atendente</span><select id="at-f-atend"></select></label>
         <label class="c-f"><span>Telefone (opcional)</span><input type="tel" id="at-f-tel" autocomplete="off"></label>
         <label class="c-f at-form-w"><span>Observações (opcional)</span><textarea id="at-f-obs" rows="2"></textarea></label>
@@ -1281,7 +1298,7 @@ body.gated { overflow: hidden; }
       <h3 class="c-h3">Comprador</h3>
       <div class="ct-grid">
         <label class="c-f ct-w"><span>Nome completo ou razão social</span><input type="text" id="ct-nome" autocomplete="off"></label>
-        <label class="c-f"><span>CPF ou CNPJ</span><input type="text" id="ct-doc" inputmode="numeric" autocomplete="off"></label>
+        <label class="c-f"><span>CPF ou CNPJ</span><input type="text" id="ct-doc" inputmode="text" autocomplete="off"></label>
         <label class="c-f"><span>RG (opcional)</span><input type="text" id="ct-rg" autocomplete="off"></label>
         <label class="c-f"><span>CEP</span><input type="text" id="ct-cep" inputmode="numeric" autocomplete="off" placeholder="00000-000" maxlength="9"></label>
         <p class="c-hint ct-cep-msg" id="ct-cep-msg" role="status"></p>
@@ -3604,6 +3621,7 @@ body.gated { overflow: hidden; }
   function atText() {
     const q = atCompute(); if (!q) return "";
     const L = ["Euronav Euro Sette, proposta"];
+    { const cA = atCur(); if (cA && cA.tipo === "pj") L.push("Cliente: " + cA.nome + (cA.cnpj ? " (CNPJ " + cnpjFmt(cA.cnpj) + ")" : "") + (cA.contato ? ", A/C " + cA.contato : "")); }
     propLines(q).forEach((l) => { L.push(l.nome + ": " + (l.incluso ? "incluído" : money(l.preco))); if (l.det) l.det.forEach(([a2, v]) => L.push("   " + a2 + ": " + money(v))); });
     if (q.desc > 0) L.push("Subtotal: " + money(q.S), "Condição especial: − " + money(q.desc));
     L.push("IPI (" + fmtN(q.ipi * 100, 1) + "%): " + money(q.ipiV), "Valor total: " + money(q.total), "NCM do produto: " + ncmBarco());
@@ -3754,7 +3772,7 @@ body.gated { overflow: hidden; }
     renderAtend(); renderAtBar();
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
-  function atCreate(nome, tel, obs, atendente) {
+  function atCreate(nome, tel, obs, atendente, extra) {
     if (!st.acol || !st.canWrite) return;
     clearTimeout(atTimer); clearTimeout(ctTimer);
     const ref = st.acol.doc();
@@ -3762,10 +3780,10 @@ body.gated { overflow: hidden; }
     try { localStorage.setItem(AT_KEY, JSON.stringify(st.at)); } catch (e) {}
     const q = atCompute();
     const agora = nowIso();
-    const data = { nome, tel, obs, atendente: atendente || "", status: STATUS[0], criadoEm: agora, atualizadoEm: agora, config: atConfig(), total: q ? Math.round(q.total) : 0, desconto: 0, subtotal: q ? Math.round(q.S) : 0, resultado: q ? Math.round(q.resultado) : 0, margem: q && q.margem != null ? Math.round(q.margem * 10000) / 10000 : null, comprador: {} };
+    const data = { nome, tel, obs, tipo: (extra && extra.tipo) || "pf", cnpj: (extra && extra.cnpj) || "", contato: (extra && extra.contato) || "", atendente: atendente || "", status: STATUS[0], criadoEm: agora, atualizadoEm: agora, config: atConfig(), total: q ? Math.round(q.total) : 0, desconto: 0, subtotal: q ? Math.round(q.S) : 0, resultado: q ? Math.round(q.resultado) : 0, margem: q && q.margem != null ? Math.round(q.margem * 10000) / 10000 : null, comprador: {} };
     st.ats.set(ref.id, data); setAtId(ref.id);
     atWrite(ref.id, () => ref.set(data));
-    ctFill({ nome, tel });
+    ctFill(Object.assign({ nome, tel }, extra && extra.tipo === "pj" ? { doc: cnpjFmt(extra.cnpj) } : {}));
     $("at-contrato").hidden = true;
     renderAtend(); renderAtHist();
   }
@@ -3838,6 +3856,47 @@ body.gated { overflow: hidden; }
     if (!ctFilled && atCur()) ctFill(atCur().comprador);
     renderAtHist();
   }
+  // ---- pessoa jurídica: CNPJ (inclusive o alfanumérico, emitido desde julho de 2026) e consulta pública da razão social ----
+  const cnpjLimpo = (v) => String(v || "").toUpperCase().replace(/[^0-9A-Z]/g, "").slice(0, 14);
+  function cnpjOk(c) {
+    if (!/^[0-9A-Z]{12}[0-9]{2}$/.test(c) || /^(.)\1{13}$/.test(c)) return false;
+    const val = (ch) => ch.charCodeAt(0) - 48, dv = (b, pesos) => { let t = 0; for (let i = 0; i < pesos.length; i++) t += val(b[i]) * pesos[i]; const x = t % 11; return x < 2 ? 0 : 11 - x; };
+    const d1 = dv(c.slice(0, 12), [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]), d2 = dv(c.slice(0, 12) + d1, [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]);
+    return c[12] === String(d1) && c[13] === String(d2);
+  }
+  const cnpjFmt = (v) => { const c = cnpjLimpo(v); let o = ""; for (let i = 0; i < c.length; i++) { if (i === 2 || i === 5) o += "."; else if (i === 8) o += "/"; else if (i === 12) o += "-"; o += c[i]; } return o; };
+  async function cnpjBuscar(c) {
+    const fontes = [
+      ["https://brasilapi.com.br/api/cnpj/v1/" + c, (j) => ({ razao: j.razao_social, sit: j.descricao_situacao_cadastral })],
+      ["https://publica.cnpj.ws/cnpj/" + c, (j) => ({ razao: j.razao_social, sit: j.estabelecimento && j.estabelecimento.situacao_cadastral })]
+    ];
+    let naoAchou = false, falhou = false;
+    for (const [url, leitor] of fontes) {
+      const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), 9000);
+      try {
+        const resp = await fetch(url, { signal: ctl.signal, headers: { Accept: "application/json" } });
+        if (resp.status === 404) { naoAchou = true; continue; }
+        if (!resp.ok) { falhou = true; continue; }
+        const x = leitor(await resp.json()); if (x && x.razao) return { razao: String(x.razao).trim(), sit: x.sit ? String(x.sit).trim() : "" };
+        falhou = true;
+      } catch (e) { falhou = true; } finally { clearTimeout(tm); }
+    }
+    return { erro: naoAchou && !falhou ? "nao" : "rede" };
+  }
+  let cnpjSeq = 0;
+  const tipoAtual = () => (document.querySelector('input[name="at-f-tipo"]:checked') || {}).value || "pf";
+  function pjMostrar(on) { document.querySelectorAll("#at-form .at-pj").forEach((e) => { e.hidden = !on; }); setText("at-f-nome-l", on ? "Nome do contato (opcional)" : "Nome do cliente"); $("at-f-nome").required = !on; }
+  function cnpjMsg(t, tipo) { const m = $("at-f-cnpj-msg"); m.hidden = !t; m.textContent = t || ""; m.dataset.t = tipo || ""; }
+  async function cnpjConsultar() {
+    const c = cnpjLimpo($("at-f-cnpj").value);
+    if (c.length < 14) { cnpjMsg("Digite o CNPJ completo para buscar a razão social."); return; }
+    if (!cnpjOk(c)) { cnpjMsg("CNPJ inválido. Confira os números.", "erro"); return; }
+    const seq = ++cnpjSeq; cnpjMsg("Buscando a razão social…");
+    const res = await cnpjBuscar(c); if (seq !== cnpjSeq || cnpjLimpo($("at-f-cnpj").value) !== c) return;   // ignora resposta de uma consulta antiga
+    if (res.erro) { cnpjMsg(res.erro === "nao" ? "CNPJ não encontrado na base pública. Digite a razão social." : "Não consegui consultar agora. Digite a razão social.", "aviso"); return; }
+    const rz = $("at-f-razao"); if (!rz.value.trim() || rz.dataset.auto === "1") { rz.value = res.razao; rz.dataset.auto = "1"; }
+    cnpjMsg("Encontrado: " + res.razao + (res.sit ? ". Situação cadastral: " + res.sit + "." : "."), !res.sit || /ativa/i.test(res.sit) ? "ok" : "aviso");
+  }
   function atFormShow(mode) {
     atFormMode = mode;
     const cur = atCur();
@@ -3845,7 +3904,10 @@ body.gated { overflow: hidden; }
     $("at-hist").hidden = true; $("at-hist-btn").setAttribute("aria-expanded", "false");
     setText("at-form-t", mode === "editar" ? "Editar dados do atendimento" : "Novo atendimento");
     setText("at-f-ok", mode === "editar" ? "Salvar" : "Criar atendimento");
-    $("at-f-nome").value = mode === "editar" && cur ? cur.nome || "" : "";
+    const pj = mode === "editar" && !!cur && cur.tipo === "pj";
+    document.querySelector('input[name="at-f-tipo"][value="' + (pj ? "pj" : "pf") + '"]').checked = true; pjMostrar(pj);
+    $("at-f-nome").value = pj ? cur.contato || "" : (mode === "editar" && cur ? cur.nome || "" : "");
+    $("at-f-razao").value = pj ? cur.nome || "" : ""; $("at-f-razao").dataset.auto = "0"; $("at-f-cnpj").value = pj ? cnpjFmt(cur.cnpj) : ""; cnpjMsg("");
     $("at-f-tel").value = mode === "editar" && cur ? cur.tel || "" : "";
     $("at-f-obs").value = mode === "editar" && cur ? cur.obs || "" : "";
     $("at-f-msg").hidden = true;
@@ -3857,16 +3919,27 @@ body.gated { overflow: hidden; }
     $("at-novo").addEventListener("click", () => atFormShow("novo"));
     $("at-editar").addEventListener("click", () => atFormShow("editar"));
     $("at-f-cancel").addEventListener("click", () => { $("at-form").hidden = true; });
+    document.querySelectorAll('input[name="at-f-tipo"]').forEach((e) => e.addEventListener("change", () => { const pj = tipoAtual() === "pj"; pjMostrar(pj); $("at-f-msg").hidden = true; if (pj) $("at-f-cnpj").focus(); }));
+    $("at-f-cnpj").addEventListener("input", (e) => { e.target.value = cnpjFmt(e.target.value); if (cnpjLimpo(e.target.value).length === 14) cnpjConsultar(); else { cnpjSeq++; cnpjMsg(""); } });
+    $("at-f-cnpj-bt").addEventListener("click", cnpjConsultar);
+    $("at-f-razao").addEventListener("input", (e) => { e.target.dataset.auto = "0"; });
     $("at-form").addEventListener("submit", (ev) => {
       ev.preventDefault();
-      const nome = $("at-f-nome").value.trim(), tel = $("at-f-tel").value.trim(), obs = $("at-f-obs").value.trim(), atendente = $("at-f-atend").value;
-      if (!nome) { const m = $("at-f-msg"); m.textContent = "Informe o nome do cliente."; m.hidden = false; $("at-f-nome").focus(); return; }
+      let nome = $("at-f-nome").value.trim(); const tel = $("at-f-tel").value.trim(), obs = $("at-f-obs").value.trim(), atendente = $("at-f-atend").value, m = $("at-f-msg");
+      const erroForm = (t, campo) => { m.textContent = t; m.hidden = false; $(campo).focus(); };
+      let extra = { tipo: "pf", cnpj: "", contato: "" };
+      if (tipoAtual() === "pj") {
+        const cnpj = cnpjLimpo($("at-f-cnpj").value), razao = $("at-f-razao").value.trim();
+        if (!cnpjOk(cnpj)) { erroForm(cnpj.length === 14 ? "CNPJ inválido. Confira os números." : "Informe o CNPJ da empresa.", "at-f-cnpj"); return; }
+        if (!razao) { erroForm("Informe a razão social (ou use o botão para buscar pelo CNPJ).", "at-f-razao"); return; }
+        extra = { tipo: "pj", cnpj, contato: nome }; nome = razao;
+      } else if (!nome) { erroForm("Informe o nome do cliente.", "at-f-nome"); return; }
       if (atFormMode === "editar" && atCur()) {
-        const id = st.atId, patch = { nome, tel, obs, atendente, atualizadoEm: nowIso() };
+        const id = st.atId, patch = Object.assign({ nome, tel, obs, atendente, atualizadoEm: nowIso() }, extra);
         Object.assign(st.ats.get(id), patch);
         atWrite(id, () => st.acol.doc(id).update(patch));
         renderAtHist();
-      } else atCreate(nome, tel, obs, atendente);
+      } else atCreate(nome, tel, obs, atendente, extra);
       try { if (atendente) localStorage.setItem(ATEND_KEY, atendente); } catch (e) {}
       $("at-form").hidden = true;
     });
@@ -3895,6 +3968,7 @@ body.gated { overflow: hidden; }
     $("at-fechar").addEventListener("click", () => {
       const cur = atCur(); if (!cur) return;
       if (!$("ct-nome").value && cur.nome) $("ct-nome").value = cur.nome;
+      if (!$("ct-doc").value && cur.tipo === "pj" && cur.cnpj) $("ct-doc").value = cnpjFmt(cur.cnpj);
       if (!$("ct-tel").value && cur.tel) $("ct-tel").value = cur.tel;
     });
   }
@@ -4088,7 +4162,7 @@ body.gated { overflow: hidden; }
 
     head("Partes contratantes");
     para([["VENDEDORA: ", true], ["ESTALEIRO EURONAV LTDA., ", true], ["pessoa jurídica de direito privado, inscrita no CNPJ sob o nº 65.014.928/0001-70, com NIRE 26203798696 na Junta Comercial do Estado de Pernambuco, sediada na Rua Dr. George William Butler, nº 569, Galpão 35, Curado, Recife/PE, CEP 50.950-015, neste ato representada por " + f.rep + (f.repQ ? ", " + f.repQ : "") + (f.repCpf ? ", inscrito no CPF sob o nº " + f.repCpf : "") + ", doravante denominada VENDEDORA.", false]]);
-    para([["COMPRADOR: ", true], [f.nome.toUpperCase() + ", ", true], ["inscrito no " + (f.doc.replace(/\D/g, "").length > 11 ? "CNPJ" : "CPF") + " sob o nº " + f.doc + (f.rg ? ", RG nº " + f.rg : "") + ", com endereço em " + f.end + (f.email ? ", e-mail " + f.email : "") + (f.tel ? ", telefone " + f.tel : "") + ", doravante denominado COMPRADOR.", false]]);
+    para([["COMPRADOR: ", true], [f.nome.toUpperCase() + ", ", true], ["inscrito no " + (f.doc.replace(/[^0-9A-Za-z]/g, "").length > 11 ? "CNPJ" : "CPF") + " sob o nº " + f.doc + (f.rg ? ", RG nº " + f.rg : "") + ", com endereço em " + f.end + (f.email ? ", e-mail " + f.email : "") + (f.tel ? ", telefone " + f.tel : "") + ", doravante denominado COMPRADOR.", false]]);
     para("As partes acima identificadas ajustam a fabricação e a venda de uma embarcação, nas cláusulas e condições a seguir, que mutuamente aceitam.");
 
     head("Do objeto");
@@ -4159,7 +4233,7 @@ body.gated { overflow: hidden; }
     para("Recife/PE, " + f.hojeTxt + ".", { justify: false, after: 16 });
     const sig = (x, l1, l2) => { doc.setDrawColor(0, 0, 0); doc.setLineWidth(0.3); doc.line(x, y, x + 78, y); font(true, 9); doc.text(doc.splitTextToSize(l1, 78), x, y + 4.5); font(false, 8.5); doc.text(l2, x, y + 4.5 + doc.splitTextToSize(l1, 78).length * 4.2); };
     sig(M, "ESTALEIRO EURONAV LTDA.", "CNPJ 65.014.928/0001-70, VENDEDORA");
-    sig(M + 92, f.nome.toUpperCase(), (f.doc.replace(/\D/g, "").length > 11 ? "CNPJ " : "CPF ") + f.doc + ", COMPRADOR");
+    sig(M + 92, f.nome.toUpperCase(), (f.doc.replace(/[^0-9A-Za-z]/g, "").length > 11 ? "CNPJ " : "CPF ") + f.doc + ", COMPRADOR");
     y += 30;
     sig(M, "Testemunha 1", "Nome e CPF:"); sig(M + 92, "Testemunha 2", "Nome e CPF:");
     const n = doc.getNumberOfPages();
@@ -4341,7 +4415,7 @@ body.gated { overflow: hidden; }
     }
     if (f.cdi) pagamento += " Parcelas depois da entrega com reajuste pelo CDI + 1% ao mês.";
     return {
-      cliente: cur.nome || "Cliente", hoje, validade, val: new Date(hoje.getTime() + validade * 86400000),
+      cliente: cur.nome || "Cliente", cnpj: cur.tipo === "pj" && cur.cnpj ? cnpjFmt(cur.cnpj) : "", contato: cur.tipo === "pj" ? String(cur.contato || "") : "", hoje, validade, val: new Date(hoje.getTime() + validade * 86400000),
       numero: "PR-" + hoje.getFullYear() + String(hoje.getMonth() + 1).padStart(2, "0") + String(hoje.getDate()).padStart(2, "0") + "-" + String(hoje.getHours()).padStart(2, "0") + String(hoje.getMinutes()).padStart(2, "0"),
       entrega: ent.length === 2 && num(ent[1]) >= 1 ? "Previsão de entrega em " + MESES[num(ent[1]) - 1] + " de " + ent[0] + ", contada a partir do pagamento da entrada." : "A combinar conforme a agenda de produção.",
       hyp: q.lines.some((l) => l.key === "hyp"),
@@ -4379,6 +4453,8 @@ body.gated { overflow: hidden; }
     font(true, 13); color(WHITE); const nomeL = doc.splitTextToSize(d.cliente, 72).slice(0, 2); doc.text(nomeL, rx, 21.5, { align: "right" });
     let ry = 21.5 + nomeL.length * 5.4 + 2;
     font(false, 8.5); color(PALE);
+    if (d.cnpj) { doc.text("CNPJ " + d.cnpj, rx, ry, { align: "right" }); ry += 4.7; }
+    if (d.contato) { doc.text(doc.splitTextToSize("A/C " + d.contato, 72)[0], rx, ry, { align: "right" }); ry += 4.7; }
     [["Proposta nº ", d.numero], ["Emitida em ", dd(d.hoje)], ["Válida até ", dd(d.val)]].forEach(([a, b]) => { doc.text(a + b, rx, ry, { align: "right" }); ry += 4.7; });
     y = 67;
 
