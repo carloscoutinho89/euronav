@@ -327,9 +327,12 @@ details.c-group[open] > summary::after { content: "\2212"; }
 .at-total { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-top: 10px; padding-top: 12px; border-top: 3px solid var(--ink); }
 .at-total span { font-weight: 600; }
 .at-total b { font-family: var(--font-display); font-size: 2.1rem; font-variant-numeric: tabular-nums; }
+.at-semkit { display: flex; align-items: flex-start; gap: 10px; margin: 2px 0 12px; cursor: pointer; font-size: .92rem; }
+.at-semkit input { width: 20px; height: 20px; margin-top: 2px; flex: none; }
+.at-semkit small { display: block; margin-top: 2px; color: var(--muted); font-size: .8rem; line-height: 1.35; }
 .at-sair { position: fixed; right: 12px; bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); z-index: 20; font: inherit; font-size: .86rem; font-weight: 500; color: #FFFFFF; background: #1C1C1E; border: 1px solid #5B5E63; border-radius: 999px; padding: 10px 18px; box-shadow: 0 2px 10px rgba(0,0,0,.35); cursor: pointer; }
 body.cliente { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 72px); }
-body.cliente .tabs, body.cliente .band .save-state, body.cliente .at-actions { display: none; }
+body.cliente .tabs, body.cliente .band .save-state, body.cliente .at-actions, body.cliente .at-semkit { display: none; }
 .ct { margin-top: 16px; }
 .ct-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 14px; }
 @media (max-width: 640px) { .ct-grid { grid-template-columns: 1fr; } }
@@ -1264,6 +1267,7 @@ body.gated { overflow: hidden; }
           <table class="c-comp"><tbody id="at-tot"></tbody></table>
           <div class="at-total"><span>Valor total</span><b id="at-total">–</b></div>
           <p class="c-hint" style="margin:6px 0 12px">Valores em reais, com impostos incluídos. Proposta sujeita a confirmação por escrito.</p>
+          <label class="at-semkit"><input type="checkbox" id="at-semkit"><span>Suprimir detalhamento de kit<small>A proposta mostra só a embarcação, com tudo o que ela inclui, e o valor total.</small></span></label>
           <button class="at-pdf" type="button" id="at-pdf">Gerar proposta em PDF</button>
           <p class="c-hint at-pdf-msg" id="at-pdf-msg" role="status"></p>
           <button class="c-chip" type="button" id="at-copy">Copiar proposta em texto</button>
@@ -2296,6 +2300,7 @@ body.gated { overflow: hidden; }
   function kitItensOrd(key) { const out = []; st.items.forEach((it, id) => { if (it.grupo === "acessorios" && kitOf(it) === key) out.push([id, it]); }); out.sort((a, b) => num(a[1].ordem) - num(b[1].ordem)); return out; }
   // Destaques do que vem de série: só entram os que estão de fato no kit básico.
   const SERIE_DEST = [[/estofado/i, "estofados completos"], [/capota de popa/i, "capota de popa"], [/piso eva/i, "piso EVA"], [/kit de som/i, "som"], [/vaso sanit/i, "banheiro"], [/guincho/i, "guincho elétrico"], [/churrasqueira/i, "churrasqueira"], [/pia e fog/i, "pia e fogão"], [/âncora bruce|^âncora/i, "âncora"]];
+  function serieArr() { const nomes = kitItensOrd("basico").map(([, it]) => String(it.item || "")); return SERIE_DEST.filter(([re]) => nomes.some((n) => re.test(n))).map(([, t]) => t); }
   function serieTxt() {
     const nomes = kitItensOrd("basico").map(([, it]) => String(it.item || ""));
     return listaTxt(SERIE_DEST.filter(([re]) => nomes.some((n) => re.test(n))).map(([, t]) => t));
@@ -3379,7 +3384,7 @@ body.gated { overflow: hidden; }
 
   // ---------- Atendimento ao cliente ----------
   const AT_KEY = "euronav-atendimento";
-  const AT_DEF = { motor: "", kits: { conforto: false, lazer: false, fundeio: false, extras: false }, kitItens: {}, hyp: false, gps: false, desc: 0, corEst: "Branco Ultra", corPiso: "Cinza", corListra: "Branco", corCapota: "Cinza", corTubo: "gelo" };
+  const AT_DEF = { motor: "", kits: { conforto: false, lazer: false, fundeio: false, extras: false }, kitItens: {}, hyp: false, gps: false, semKit: false, desc: 0, corEst: "Branco Ultra", corPiso: "Cinza", corListra: "Branco", corCapota: "Cinza", corTubo: "gelo" };
   const TUBO_CORES = { pvc: [["cinza", "Cinza claro", "#C9C6B8"], ["marinho", "Azul marinho", "#232C4A"], ["royal", "Azul royal", "#2A3F9E"], ["preto", "Preto", "#232422"], ["vermelho", "Vermelho", "#A63840"], ["verde", "Verde", "#5A635B"], ["bege", "Bege", "#C6AD82"]],
     hyp: [["gelo", "Ice white", "#E6EAED"], ["creme", "Off white", "#E3DED4"], ["yoro", "Yellow Oro", "#E6DA5E"], ["sunflower", "Sun Flower", "#D28C32"], ["ycolorado", "Yellow Colorado", "#E1C541"]] };
   const TUBO_ANT = { gelo: "cinza", areia: "bege", grafite: "preto" }; // cores que saíram da lista: atendimentos e links antigos caem na mais próxima
@@ -3475,6 +3480,7 @@ body.gated { overflow: hidden; }
   function atLine(host, n, val, cls) { const tr = el("tr", cls || ""); tr.append(el("td", "", n), el("td", "n", val)); host.appendChild(tr); }
   function renderAtend() {
     if (!$("view-atendimento")) return;
+    { const sk = $("at-semkit"); if (sk && sk.checked !== !!st.at.semKit) sk.checked = !!st.at.semKit; }
     const q = atCompute();
     const info = $("v-at-info");
     if (!q) { setText("at-total", "–"); return; }
@@ -3597,8 +3603,9 @@ body.gated { overflow: hidden; }
   }
   function atText() {
     const q = atCompute(); if (!q) return "";
-    const L = ["Euronav Euro Sette, proposta"].concat(propLines(q).map((l) => l.nome + ": " + (l.incluso ? "incluído" : money(l.preco))), ["Subtotal: " + money(q.S)]);
-    if (q.desc > 0) L.push("Condição especial: − " + money(q.desc));
+    const L = ["Euronav Euro Sette, proposta"];
+    propLines(q).forEach((l) => { L.push(l.nome + ": " + (l.incluso ? "incluído" : money(l.preco))); if (l.det) l.det.forEach(([a2, v]) => L.push("   " + a2 + ": " + money(v))); });
+    if (q.desc > 0) L.push("Subtotal: " + money(q.S), "Condição especial: − " + money(q.desc));
     L.push("IPI (" + fmtN(q.ipi * 100, 1) + "%): " + money(q.ipiV), "Valor total: " + money(q.total), "NCM do produto: " + ncmBarco());
     const curA = atCur(); if (curA && curA.atendente) L.push("Atendente: " + curA.atendente);
     return L.join("\n");
@@ -3616,6 +3623,7 @@ body.gated { overflow: hidden; }
     const modo = (on) => { document.body.classList.toggle("cliente", on); $("at-sair").hidden = !on; const bs = $("btn-sair"); if (bs && !bs.disabled) bs.textContent = on ? "Sair do painel" : "Sair"; };
     $("at-modo").addEventListener("click", () => { modo(true); window.scrollTo(0, 0); });
     $("at-sair").addEventListener("click", () => { if (confirm("Sair da tela do cliente?")) modo(false); });
+    $("at-semkit").addEventListener("change", (e) => { st.at.semKit = e.target.checked; atSave(); renderAtend(); });
     $("at-copy").addEventListener("click", async () => {
       const t = atText();
       try { await navigator.clipboard.writeText(t); toast("Proposta copiada."); } catch (e) { window.prompt("Copie a proposta:", t); }
@@ -3634,7 +3642,7 @@ body.gated { overflow: hidden; }
   const dataBR = (iso) => { const d = new Date(iso); return isNaN(d.getTime()) ? "" : d.toLocaleDateString("pt-BR"); };
   function atCur() { return st.atId ? st.ats.get(st.atId) || null : null; }
   function setAtId(id) { st.atId = id || null; try { if (id) localStorage.setItem(ATC_KEY, id); else localStorage.removeItem(ATC_KEY); } catch (e) {} }
-  function atConfig() { return { motor: st.at.motor || "", kits: Object.assign({}, st.at.kits), kitItens: JSON.parse(JSON.stringify(st.at.kitItens || {})), hyp: !!st.at.hyp, gps: !!st.at.gps, desc: num(st.at.desc), corEst: atCores().est, corPiso: atCores().piso, corListra: atCores().listra, corCapota: atCores().cap, corTubo: st.at.corTubo || "gelo" }; }
+  function atConfig() { return { motor: st.at.motor || "", kits: Object.assign({}, st.at.kits), kitItens: JSON.parse(JSON.stringify(st.at.kitItens || {})), hyp: !!st.at.hyp, gps: !!st.at.gps, semKit: !!st.at.semKit, desc: num(st.at.desc), corEst: atCores().est, corPiso: atCores().piso, corListra: atCores().listra, corCapota: atCores().cap, corTubo: st.at.corTubo || "gelo" }; }
   function atWrite(id, fn) { atPending.add(id); return enqueue("a:" + id, fn).then((ok) => { atPending.delete(id); return ok; }); }
   function atPersist() {
     const id = st.atId; if (!id || !atCur() || !st.acol || !st.canWrite) return;
@@ -3732,7 +3740,7 @@ body.gated { overflow: hidden; }
     clearTimeout(atTimer); clearTimeout(ctTimer);
     setAtId(id);
     const c = d.config || {};
-    st.at = Object.assign(JSON.parse(JSON.stringify(AT_DEF)), { motor: c.motor || "", kits: Object.assign({}, AT_DEF.kits, c.kits || {}), kitItens: JSON.parse(JSON.stringify(c.kitItens || {})), hyp: !!c.hyp, gps: !!c.gps, desc: num(c.desc), corEst: c.corEst || AT_DEF.corEst, corPiso: c.corPiso || AT_DEF.corPiso, corListra: c.corListra || "", corCapota: c.corCapota || AT_DEF.corCapota, corTubo: c.corTubo || "gelo"});
+    st.at = Object.assign(JSON.parse(JSON.stringify(AT_DEF)), { motor: c.motor || "", kits: Object.assign({}, AT_DEF.kits, c.kits || {}), kitItens: JSON.parse(JSON.stringify(c.kitItens || {})), hyp: !!c.hyp, gps: !!c.gps, semKit: !!c.semKit, desc: num(c.desc), corEst: c.corEst || AT_DEF.corEst, corPiso: c.corPiso || AT_DEF.corPiso, corListra: c.corListra || "", corCapota: c.corCapota || AT_DEF.corCapota, corTubo: c.corTubo || "gelo"});
     try { localStorage.setItem(AT_KEY, JSON.stringify(st.at)); } catch (e) {}
     // contato vindo do configurador público: na primeira abertura, a configuração montada pelo cliente entra no orçamento
     if (d.onlinePend && d.linkCfg && st.canWrite && st.acol) {
@@ -4286,20 +4294,33 @@ body.gated { overflow: hidden; }
     const f = frase(limpo); return f.charAt(0).toUpperCase() + f.slice(1);
   }
   const listaProposta = (nomes) => { const out = []; nomes.forEach((x) => { const t = nomeProposta(x); if (!out.includes(t)) out.push(t); }); return out; };
+  // A proposta traz a embarcação em uma linha só, com o motor incorporado. Padrão: o detalhamento (kits e motor, com valores) vai em cinza embaixo.
+  // Com "Suprimir detalhamento de kit": nada de kit nem de valores por item; tudo o que os kits trazem sobe para a descrição da embarcação.
   function propLines(q) {
     const casco = q.lines.find((l) => l.key === "casco"), motor = q.lines.find((l) => l.key === "motor");
     if (!casco || !motor) return q.lines;
+    const semKit = !!st.at.semKit;
     const mn = String(motor.nome || "").replace(/^motor\s+/i, "");
     const mIt = q.mid ? st.items.get(q.mid) : null, mSpec = mIt && mIt.spec ? " (" + mIt.spec + ")" : "";
-    const out = [];
-    q.lines.forEach((l) => {
-      if (l.key === "motor") return;
-      if (l.key === "casco") out.push(Object.assign({}, l, { nome: "Euro Sette com motor " + mn, preco: casco.preco + motor.preco, sub: "Autêntico RIB de 7,75 m por 3,05 m, tubos em PVC Sansuy, " + (serieTxt() ? "com " + serieTxt() + " de série, " : "") + "e motor de popa " + mn + mSpec + ", com garantia do fabricante.", ncm: ncmBarco() }));
-      else if (l.key === "hyp") out.push(Object.assign({}, l, { nome: "Tubos em Hypalon Orca" }));
-      else out.push(l);
+    const adic = q.lines.filter((l) => l.key !== "casco" && l.key !== "motor");
+    const comPreco = adic.filter((l) => !(l.key === "gps" && l.incluso));
+    const soma = comPreco.reduce((a2, l) => a2 + num(l.preco), 0), hyp = comPreco.some((l) => l.key === "hyp");
+    const tubos = hyp ? "tubos em Hypalon Orca" : "tubos em PVC Sansuy", fim = "e motor de popa " + mn + mSpec + ", com garantia do fabricante.";
+    const cores = { key: "cores", nome: "Cores: " + coresTxt(), sub: "Personalização sem custo adicional.", incluso: true };
+    const principal = { nome: "Embarcação RIB Euro Sette, com motor " + mn, preco: casco.preco + soma + motor.preco, ncm: ncmBarco() };
+    if (!semKit) {
+      const rotulo = (l) => { if (l.key === "hyp") return "Tubos em Hypalon Orca"; if (l.parcial) { const t = listaTxt(listaProposta(l.avulsos || []).map((x, i) => (i ? x.charAt(0).toLowerCase() + x.slice(1) : x))); return t.charAt(0).toUpperCase() + t.slice(1); } return l.nome; };
+      const det = [["Embarcação com kit básico", casco.preco]].concat(comPreco.map((l) => [rotulo(l), l.preco]), [["Motor " + mn, motor.preco]]);
+      return [Object.assign({}, casco, principal, { sub: "Autêntico RIB de 7,75 m por 3,05 m, " + tubos + ", " + (serieTxt() ? "com " + serieTxt() + " de série, " : "") + fim, det }), cores];
+    }
+    const minus = (t) => t.charAt(0).toLowerCase() + t.slice(1), itens = serieArr().slice();
+    comPreco.forEach((l) => {
+      if (l.key === "hyp") return;
+      if (l.key === "gps") { if (!itens.includes("GPS")) itens.push("GPS"); return; }
+      const nomes = l.parcial ? (l.avulsos || []) : kitItensOrd(l.key).map(([, it]) => String(it.item || ""));
+      listaProposta(nomes).forEach((t) => { const x = minus(t); if (!itens.includes(x)) itens.push(x); });
     });
-    out.push({ key: "cores", nome: "Cores: " + coresTxt(), sub: "Personalização sem custo adicional.", incluso: true });
-    return out;
+    return [Object.assign({}, casco, principal, { sub: "Autêntico RIB de 7,75 m por 3,05 m, " + tubos + ", " + (itens.length ? "com " + listaTxt(itens) + " de série, " : "") + fim }), cores];
   }
   function propData(q, cur) {
     const f = ctRead();
@@ -4386,21 +4407,21 @@ body.gated { overflow: hidden; }
       else if (kitDesc[l.key]) sub = kitDesc[l.key];
       font(false, 8.5); const sl = sub ? doc.splitTextToSize(sub, CW - 62) : [];
       font(true, 10.5); const nl = doc.splitTextToSize(l.nome, CW - 62);
-      const h = 2.6 + nl.length * 4.6 + sl.length * 3.7 + 3;
+      const hd = l.det ? l.det.length * 3.9 + 4 : 0, h = 2.6 + nl.length * 4.6 + sl.length * 3.7 + 3 + hd;
       need(h);
       if (i % 2 === 0) { fill(SOFT); doc.rect(M, y, CW, h, "F"); }
       font(true, 10.5); color(INK); doc.text(nl, M + 4, y + 5.8);
       if (sl.length) { font(false, 8.5); color(MUT); doc.text(sl, M + 4, y + 5.6 + nl.length * 4.6); }
       if (l.ncm && sl.length) { font(false, 8.5); color(MUT); const lh = doc.getLineHeight() / doc.internal.scaleFactor; doc.text("NCM " + l.ncm, W - M - 4, y + 5.6 + nl.length * 4.6 + (sl.length - 1) * lh, { align: "right" }); }   // NCM pequeno, no fim da descrição do barco
       font(true, 10.5); color(INK); doc.text(l.incluso ? "Incluído" : m2(l.preco), W - M - 4, y + 5.8, { align: "right" });
+      if (l.det) { let yy = y + 5.6 + nl.length * 4.6 + sl.length * 3.7 + 4.2; stroke(LINE, 0.2); doc.line(M + 4, yy - 3.2, W - M - 4, yy - 3.2); font(false, 8); color([128, 131, 136]); l.det.forEach(([a2, v]) => { doc.text(a2, M + 8, yy); doc.text(m2(v), W - M - 4, yy, { align: "right" }); yy += 3.9; }); }
       y += h;
     });
     stroke(LINE, 0.3); doc.line(M, y, W - M, y);
     y += 7;
     need(48);
     const tl = (a, b, c) => { need(6); font(false, 9.5); color(c || MUT); doc.text(a, W - M - 84, y); color(c || INK); doc.text(b, W - M - 4, y, { align: "right" }); y += 5.8; };
-    tl("Subtotal", m2(q.S));
-    if (q.desc > 0) tl("Condição especial", "- " + m2(q.desc), BLUE);
+    if (q.desc > 0) { tl("Subtotal", m2(q.S)); tl("Condição especial", "- " + m2(q.desc), BLUE); }
     tl("IPI (" + fmtN(q.ipi * 100, 1) + "%)", m2(q.ipiV));
     y += 1;
     fill([0, 0, 0]); doc.rect(M, y, CW, 17, "F"); fill(BLUE); doc.rect(M, y, 2.4, 17, "F");
