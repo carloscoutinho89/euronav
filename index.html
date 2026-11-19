@@ -791,8 +791,8 @@ body.gated { overflow: hidden; }
 <div class="wrap">
   <section id="view-pendencias" class="view">
   <div class="titlebar">
-    <h1>Pendências do lançamento</h1>
-    <p class="sub">Barco na água na sexta, evento no sábado (14/11).</p>
+    <h1>Reunião diária: pendências</h1>
+    <p class="sub">Atualizado em 19/11. O evento de lançamento passou; agora são os testes com clientes, combustível, capota e Marinha. Nova subida do barco na segunda (23/11) e Carneiros em 28/11.</p>
   </div>
 
   <p class="banner" id="banner" hidden></p>
@@ -802,9 +802,9 @@ body.gated { overflow: hidden; }
     <div class="rot-body">
       <ol class="rot">
         <li><span class="rot-n">1</span><span class="rot-t">Abertura</span><span class="rot-min">2 min</span><span class="rot-q">Objetivo do dia. Lembrar a regra: cada dono traz a solução pronta.</span><span class="rot-who">Conduz: Carlos</span></li>
-        <li><span class="rot-n">2</span><span class="rot-t">Lançamento: barco para o evento</span><span class="rot-min">15 min</span><span class="rot-q">Item a item: está resolvido? Se não, qual a solução, quem faz e até quando?</span><span class="rot-who">Conduz: Malu lê, os donos respondem</span></li>
+        <li><span class="rot-n">2</span><span class="rot-t">Melhorias: correções e testes do barco</span><span class="rot-min">15 min</span><span class="rot-q">Item a item: está resolvido? Se não, qual a solução, quem faz e até quando?</span><span class="rot-who">Conduz: Malu lê, os donos respondem</span></li>
         <li><span class="rot-n">3</span><span class="rot-t">Produção</span><span class="rot-min">10 min</span><span class="rot-q">Data da correção dos moldes, desenho da linha e prazo do primeiro barco.</span><span class="rot-who">Conduz: Robson</span></li>
-        <li><span class="rot-n">4</span><span class="rot-t">Comercial do evento</span><span class="rot-min">20 min</span><span class="rot-q">Preço, kits, motor, condições de pagamento, conta, termo de reserva e roteiro de sábado.</span><span class="rot-who">Conduz: Adolpho e Carlos</span></li>
+        <li><span class="rot-n">4</span><span class="rot-t">Comercial do evento</span><span class="rot-min">20 min</span><span class="rot-q">Preço, kits e condições, test drives com interessados, termo de reserva, contrato e documentos da empresa.</span><span class="rot-who">Conduz: Adolpho e Carlos</span></li>
         <li><span class="rot-n">5</span><span class="rot-t">Itens sem dono</span><span class="rot-min">5 min</span><span class="rot-q">Nomear dono e prazo para cada item em aberto sem responsável.</span><span class="rot-who">Conduz: Carlos</span></li>
         <li><span class="rot-n">6</span><span class="rot-t">Encerramento</span><span class="rot-min">3 min</span><span class="rot-q">Lista vai para o grupo do WhatsApp. Prazo de resolução do dia: 17h.</span><span class="rot-who">Conduz: relator</span></li>
       </ol>
@@ -825,7 +825,7 @@ body.gated { overflow: hidden; }
 
   <div class="summary" role="group" aria-label="Resumo por frente">
     <button class="sum" type="button" data-target="sec-lancamento">
-      <span class="sum-name">Lançamento</span>
+      <span class="sum-name">Melhorias</span>
       <span class="sum-figs"><span class="sum-big" id="sum-lancamento-open">–</span><span class="sum-big-label">em aberto</span></span>
       <span class="bar" id="bar-lancamento" role="img" aria-label="Pendências por status"></span>
       <span class="sum-line"><span class="alert" id="sum-lancamento-nodono">–</span> sem dono, <span id="sum-lancamento-done">–</span> resolvidas de <span id="sum-lancamento-total">–</span></span>
@@ -853,8 +853,8 @@ body.gated { overflow: hidden; }
   <section class="sec" id="sec-lancamento" aria-labelledby="h-lancamento">
     <div class="sec-head">
       <div>
-        <h2 id="h-lancamento">Pendências para o lançamento<span class="count" id="count-lancamento"></span></h2>
-        <p class="sec-desc">O que o barco precisa ter resolvido para ir à água na sexta e para o evento de sábado.</p>
+        <h2 id="h-lancamento">Melhorias e correções do barco<span class="count" id="count-lancamento"></span></h2>
+        <p class="sec-desc">Correções e melhorias do barco depois do evento: testes, combustível, capota, colagens, Marinha e o que os clientes apontaram.</p>
       </div>
       <button class="add" type="button" data-frente="Lançamento" disabled>+ Adicionar item</button>
     </div>
@@ -866,7 +866,7 @@ body.gated { overflow: hidden; }
     <div class="sec-head">
       <div>
         <h2 id="h-producao">Pendências de produção<span class="count" id="count-producao"></span></h2>
-        <p class="sec-desc">Moldes, desenho da linha e custo de série, para começar a fabricar depois do evento.</p>
+        <p class="sec-desc">Moldes, desenho da linha e custo de série, para começar a fabricar.</p>
       </div>
       <button class="add" type="button" data-frente="Produção" disabled>+ Adicionar item</button>
     </div>
@@ -877,8 +877,8 @@ body.gated { overflow: hidden; }
   <section class="sec" id="sec-comercial" aria-labelledby="h-comercial">
     <div class="sec-head">
       <div>
-        <h2 id="h-comercial">Pendências comerciais para o evento<span class="count" id="count-comercial"></span></h2>
-        <p class="sec-desc">O que precisa estar pronto para vender no sábado e para a reunião com o Guga.</p>
+        <h2 id="h-comercial">Pendências comerciais<span class="count" id="count-comercial"></span></h2>
+        <p class="sec-desc">O que precisa estar pronto para vender: preço, contrato, documentos da empresa e test drives.</p>
       </div>
       <button class="add" type="button" data-frente="Comercial do evento" disabled>+ Adicionar item</button>
     </div>
@@ -910,8 +910,10 @@ body.gated { overflow: hidden; }
         <label class="c-check c-wide"><input id="p-alvo" type="checkbox" data-k="alvo"> Usar os custos-alvo das oportunidades de redução</label>
         <label class="c-f"><span>Investimento no desenvolvimento (R$)</span><input id="p-investimento" type="number" min="0" step="10000" data-k="investimento"></label>
         <label class="c-f"><span>Barcos para amortizar</span><input id="p-lote" type="number" min="1" step="1" data-k="lote"></label>
-        <label class="c-f"><span>Marketing por barco (R$)</span><input id="p-marketing" type="number" min="0" step="500" data-k="marketing"></label>
-        <label class="c-f"><span>Garantia e pós-venda por barco (R$)</span><input id="p-garantia" type="number" min="0" step="500" data-k="garantia"></label>
+        <label class="c-check c-wide"><input id="p-abater" type="checkbox" data-k="abaterInv"> Abater o investimento no custo dos barcos (desmarque para o lote inicial ficar mais barato)</label>
+        <p class="c-hint c-wide" id="p-inv-info"></p>
+        <label class="c-f"><span>Marketing (% da venda)</span><input id="p-mktPct" type="number" min="0" max="30" step="0.1" data-k="mktPct"></label>
+        <label class="c-f"><span>Garantia e pós-venda (% da venda)</span><input id="p-posPct" type="number" min="0" max="30" step="0.1" data-k="posPct"></label>
       </div>
 
       <div class="c-card" id="c-result">
@@ -1009,10 +1011,11 @@ body.gated { overflow: hidden; }
         <div class="c-f c-wide"><span>Regime tributário</span><b class="c-regime">Lucro Presumido (indústria)</b></div>
         <label class="c-f"><span>IPI sobre o barco (%)</span><input id="p-ipi" type="number" min="0" max="50" step="0.5" data-k="ipi"></label>
         <label class="c-check"><input id="p-lc224" type="checkbox" data-k="lc224"> Acréscimo da LC 224/2025 na receita acima de R$5 mi/ano</label>
-        <label class="c-f"><span>ICMS na venda, alíquota interna PE (%)</span><input id="p-icmsAliq" type="number" min="0" max="40" step="0.5" data-k="icmsAliq"></label>
+        <label class="c-f"><span>ICMS na venda do barco (%)</span><input id="p-icmsVenda" type="number" min="0" max="40" step="0.5" data-k="icmsVenda"></label>
+        <label class="c-f"><span>ICMS interno de PE nas compras (%)</span><input id="p-icmsAliq" type="number" min="0" max="40" step="0.5" data-k="icmsAliq"></label>
         <label class="c-f"><span>Compras feitas em PE (%)</span><input id="p-icmsLocal" type="number" min="0" max="100" step="5" data-k="icmsLocal"></label>
         <label class="c-f"><span>ICMS das compras de fora (%)</span><input id="p-icmsFora" type="number" min="0" max="20" step="0.5" data-k="icmsFora"></label>
-        <p class="c-note c-wide">PIS 0,65% e Cofins 3% sobre a receita, sem créditos. IRPJ (15% + adicional de 10%) e CSLL (9%) sobre lucro presumido de 8% e 12%, que sobem para 8,8% e 13,2% na receita acima de R$5 mi/ano. ICMS pelo PRODEAUTO: crédito presumido de 95% do saldo devedor (débito da venda menos créditos das compras de mercadorias e energia); fica 5% do saldo mais a taxa de administração de 2% sobre o crédito. Compras de fora vindas do Sul e Sudeste entram a 7%; importadas, a 4%. Credenciamento pelo Edital DBF nº 015/2026, válido de 01/05/2026 a 31/12/2032 e condicionado ao investimento mínimo em P&amp;D&amp;I (ainda fora do cálculo). IPI de 6,5% (NCM 8903.19.00) somado ao preço, sem descontar créditos de IPI das compras. Confirme tudo com o contador.</p>
+        <p class="c-note c-wide">PIS 0,65% e Cofins 3% sobre a receita, sem créditos. IRPJ (15% + adicional de 10%) e CSLL (9%) sobre lucro presumido de 8% e 12%, que sobem para 8,8% e 13,2% na receita acima de R$5 mi/ano. ICMS: a venda do barco tem alíquota de 27% e as compras feitas em PE entram a 20,5%. Pelo PRODEAUTO, crédito presumido de 95% do saldo devedor (débito da venda menos créditos das compras de mercadorias e energia); fica 5% do saldo mais a taxa de administração de 2% sobre o crédito. Compras de fora vindas do Sul e Sudeste entram a 7%; importadas, a 4%. Credenciamento pelo Edital DBF nº 015/2026, válido de 01/05/2026 a 31/12/2032 e condicionado ao investimento mínimo em P&amp;D&amp;I (ainda fora do cálculo). IPI de 6,5% (NCM 8903.19.00) somado ao preço, sem descontar créditos de IPI das compras. Confirme tudo com o contador.</p>
       </div>
     </section>
   </section>
@@ -2369,10 +2372,11 @@ body.gated { overflow: hidden; }
     { key: "estrutura", nome: "Estrutura e indiretos", cor: "#8FA6D6" },
     { key: "acessorios", nome: "Acessórios (todos os kits)", cor: "#7C8088" },
     { key: "equipamentos", nome: "Equipamentos (motor)", cor: "#BCBEC0" },
-    { key: "rateios", nome: "Desenvolvimento, marketing e garantia", cor: "#C9A227" }
+    { key: "rateios", nome: "Investimento no desenvolvimento (rateio por barco)", cor: "#C9A227" },
+    { key: "vendas", nome: "Marketing e pós-venda (% da venda)", cor: "#E0B84A" }
   ];
-  const DEFAULT_SC = { nome: "Novo cenário", preco: 380000, ipi: 6.5, lc224: true, icmsAliq: 20.5, icmsLocal: 50, icmsFora: 7, volume: 5, moModo: "terceiro", perda: 10, salario: 5500, horasPessoa: 150, alvo: false, investimento: 0, lote: 30, marketing: 0, garantia: 0, margemAlvo: 15 };
-  const NUM_KEYS = ["preco", "ipi", "icmsAliq", "icmsLocal", "icmsFora", "volume", "perda", "salario", "horasPessoa", "investimento", "lote", "marketing", "garantia", "margemAlvo"];
+  const DEFAULT_SC = { nome: "Novo cenário", preco: 380000, ipi: 6.5, lc224: true, icmsVenda: 27, icmsAliq: 20.5, icmsLocal: 50, icmsFora: 7, volume: 5, moModo: "terceiro", perda: 10, salario: 5500, horasPessoa: 150, alvo: false, investimento: 0, lote: 30, abaterInv: true, mktPct: 0, posPct: 0, margemAlvo: 15 };
+  const NUM_KEYS = ["preco", "ipi", "icmsVenda", "icmsAliq", "icmsLocal", "icmsFora", "volume", "perda", "salario", "horasPessoa", "investimento", "lote", "mktPct", "posPct", "margemAlvo"];
   const DEFAULT_V = { cenario: "", margemCasco: 18, margemKits: 25, margemMotor: 8, tubo: "pvc", hypalon: 10000, gps: false, gpsCusto: 10000, gpsPreco: 12900, hypPreco: 24900, contatoInsta: "@euronavbr", contatoTel: "", contatoEmail: "", contatoSite: "", motor: "", kits: { conforto: true, lazer: true, fundeio: true }, desconto: 0, arred: 1000, fechamento: null, atMargem: 35, atMotor: 0, atMin: 15, propValidade: 15, atendentes: ["Adolpho", "Carlos", "Daniel", "Erick", "Felipe", "Igor", "João Vitor", "Júlio", "Malu", "Robson"] };
   const V_NUM = ["margemCasco", "margemKits", "margemMotor", "hypalon", "hypPreco", "gpsCusto", "gpsPreco", "desconto", "arred", "atMargem", "atMotor", "atMin", "propValidade"];
 
@@ -2467,6 +2471,11 @@ body.gated { overflow: hidden; }
     return it.grupo === "estrutura" ? base / Math.max(1, num(s.volume)) : base;
   }
 
+  // Marketing e pós-venda são percentuais do preço de venda. Contas antigas, digitadas em reais, viram % do preço do cenário.
+  const pctMkt = (sc) => has(sc.mktPct) ? num(sc.mktPct) : (num(sc.preco) > 0 ? num(sc.marketing) / num(sc.preco) * 100 : 0);
+  const pctPos = (sc) => has(sc.posPct) ? num(sc.posPct) : (num(sc.preco) > 0 ? num(sc.garantia) / num(sc.preco) * 100 : 0);
+  const pctVar = (sc) => (pctMkt(sc) + pctPos(sc)) / 100;
+  const aliqVenda = (sc) => (has(sc.icmsVenda) ? Math.max(0, num(sc.icmsVenda)) : 27) / 100;   // ICMS da venda do barco (base de 27%); cenários antigos assumem 27%
   function compute(sc) {
     const g = { casco: 0, maoobra: 0, estrutura: 0, acessorios: 0, equipamentos: 0 };
     const kits = { basico: 0, conforto: 0, lazer: 0, fundeio: 0, extras: 0 };
@@ -2480,18 +2489,13 @@ body.gated { overflow: hidden; }
       if (it.grupo === "maoobra" && !moFixo(it)) hh += num(it.qtd);
       if (it.grupo === "estrutura") estMes += num(it.qtd) * unitOf(it, sc) + num(it.frete);
     });
-    const lote = num(sc.lote);
-    const rateios = (lote > 0 ? num(sc.investimento) / lote : 0) + num(sc.marketing) + num(sc.garantia);
-    const parts = Object.assign({}, g, { rateios });
-    const custo = Object.values(parts).reduce((a, b) => a + b, 0);
-    const preco = num(sc.preco), imp = num(sc.imposto) / 100, ma = num(sc.margemAlvo) / 100;
-    const imposto = preco * imp, resultado = preco - imposto - custo;
-    const fator = 1 - imp - ma;
+    const lote = num(sc.lote), pv = pctVar(sc), preco = num(sc.preco);
+    const rateios = (sc.abaterInv !== false && lote > 0) ? num(sc.investimento) / lote : 0;   // investimento por barco, só se for para abater
+    const vendas = preco * pv;                                                                  // marketing e pós-venda: % da venda, no preço do cenário
+    const parts = Object.assign({}, g, { rateios, vendas });
+    const custo = Object.values(parts).reduce((a, b) => a + b, 0), custoFixo = custo - vendas;
     return {
-      parts, kits, kitN, hh, estMes, custo, preco, imp, ma, imposto, resultado,
-      margem: preco > 0 ? resultado / preco : null,
-      equilibrio: imp < 1 ? custo / (1 - imp) : null,
-      alvo: fator > 0 ? custo / fator : null,
+      parts, kits, kitN, hh, estMes, custo, custoFixo, pv, preco,
       base: g.casco + g.maoobra + g.estrutura + rateios + kits.basico
     };
   }
@@ -2532,8 +2536,8 @@ body.gated { overflow: hidden; }
       e.disabled = !sc;
       if (!sc || e === document.activeElement) return;
       const k = e.dataset.k;
-      if (e.type === "checkbox") e.checked = !!sc[k];
-      else if (e.type === "number") e.value = sc[k] == null ? "" : String(sc[k]);
+      if (e.type === "checkbox") e.checked = k === "abaterInv" ? sc[k] !== false : !!sc[k];
+      else if (e.type === "number") e.value = k === "icmsVenda" ? String(has(sc.icmsVenda) ? sc.icmsVenda : 27) : k === "mktPct" ? String(Math.round(pctMkt(sc) * 10) / 10) : k === "posPct" ? String(Math.round(pctPos(sc) * 10) / 10) : (sc[k] == null ? "" : String(sc[k]));
       else e.value = sc[k] || (k === "moModo" ? "terceiro" : "");
     });
     const del = $("c-scen-del"); if (del) del.hidden = !sc || !st.canWrite || st.scen.size <= 1;
@@ -2549,6 +2553,8 @@ body.gated { overflow: hidden; }
     const r = compute(sc);
     const vr = vendaCompute();
     setText("r-custo", money(r.custo));
+    { const inv = num(sc.investimento), lote = num(sc.lote), por = lote > 0 ? inv / lote : 0, abate = sc.abaterInv !== false;
+      setText("p-inv-info", "Investimento total do projeto: " + money(inv) + (lote > 0 ? " (" + money(por) + " por barco, em " + lote + " barcos)" : "") + ". " + (inv <= 0 ? "" : abate ? "Está sendo abatido no custo de cada barco." : "Fora do custo dos primeiros barcos: o valor continua registrado, mas não entra no preço.")); }
     setText("r-fech", vr ? money(vr.final) : "–");
     setText("r-fech-m", vr && vr.margem != null ? "margem final de " + pct(vr.margem) + " (" + money(vr.resultado) + ")" : "");
     const fm = $("r-fech-m");
@@ -2570,25 +2576,6 @@ body.gated { overflow: hidden; }
     tr.append(el("td", "", "Custo total do barco completo"), el("td", "n", money(r.custo)), el("td", "p", "100%"));
     body.appendChild(tr);
     stack.setAttribute("aria-label", COMP.map((c) => c.nome + " " + money(r.parts[c.key])).join(", "));
-  }
-
-  function renderCompare() {
-    const body = $("c-compare");
-    if (!body) return;
-    body.replaceChildren();
-    if (!st.loadedI) return;
-    sortedScen().forEach(([id, sc]) => {
-      const r = compute(sc);
-      const tr = el("tr");
-      if (id === st.sel) tr.className = "sel";
-      [sc.nome || "Sem nome", money(r.preco), money(r.custo), money(r.imposto), money(r.resultado), pct(r.margem), money(r.alvo)].forEach((t, i) => {
-        const td = el("td", i > 0 ? "n" : "", t);
-        if (i === 4 || i === 5) td.classList.add(r.resultado < 0 ? "c-neg" : "c-pos");
-        tr.appendChild(td);
-      });
-      tr.addEventListener("click", () => select(id));
-      body.appendChild(tr);
-    });
   }
 
   // ---------- Oportunidades de redução de custo ----------
@@ -3034,14 +3021,6 @@ body.gated { overflow: hidden; }
     return { rate, pis: 0.0065 * net, cofins: 0.03 * net, irpj: R > 0 ? irpjA / n : 0, csll: R > 0 ? csllA / n : 0, total: R > 0 ? (irpjA + csllA + pcA) / n : 0 };
   }
   function ipiOf(sc) { return Math.max(0, num(sc.ipi)) / 100; }
-  function vPrice(cost, m, rate, ipi, icmsPct) {
-    const f = 1 - rate - (icmsPct || 0) * (1 + ipi) - num(m) / 100;
-    if (f <= 0) return null;
-    let p = cost / f * (1 + ipi);
-    const a = num(st.v.arred);
-    if (a > 0 && p > 0) p = Math.ceil(p / a) * a;
-    return p;
-  }
   function hypAdd() { return has(st.v.hypPreco) && num(st.v.hypPreco) > 0 ? num(st.v.hypPreco) : 24900; }
   function hypCusto() { return has(st.v.hypalon) ? num(st.v.hypalon) : 10000; }
   function cfgVenda() {
@@ -3056,7 +3035,7 @@ body.gated { overflow: hidden; }
     const sc = vScen(); if (!sc) return null;
     const cfg = cfgVenda();
     const at = atPrice(cfg); if (!at) return null;
-    const r = at.r, v = st.v, ipi = at.ipi;
+    const r = at.r, v = st.v, ipi = at.ipi, pv = r.pv || 0;
     const lines = at.lines.filter((l) => l.key !== "hyp").map((l) => Object.assign({}, l, l.key === "casco" ? { nome: "Casco Euro Sette com kit básico (tubos em PVC)" } : {}));
     const custoItens = lines.reduce((s, l) => s + l.custo, 0);
     const hypC = cfg.hyp ? hypCusto() : 0;
@@ -3068,8 +3047,9 @@ body.gated { overflow: hidden; }
     const icmsAdj = icmsAjuste(at.mid, cfg.kits, sc, credRate);
     const icmsCred = credBase * credRate + icmsAdj;
     const RES = 0.05 + 0.02 * 0.95;
-    const icmsAt = (fin) => { const deb = aliq * fin; const saldo = Math.max(0, deb - icmsCred); return { deb, saldo, res: saldo * RES }; };
-    const resultAt = (fin) => { const n = fin / (1 + ipi); return n - taxFed(n, sc).total - icmsAt(fin).res - custo; };
+    const aliqV = aliqVenda(sc);
+    const icmsAt = (fin) => { const deb = aliqV * fin; const saldo = Math.max(0, deb - icmsCred); return { deb, saldo, res: saldo * RES }; };
+    const resultAt = (fin) => { const n = fin / (1 + ipi); return n - taxFed(n, sc).total - icmsAt(fin).res - custo - n * pv; };
     const solve = (mm) => {
       let lo = custo * 0.5, hi = custo * 4;
       if (resultAt(hi) - mm * hi < 0) return null;
@@ -3084,9 +3064,9 @@ body.gated { overflow: hidden; }
     const tx = taxFed(net, sc);
     const ic = icmsAt(final);
     const impostos = tx.total + ic.res;
-    const resultado = net - impostos - custo;
+    const custoVar = net * pv, resultado = net - impostos - custo - custoVar;
     const ma = num(sc.margemAlvo) / 100;
-    return { sc, r, lines, tabela, desconto, final, net, ipi, ipiV, tx, ic, icmsCred, icmsAdj, credBase, credRate, aliq, fed: tx.total, custo, custoItens, hypC, hypOn: cfg.hyp, impostos, resultado, rate: tx.rate,
+    return { sc, r, lines, tabela, desconto, final, net, ipi, ipiV, tx, ic, icmsCred, icmsAdj, credBase, credRate, aliq: aliqV, fed: tx.total, custo, custoItens, hypC, hypOn: cfg.hyp, impostos, resultado, pv, custoVar, rate: tx.rate,
       margem: final > 0 ? resultado / final : null,
       equilibrio: solve(0), precoAlvo: solve(ma), ma, minR: at.minR, piso: solve(at.minR), solveM: solve, p16: solve(MARGEM_VEND_MIN), p40: solve(MARGEM_VEND_MAX),
       hypPrice: hypAdd(), at };
@@ -3259,8 +3239,8 @@ body.gated { overflow: hidden; }
     vr.lines.forEach((l) => { if (num(l.custo) > 0) { const s = el("span"); s.style.flex = String(l.custo); s.style.background = l.cor; s.title = l.nome + ": " + money(l.custo); bar.appendChild(s); } });
     bar.setAttribute("aria-label", "Custo: " + vr.lines.map((l) => l.nome + " " + money(l.custo)).join(", "));
     const split = $("v-split"); split.replaceChildren();
-    [[vr.custo, "var(--ink)", "Custo"], [vr.impostos, "#BCBEC0", "Impostos federais e ICMS"], [vr.ipiV, "#8FA6D6", "IPI"], [Math.max(0, vr.resultado), "#2E8A55", "Resultado"]].forEach(([v, c, n]) => { if (v > 0) { const s = el("span"); s.style.flex = String(v); s.style.background = c; s.title = n + ": " + money(v); split.appendChild(s); } });
-    split.setAttribute("aria-label", "Custo " + money(vr.custo) + ", impostos federais e ICMS " + money(vr.impostos) + ", IPI " + money(vr.ipiV) + ", resultado " + money(vr.resultado));
+    [[vr.custo, "var(--ink)", "Custo"], [vr.custoVar, "#E0B84A", "Marketing e pós-venda"], [vr.impostos, "#BCBEC0", "Impostos federais e ICMS"], [vr.ipiV, "#8FA6D6", "IPI"], [Math.max(0, vr.resultado), "#2E8A55", "Resultado"]].forEach(([v, c, n]) => { if (v > 0) { const s = el("span"); s.style.flex = String(v); s.style.background = c; s.title = n + ": " + money(v); split.appendChild(s); } });
+    split.setAttribute("aria-label", "Custo " + money(vr.custo) + (vr.custoVar > 0 ? ", marketing e pós-venda " + money(vr.custoVar) : "") + ", impostos federais e ICMS " + money(vr.impostos) + ", IPI " + money(vr.ipiV) + ", resultado " + money(vr.resultado));
     setText("v-custo", money(vr.custo));
     setText("v-imp", money(vr.impostos));
     setText("v-res", money(vr.resultado));
@@ -3278,7 +3258,7 @@ body.gated { overflow: hidden; }
     trow("CSLL", vr.tx.csll);
     trow("ICMS que sobra pelo PRODEAUTO", vr.ic.res);
     const nt = el("tr", "sub"); const ntd = el("td", "c-hint"); ntd.colSpan = 2;
-    ntd.textContent = "Débito de " + money(vr.ic.deb) + " (" + fmtN(vr.aliq * 100, 1) + "%) menos " + money(vr.icmsCred) + " de créditos (" + fmtN(vr.credRate * 100, 2) + "% sobre " + money(vr.credBase) + " de mercadorias e energia" + (Math.abs(vr.icmsAdj) >= 1 ? ", com ajuste de " + money(vr.icmsAdj) + " pelo ICMS da nota do motor" : "") + ") dá saldo de " + money(vr.ic.saldo) + "; ficam 6,9% dele.";
+    ntd.textContent = "Débito de " + money(vr.ic.deb) + " (" + fmtN(vr.aliq * 100, 1) + "%) menos " + money(vr.icmsCred) + " de créditos (" + fmtN(vr.credRate * 100, 2) + "% sobre " + money(vr.credBase) + " de mercadorias e energia" + (Math.abs(vr.icmsAdj) >= 1 ? ", com ajuste de " + money(vr.icmsAdj) + " pelo ICMS da nota do motor" : "") + ") dá saldo de " + money(vr.ic.saldo) + ". Pelo benefício, 95% do saldo vira crédito presumido: paga-se 5% do saldo mais 2% de taxa sobre o crédito (6,9% do saldo), ou seja, " + money(vr.ic.res) + ", que é " + pct(vr.ic.res / Math.max(1, vr.final)) + " do preço.";
     nt.appendChild(ntd); tb.appendChild(nt);
     trow("IPI (" + fmtN(vr.ipi * 100, 1) + "%, cobrado junto com o preço)", vr.ipiV);
     const ttot = el("tr", "tot"); ttot.append(el("td", "", "Total de impostos (" + pct((vr.impostos + vr.ipiV) / Math.max(1, vr.final)) + " do preço)"), el("td", "n", money(vr.impostos + vr.ipiV))); tb.appendChild(ttot);
@@ -3294,6 +3274,7 @@ body.gated { overflow: hidden; }
     { nome: "Zefir G600", comp: 6.0, motor: "Yamaha F150", cond: "Anúncio (estado não informado)", preco: 290000, fonte: "OLX", url: "https://www.olx.com.br/anuncios/bote-inflavel-com-motor" },
     { nome: "Bote P7", comp: 7.0, motor: "1x Mercury 150 hp Pro XS", cond: "2024, usado", preco: 250000, fonte: "Mercado Livre", url: "https://lista.mercadolivre.com.br/carros-motos-outros/nautica/embarcacao-inflavel-com-motor/" },
     { nome: "Capelli Tempest 750", comp: 7.44, boca: 2.94, motor: "250 cv", cond: "2021, usado, Portugal", moeda: "€", valor: 52000, fonte: "boat24", url: "https://www.boat24.com/pt/barcospneumaticos/barco-semi-rgido/?typ=2103" },
+    { nome: "Zefir 800 Full (parelha)", comp: 8.0, motor: "2 motores (parelha)", cond: "Novo, comprimento de 8 m pelo nome do modelo, orçamento de fábrica (bote R$ 255.300, equipamentos básicos R$ 32.000 e motores R$ 302.000); a tabela sugerida do bote sem motor é R$ 304.938,08", preco: 589300, fonte: "Orçamento Zefir enviado no grupo em 17/11/2026" },
     { nome: "Highfield 760 Sport", comp: 8.11, boca: 2.94, motor: "Honda BF250, alumínio", cond: "Novo, Reino Unido", moeda: "£", valor: 90700, fonte: "Yachtall", url: "https://www.yachtall.com/pt/barco/highfield-760-sport-s167580?print=1" }
   ];
   function fv(id, d) { const e = $(id); return e ? num(e.value) : d; }
@@ -3442,10 +3423,12 @@ body.gated { overflow: hidden; }
     let energia = 0; st.items.forEach((it) => { if (it.grupo === "estrutura" && /energia/i.test(it.item || "")) energia += lineTotal(it, sc); });
     const credRateA = loc * aliq + (1 - loc) * fora;
     const cred = (lines.reduce((s, l) => s + l.cred, 0) + energia) * credRateA + icmsAjuste(mid, A.kits, sc, credRateA);
-    const icmsRes = (fin) => Math.max(0, aliq * fin - cred) * (0.05 + 0.02 * 0.95);
+    const aliqV = aliqVenda(sc);
+    const icmsRes = (fin) => Math.max(0, aliqV * fin - cred) * (0.05 + 0.02 * 0.95);
     const ipiOn = (base) => Math.max(0, base) * ipi;
-    const resAt = (base) => base - taxFed(base, sc).total - icmsRes(base + ipiOn(base)) - custo;
-    const priceAll = (rate, ish) => { lines.forEach((l) => { l.preco = l.fixo != null ? l.fixo : (l.custosItens ? l.custosItens.reduce((s2, c, i) => { const fx = l.fixosItens ? l.fixosItens[i] : null; return s2 + (fx != null ? fx : up100(c * (l.fator || KIT_FATOR_AVULSO) / Math.max(0.05, 1 - rate - ish - l.m))); }, 0) : up100(l.custo / Math.max(0.05, 1 - rate - ish - l.m))); }); return lines.reduce((s, l) => s + l.preco, 0); };
+    const pv = r.pv || 0;   // marketing e pós-venda, % da venda: entram no preço como imposto e margem
+    const resAt = (base) => base - taxFed(base, sc).total - icmsRes(base + ipiOn(base)) - custo - base * pv;
+    const priceAll = (rate, ish) => { lines.forEach((l) => { l.preco = l.fixo != null ? l.fixo : (l.custosItens ? l.custosItens.reduce((s2, c, i) => { const fx = l.fixosItens ? l.fixosItens[i] : null; return s2 + (fx != null ? fx : up100(c * (l.fator || KIT_FATOR_AVULSO) / Math.max(0.05, 1 - rate - ish - pv - l.m))); }, 0) : up100(l.custo / Math.max(0.05, 1 - rate - ish - pv - l.m))); }); return lines.reduce((s, l) => s + l.preco, 0); };
     let S = priceAll(taxFed(custo * 1.3, sc).rate, icmsRes(custo * 1.3 * (1 + ipi)) / (custo * 1.3));
     const rate = taxFed(S, sc).rate, ish = S > 0 ? icmsRes(S * (1 + ipi)) / S : 0;
     S = priceAll(rate, ish);
@@ -3459,8 +3442,8 @@ body.gated { overflow: hidden; }
     }
     const desc = Math.min(Math.max(0, num(A.desc)), maxDesc);
     const base = S - desc, ipiV = ipiOn(base), total = base + ipiV;
-    const motorPrices = ms.map(([id, it]) => [id, it, up100(motCost(id) / Math.max(0.05, 1 - rate - ish - mm))]);
-    const optPrice = (c) => up100(c / Math.max(0.05, 1 - rate - ish - mg));
+    const motorPrices = ms.map(([id, it]) => [id, it, up100(motCost(id) / Math.max(0.05, 1 - rate - ish - pv - mm))]);
+    const optPrice = (c) => up100(c / Math.max(0.05, 1 - rate - ish - pv - mg));
     const resultado = resAt(base);
     return { sc, r, lines, S, desc, maxDesc, base, ipi, ipiV, total, mid, motorPrices, optPrice, resultado, margem: total > 0 ? resultado / total : null, minR, custo, mg, mm };
   }
@@ -4080,7 +4063,8 @@ body.gated { overflow: hidden; }
     para([["CLÁUSULA 1ª. ", true], ["Este contrato tem por objeto a fabricação e a venda de uma embarcação de esporte e recreio, fabricante ESTALEIRO EURONAV, modelo ", false], ["EURO SETTE", true], [", ano de fabricação ", false], [String(f.ano), true], [", entregue com os seus itens de série e com a configuração e os valores do quadro abaixo:", false]]);
     q.lines.forEach((l, i) => {
       let nome = l.nome;
-      if (l.key === "casco") nome += " (7,75 m de comprimento, 3,05 m de boca, tubos em " + (q.lines.some((x) => x.key === "hyp") ? "Hypalon Orca" : "PVC Sansuy") + ", itens de série)";
+      if (l.key === "casco") nome += " (7,75 m de comprimento, 3,05 m de boca, tubos em " + (q.lines.some((x) => x.key === "hyp") ? "Hypalon Orca 828" : "PVC Sansuy") + ", itens de série)";
+      else if (l.key === "hyp") nome = "Tubos em Hypalon Orca 828, no lugar do PVC Sansuy";
       else if (l.parcial) nome += ": " + listaTxt(l.avulsos.map(frase));
       else if (kitDesc[l.key]) nome += " (" + kitDesc[l.key].replace(/\.$/, "").replace(/^./, (c) => c.toLowerCase()) + ")";
       row(nome, l.incluso ? "Incluído" : m2(l.preco), { fill: i % 2 === 0 });
@@ -4287,6 +4271,7 @@ body.gated { overflow: hidden; }
     q.lines.forEach((l) => {
       if (l.key === "motor") return;
       if (l.key === "casco") out.push(Object.assign({}, l, { nome: "Euro Sette com motor " + mn, preco: casco.preco + motor.preco, sub: "Autêntico RIB de 7,75 m por 3,05 m, tubos em PVC Sansuy, " + (serieTxt() ? "com " + serieTxt() + " de série, " : "") + "e motor de popa " + mn + mSpec + ", com garantia do fabricante." }));
+      else if (l.key === "hyp") out.push(Object.assign({}, l, { nome: "Tubos em Hypalon Orca" }));
       else out.push(l);
     });
     out.push({ key: "cores", nome: "Cores: " + coresTxt(), sub: "Personalização sem custo adicional.", incluso: true });
@@ -5874,7 +5859,7 @@ body.gated { overflow: hidden; }
       marca: /yamaha/i.test(nomeM) ? "YAMAHA" : "MERCURY", mastro: b3dTemItem(/mastro de bandeira/i)
     });
   }
-  function recalc() { syncKits(); renderKitNomes(); renderResult(); renderCompare(); renderOpps(); renderLabor(); renderGroups(); renderKitNomes(); renderVenda(); renderFicha(); renderAtend(); renderCRM(); }
+  function recalc() { syncKits(); renderKitNomes(); renderResult(); renderOpps(); renderLabor(); renderGroups(); renderKitNomes(); renderVenda(); renderFicha(); renderAtend(); renderCRM(); }
   function renderAll() { renderScenList(); fillParams(); recalc(); const nb = $("c-scen-new"); if (nb) nb.disabled = !st.scol || !st.canWrite; }
 
   function addItem(grupo) {
@@ -5965,7 +5950,7 @@ body.gated { overflow: hidden; }
     if (e.type === "checkbox" || e.tagName === "SELECT") {
       e.addEventListener("change", () => { upd(); recalc(); renderScenList(); const id = st.sel; if (st.scol && id) enqueue("s:" + id, () => st.scol.doc(id).update({ [k]: val() })); });
     } else {
-      e.addEventListener("input", () => { upd(); if (k === "nome") { renderScenList(); renderCompare(); renderVenda(); } else recalc(); });
+      e.addEventListener("input", () => { upd(); if (k === "nome") { renderScenList(); renderVenda(); } else recalc(); });
       e.addEventListener("change", () => { const id = st.sel; if (st.scol && id) enqueue("s:" + id, () => st.scol.doc(id).update({ [k]: val() })); });
     }
   });
