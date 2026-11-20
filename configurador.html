@@ -2,7 +2,6 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<meta name="theme-color" content="#0e0f11">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Euro Sette · Configurador</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -141,6 +140,7 @@ button { font: inherit; color: inherit; }
 .fim-acoes .bt[aria-disabled=true] { opacity: .5; pointer-events: none; }
 .fim-acoes .bt.wa { background: #1FA855; border-color: #1FA855; color: #fff; }
 .fim-acoes .bt.wa:disabled { opacity: .5; cursor: default; }
+.fim-status { margin: 10px 0 0; font-size: .82rem; color: #A9AFB8; }
 .fim-nota { margin: 10px 0 0; font-size: .78rem; color: #A9AFB8; }
 body.vitrine .top, body.vitrine .barra .espaco ~ * { display: none; }
 body.vitrine .app { height: 100%; }
@@ -291,7 +291,8 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
     <div class="fim-top"><h2>Seu Euro Sette</h2><button class="fim-x" type="button" id="fim-x" aria-label="Fechar">×</button></div>
     <div class="fim-img"><img id="fim-foto" alt=""><span class="fim-car" id="fim-car" role="status">Gerando a imagem…</span></div>
     <div class="fim-ang" id="fim-ang" role="group" aria-label="Ângulo da imagem"></div>
-    <div class="fim-acoes"><a class="bt forte" id="fim-baixar" download="euro-sette.jpg">Baixar imagem</a><button class="bt wa" type="button" id="fim-wa" disabled>Enviar pelo WhatsApp</button><button class="bt" type="button" id="fim-share" hidden>Compartilhar</button></div>
+    <div class="fim-acoes"><a class="bt forte" id="fim-baixar" download="euro-sette.jpg">Baixar imagem</a><button class="bt wa" type="button" id="fim-wa" disabled>Enviar as 4 imagens pelo WhatsApp</button><button class="bt" type="button" id="fim-share" hidden>Compartilhar</button></div>
+    <p class="fim-status" id="fim-status" role="status" hidden></p>
     <p class="fim-nota" id="fim-nota" hidden></p>
     <p class="fim-nota">Imagem ilustrativa, gerada a partir do modelo 3D do projeto. Cores e detalhes podem variar no barco real.</p>
   </div>
@@ -333,12 +334,12 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
     { nome: "Bordô", sub: "Marfim, piso madeira e capota vinho", est: "Marfim", piso: "Madeira", li: "Branco", tubo: "pvc", ct: "cinza", cap: "Vinho" },
     { nome: "Marinho", sub: "Ice Gray, tubos e capota azul marinho", est: "Ice Gray", piso: "Cinza", li: "Branco", tubo: "pvc", ct: "marinho", cap: "Azul" },
     { nome: "Pérola", sub: "Branco Ultra, piso cinza, capota bege", est: "Branco Ultra", piso: "Cinza", li: "Branco", tubo: "pvc", ct: "cinza", cap: "Bege" },
+    { nome: "Wolf", sub: "Marfim, piso madeira, capota azul, tubos claros e Mercury 150", est: "Marfim", piso: "Madeira", li: "Branco", tubo: "pvc", ct: "cinza", cap: "Azul", motor: "mercury", hp: 150, vv: false },
     { nome: "Caramelo", sub: "Estofado caramelo, piso cinza e capota bege", est: "Caramelo", piso: "Cinza", li: "Branco", tubo: "pvc", ct: "cinza", cap: "Bege" },
     { nome: "Areia", sub: "Areia, piso madeira, capota cinza", est: "Areia", piso: "Madeira", li: "Branco", tubo: "pvc", ct: "bege", cap: "Cinza" },
     { nome: "Royal", sub: "Branco, tubos azul royal e capota azul", est: "Branco Ultra", piso: "Cinza", li: "Branco", tubo: "pvc", ct: "royal", cap: "Azul" },
     { nome: "Noite", sub: "Taupe com piso, tubos e capota pretos", est: "Taupe", piso: "Preto", li: "Branco", tubo: "pvc", ct: "preto", cap: "Preto" },
-    { nome: "Creme", sub: "Hypalon Off white, marfim e capota bege", est: "Marfim", piso: "Madeira", li: "Branco", tubo: "hyp", ct: "creme", cap: "Bege" },
-    { nome: "Wolf", sub: "Marfim, piso madeira, capota azul, tubos claros e Mercury 150", est: "Marfim", piso: "Madeira", li: "Branco", tubo: "pvc", ct: "cinza", cap: "Azul", motor: "mercury", hp: 150, vv: false }
+    { nome: "Creme", sub: "Hypalon Off white, marfim e capota bege", est: "Marfim", piso: "Madeira", li: "Branco", tubo: "hyp", ct: "creme", cap: "Bege" }
   ];
   const COMBOS_PRINC = 5;
   const VISTAS = [["360", "360°"], ["popa", "Popa"], ["cockpit", "Cockpit"], ["proa", "Proa"], ["tubo", "Tubulão"]];
@@ -797,7 +798,7 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
       const txt = String(nm).toUpperCase(), fam = "'Saira', 'Arial Black', Arial, sans-serif", esp = 0.09; let fs = 150;
       const larg = (f) => { gnNome.font = "italic 800 " + f + "px " + fam; let w = 0; for (const ch of txt) w += gnNome.measureText(ch).width + f * esp; return w - f * esp; };
       while (fs > 40 && larg(fs) > cnNome.width - 60) fs -= 4;
-      gnNome.font = "italic 800 " + fs + "px " + fam; gnNome.fillStyle = "#454A52"; gnNome.textBaseline = "alphabetic"; let x = (cnNome.width - larg(fs)) / 2; for (const ch of txt) { gnNome.fillText(ch, x, cnNome.height * 0.5 + fs * 0.36); x += gnNome.measureText(ch).width + fs * esp; }
+      gnNome.font = "italic 800 " + fs + "px " + fam; gnNome.fillStyle = "#FFFFFF"; gnNome.textBaseline = "alphabetic"; let x = (cnNome.width - larg(fs)) / 2; for (const ch of txt) { gnNome.fillText(ch, x, cnNome.height * 0.5 + fs * 0.36); x += gnNome.measureText(ch).width + fs * esp; }
       txNome.needsUpdate = true;
     };
     try { if (document.fonts && document.fonts.load) document.fonts.load("italic 800 100px Saira").then(() => { if (nomeAtual) desenhaNome(nomeAtual); }).catch(() => {}); } catch (e) { /* segue com a fonte reserva */ }
@@ -878,7 +879,7 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
       { // faixas do nome sobre o tubulão: cada faixa é um plano reto (o texto fica em linha reta), ajustado por mínimos quadrados à superfície medida por raios laterais
       const tubos = []; real.traverse((o) => { if (o.isMesh && o.material === matR.tubo) tubos.push(o); }); real.updateMatrixWorld(true);
       const rc = new T.Raycaster(), X0 = 5.93, X1 = 6.5, ALT = 0.085, NX = 14, NY = 3, media = (v) => v.reduce((p, q) => p + q, 0) / v.length;
-      const matNome = new T.MeshStandardMaterial({ map: txNome, transparent: true, roughness: 0.45, metalness: 0, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 });
+      const matNome = matR.pvc.clone(); matNome.map = txNome; matNome.transparent = true; matNome.depthWrite = false; matNome.polygonOffset = true; matNome.polygonOffsetFactor = -2; matNome.side = T.FrontSide; matR.nome = matNome;   // mesmo material do EURO SETTE e do 7: cinza no tubulão claro, branco nos outros
       let desvioMax = 0;
       [1, -1].forEach((lado) => {
         const dw = new T.Vector3(0, 0, -lado).transformDirection(real.matrixWorld), lance = (x, y) => { rc.set(real.localToWorld(new T.Vector3(x, y, lado * 3)), dw); return rc.intersectObjects(tubos, false)[0]; }, zDe = (h) => Math.abs(real.worldToLocal(h.point.clone()).z);
@@ -911,7 +912,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
       const pp = o.pisoHex ? [o.pisoHex, o.listraHex || "#E6E4DE"] : (B3D_PISO[o.piso] || B3D_PISO.Cinza); matR.piso.color.copy(C(pp[0])); matR.friso.color.copy(C(pp[1]));
       const tb = new T.Color(o.tuboCor || "#ecebe2"); matR.tubo.color.copy(C(tb.getHex()));
       // regra da projetista: acessórios de PVC cinza no tubulão claro (cinza claro ou branco gelo) e brancos nos tubulões de outras cores
-      matR.pvc.color.copy(C(["e6eaed", "c9c6b8"].includes(tb.getHexString().toLowerCase()) ? 0x8B8F95 : 0xF4F4F2));
+      matR.pvc.color.copy(C(["e6eaed", "c9c6b8"].includes(tb.getHexString().toLowerCase()) ? 0x8B8F95 : 0xF4F4F2)); if (matR.nome) matR.nome.color.copy(matR.pvc.color);
       gR.mesa.visible = !o.solario; gR.sol.visible = !!o.solario; gR.guincho.visible = !!o.guincho; gR.capProa.visible = !!o.capProa && !B3D.semCapota; gR.capPopa.visible = !B3D.semCapota; gR.churr.visible = !!o.churr; gR.gps.visible = !!o.gps; gR.mastro.visible = o.mastro !== false;
     { const nm = String(o.nome || ""); gR.nome.visible = !!nm; if (nm !== nomeAtual) desenhaNome(nm); }
     };
@@ -986,7 +987,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
       B3D.foto = async (o) => {
         o = Object.assign({ w: 1600, h: 1000, ang: -0.62, incl: -0.2, zoom: 0.84, mira: 0.22, ss: 1.25, tema: "dark", amostras: 0, aoProgresso: null }, o || {});
         const es = montaEstudio(), escuro = o.tema !== "light", hemi = cena.children.find((x) => x.isHemisphereLight), lin = (hex) => new T.Color(hex).convertSRGBToLinear();
-        const ant = { pr: ren.getPixelRatio(), ang, incl, zoom, kAsp, asp: cam.aspect, env: cena.environment, fundo: cena.background, exp: ren.toneMappingExposure, mapa: sol.shadow.mapSize.x, foco: foco.clone(), hemi: hemi ? hemi.intensity : 0, pulso,
+        const ant = { fov: cam.fov, pr: ren.getPixelRatio(), ang, incl, zoom, kAsp, asp: cam.aspect, env: cena.environment, fundo: cena.background, exp: ren.toneMappingExposure, mapa: sol.shadow.mapSize.x, foco: foco.clone(), hemi: hemi ? hemi.intensity : 0, pulso,
           solP: sol.position.clone(), solI: sol.intensity, solR: sol.shadow.radius, rimI: rim.intensity, chaoO: chao.material.opacity, chaoV: chao.visible, pausa: B3D.pausa };
         B3D.fotografando = true; const out = document.createElement("canvas"); out.width = o.w; out.height = o.h;
         try {
@@ -1000,6 +1001,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
           const lado = Math.min(4096, ren.capabilities.maxTextureSize || 2048); if (sol.shadow.mapSize.x !== lado) { sol.shadow.mapSize.set(lado, lado); if (sol.shadow.map) { sol.shadow.map.dispose(); sol.shadow.map = null; } }
           const W = Math.round(o.w * o.ss), H = Math.round(o.h * o.ss);
           ren.setPixelRatio(1); ren.setSize(W, H, false); cam.aspect = W / H; kAsp = Math.max(1, 1.62 / cam.aspect); cam.updateProjectionMatrix(); posCam();
+          if (o.cam && real.visible) { real.updateMatrixWorld(true); cam.position.copy(real.localToWorld(new T.Vector3(o.cam.pos[0], o.cam.pos[1], o.cam.pos[2]))); cam.up.set(0, 1, 0); cam.lookAt(real.localToWorld(new T.Vector3(o.cam.alvo[0], o.cam.alvo[1], o.cam.alvo[2]))); if (o.cam.fov) cam.fov = o.cam.fov; cam.updateProjectionMatrix(); }   // câmera livre (cockpit), só no modelo realista
           es.fill.position.copy(cam.position); es.fill.position.y = Math.max(0.6, cam.position.y * 0.35);
           const acc = document.createElement("canvas"); acc.width = W; acc.height = H; const ax = acc.getContext("2d");
           const K = ant.solP.clone().normalize(), tx = new T.Vector3(0, 1, 0).cross(K).normalize(), ty = K.clone().cross(tx).normalize(), D = ant.solP.length();
@@ -1017,7 +1019,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
           // vinheta de estúdio: o centro fica como está e as bordas escurecem um pouco
           x2.globalCompositeOperation = "multiply"; const vg = x2.createRadialGradient(o.w * 0.5, o.h * 0.54, o.w * 0.22, o.w * 0.5, o.h * 0.54, o.w * 0.78); vg.addColorStop(0, "#ffffff"); vg.addColorStop(1, escuro ? "#8a8a8a" : "#e6e8ec"); x2.fillStyle = vg; x2.fillRect(0, 0, o.w, o.h); x2.globalCompositeOperation = "source-over";
         } finally {
-          cam.clearViewOffset(); es.ceu.visible = false; es.fill.visible = false; es.piso.visible = false; chao.visible = ant.chaoV; if (ant.chaoY !== undefined) chao.position.y = ant.chaoY; cena.environment = ant.env; cena.background = ant.fundo; if (hemi) hemi.intensity = ant.hemi; rim.intensity = ant.rimI; sol.intensity = ant.solI; sol.shadow.radius = ant.solR; sol.position.copy(ant.solP); chao.material.opacity = ant.chaoO; ren.toneMappingExposure = ant.exp;
+          cam.clearViewOffset(); cam.fov = ant.fov; cam.updateProjectionMatrix(); es.ceu.visible = false; es.fill.visible = false; es.piso.visible = false; chao.visible = ant.chaoV; if (ant.chaoY !== undefined) chao.position.y = ant.chaoY; cena.environment = ant.env; cena.background = ant.fundo; if (hemi) hemi.intensity = ant.hemi; rim.intensity = ant.rimI; sol.intensity = ant.solI; sol.shadow.radius = ant.solR; sol.position.copy(ant.solP); chao.material.opacity = ant.chaoO; ren.toneMappingExposure = ant.exp;
           if (sol.shadow.mapSize.x !== ant.mapa) { sol.shadow.mapSize.set(ant.mapa, ant.mapa); if (sol.shadow.map) { sol.shadow.map.dispose(); sol.shadow.map = null; } }
           ang = ant.ang; incl = ant.incl; zoom = ant.zoom; foco.copy(ant.foco); pulso = ant.pulso; ren.setPixelRatio(ant.pr); B3D.fotografando = false; tamanho();
         }
@@ -1392,8 +1394,8 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
   }
   function sairVitrine() { if (!vt) return; clearInterval(vt); vt = null; document.body.classList.remove("vitrine"); try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) { /* ignora */ } }
   // ---------- imagem final: render de estúdio do 3D, no fundo do tema atual (escuro ou claro), com a marca e o resumo ----------
-  const ANGULOS = [["proa", "Proa", { ang: -0.62, incl: -0.2, zoom: 0.84 }], ["popa", "Popa", { ang: 2.52, incl: -0.2, zoom: 0.84 }], ["lado", "Lateral", { ang: 0, incl: -0.3, zoom: 0.95 }]];
-  const fim = { cache: new Map(), ang: "proa", item: null, pedido: 0, ocupado: false };
+  const ANGULOS = [["proa", "Proa", { ang: -0.62, incl: -0.2, zoom: 0.84 }], ["popa", "Popa", { ang: 2.52, incl: -0.2, zoom: 0.84 }], ["lado", "Lateral", { ang: 0, incl: -0.3, zoom: 0.95 }], ["cockpit", "Cockpit", { ang: 2.9, incl: -0.45, zoom: 0.62, cam: { pos: [2.8, 2.0, 0.45], alvo: [4.0, 1.55, 0.0], fov: 46 } }]];
+  const fim = { cache: new Map(), ang: "proa", item: null, pedido: 0, fila: Promise.resolve(), aberto: false, preparando: false, falhou: false };
   const esperar3D = () => new Promise((ok, erro) => { carregar3D(); const t1 = Date.now(); (function ver() { if (B3D.estado === "pronto" && B3D.foto && (B3D.realOk || Date.now() - t1 > 12000)) return ok(); if (B3D.estado === "erro" || Date.now() - t1 > 45000) return erro(new Error("3d")); setTimeout(ver, 250); })(); });
   function fimAssinar(cv, tema) {   // marca, resumo das escolhas e aviso, na cor certa para cada fundo
     const x = cv.getContext("2d"), W = cv.width, H = cv.height, fam = getComputedStyle(document.querySelector(".titulo h1")).fontFamily || "Arial, sans-serif", cor = tema === "light" ? "#15171A" : "#FFFFFF";
@@ -1403,37 +1405,57 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
     x.font = "600 26px Inter, Arial, sans-serif"; x.fillText(l1, 46, H - 86); x.fillText(l2, 46, H - 48);
     x.font = "400 17px Inter, Arial, sans-serif"; x.globalAlpha = 0.6; x.textAlign = "right"; x.fillText("Imagem ilustrativa do modelo 3D", W - 44, H - 48); x.textAlign = "left"; x.globalAlpha = 1;
   }
-  async function fimGerar(k) {
-    const tema = document.documentElement.dataset.theme === "light" ? "light" : "dark", chave = k + "|" + tema + "|" + hashAtual(), car = $("fim-car"), bx = $("fim-baixar"), bts = document.querySelectorAll("#fim-ang button");
-    let it = fim.cache.get(chave);
-    if (!it && fim.ocupado) return;                                     // um render por vez
-    fim.ang = k; const meu = ++fim.pedido; bts.forEach((b) => pressionado(b, b.dataset.a === k)); $("fim").dataset.tema = tema;
+  const fimTema = () => (document.documentElement.dataset.theme === "light" ? "light" : "dark");
+  const fimCh = (k) => k + "|" + fimTema() + "|" + hashAtual();
+  async function fimRender(k, aoProg) {   // devolve a imagem da vista k (gera se faltar); uma geração por vez, em fila
+    const chave = fimCh(k), tema = fimTema(); if (fim.cache.has(chave)) return fim.cache.get(chave);
+    fim.fila = fim.fila.catch(() => {}).then(async () => {
+      if (fim.cache.has(chave)) return;
+      await esperar3D(); b3dAtualizar(); await new Promise((ok) => setTimeout(ok, 420));   // tempo para as cores e os itens entrarem no modelo
+      const cv = await B3D.foto(Object.assign({ w: 1600, h: 1000, ss: 1.25, tema, amostras: window.__FOTO_AMOSTRAS || 0, aoProgresso: aoProg }, ANGULOS.find((a) => a[0] === k)[2])); fimAssinar(cv, tema);
+      const blob = await new Promise((ok) => cv.toBlob(ok, "image/jpeg", 0.93)); fim.cache.set(chave, { url: URL.createObjectURL(blob), blob });
+    });
+    await fim.fila; return fim.cache.get(chave);
+  }
+  function fimAtualizaWa() {
+    const tot = ANGULOS.length, n = ANGULOS.filter(([k]) => fim.cache.has(fimCh(k))).length, wa = $("fim-wa"), sts = $("fim-status"), pronto = n === tot || (!fim.preparando && n > 0);
+    wa.disabled = !pronto; wa.textContent = n === tot ? "Enviar as " + tot + " imagens pelo WhatsApp" : (pronto ? "Enviar as " + n + " imagens pelo WhatsApp" : "Preparando as imagens… " + n + " de " + tot);
+    sts.hidden = n === tot; if (n !== tot && !fim.preparando) sts.textContent = fim.falhou ? "Algumas vistas não puderam ser geradas neste aparelho." : "";
+  }
+  async function fimMostrar(k) {
+    const tema = fimTema(), car = $("fim-car"), bx = $("fim-baixar"), bts = document.querySelectorAll("#fim-ang button");
+    fim.ang = k; const meu = ++fim.pedido; bts.forEach((b) => pressionado(b, b.dataset.a === k)); $("fim").dataset.tema = tema; $("fim-nota").hidden = true;
+    let it = fim.cache.get(fimCh(k));
     if (!it) {
-      fim.ocupado = true; bts.forEach((b) => { b.disabled = true; }); car.textContent = "Preparando o render…"; car.hidden = false; bx.setAttribute("aria-disabled", "true"); $("fim-wa").disabled = true; $("fim-nota").hidden = true;
-      try {
-        await esperar3D(); b3dAtualizar(); await new Promise((ok) => setTimeout(ok, 420));   // tempo para as cores e os itens entrarem no modelo
-        const cv = await B3D.foto(Object.assign({ w: 1600, h: 1000, ss: 1.25, tema, amostras: window.__FOTO_AMOSTRAS || 0, aoProgresso: (f) => { car.textContent = "Renderizando a imagem… " + Math.round(f * 100) + "%"; } }, ANGULOS.find((a) => a[0] === k)[2])); fimAssinar(cv, tema);
-        const blob = await new Promise((ok) => cv.toBlob(ok, "image/jpeg", 0.93)); it = { url: URL.createObjectURL(blob), blob }; fim.cache.set(chave, it);
-      } catch (e) { car.textContent = "Não foi possível gerar a imagem neste aparelho. Use a vista 360° do configurador."; return; }
-      finally { fim.ocupado = false; bts.forEach((b) => { b.disabled = false; }); }
+      car.textContent = "Preparando o render…"; car.hidden = false; bx.setAttribute("aria-disabled", "true");
+      try { it = await fimRender(k, (f) => { if (meu === fim.pedido) car.textContent = "Renderizando a imagem… " + Math.round(f * 100) + "%"; }); } catch (e) { if (meu === fim.pedido) car.textContent = "Não foi possível gerar a imagem neste aparelho. Use a vista 360° do configurador."; return; }
     }
     if (meu !== fim.pedido) return;
     fim.item = it; $("fim-foto").src = it.url; $("fim-foto").alt = "Imagem de estúdio do Euro Sette, vista " + k + ", com as cores escolhidas"; car.hidden = true;
-    bx.href = it.url; bx.download = "euro-sette-" + k + ".jpg"; bx.removeAttribute("aria-disabled"); $("fim-wa").disabled = false;
-    const arq = new File([it.blob], "euro-sette-" + k + ".jpg", { type: "image/jpeg" }); $("fim-share").hidden = !(navigator.canShare && navigator.canShare({ files: [arq] }));
+    bx.href = it.url; bx.download = "euro-sette-" + k + ".jpg"; bx.removeAttribute("aria-disabled");
+    const arq = new File([it.blob], "euro-sette-" + k + ".jpg", { type: "image/jpeg" }); $("fim-share").hidden = !(navigator.canShare && navigator.canShare({ files: [arq] })); fimAtualizaWa();
   }
-  // WhatsApp: abre a folha de compartilhamento do aparelho já com a imagem e o texto, para o cliente encaminhar a quem quiser
+  async function fimPreparaTodas() {   // gera as outras vistas em segundo plano, para o WhatsApp poder enviar as quatro de uma vez
+    if (fim.preparando) return; fim.preparando = true; fim.falhou = false; fimAtualizaWa();
+    for (const [k, nome] of ANGULOS) {
+      if (!fim.aberto) break; if (fim.cache.has(fimCh(k))) continue;
+      try { await fimRender(k, (f) => { const n = ANGULOS.filter(([k2]) => fim.cache.has(fimCh(k2))).length; $("fim-status").hidden = false; $("fim-status").textContent = "Preparando as " + ANGULOS.length + " vistas para o WhatsApp: " + n + " de " + ANGULOS.length + " prontas (vista " + nome + ", " + Math.round(f * 100) + "%)."; }); } catch (e) { fim.falhou = true; }
+      fimAtualizaWa();
+    }
+    fim.preparando = false; fimAtualizaWa();
+  }
+  // WhatsApp: abre a folha de compartilhamento do aparelho com as quatro imagens e o texto, para o cliente encaminhar a quem quiser
   const TEXTO_WHATS = "Veja o Euronav que configurei!";
   async function fimWhats() {
-    if (!fim.item) return; const nome = "euro-sette-" + fim.ang + ".jpg", arq = new File([fim.item.blob], nome, { type: "image/jpeg" }), nota = $("fim-nota");
-    try { if (navigator.canShare && navigator.canShare({ files: [arq] })) { await navigator.share({ files: [arq], text: TEXTO_WHATS }); return; } } catch (e) { if (e && e.name === "AbortError") return; }
-    // sem compartilhamento de arquivos (computador): baixa a imagem e abre o WhatsApp com o texto
-    const a = document.createElement("a"); a.href = fim.item.url; a.download = nome; document.body.appendChild(a); a.click(); a.remove();
-    window.open("https://wa.me/?text=" + encodeURIComponent(TEXTO_WHATS), "_blank", "noopener"); nota.textContent = "A imagem foi baixada. Anexe no WhatsApp para enviar."; nota.hidden = false;
+    const itens = ANGULOS.map(([k]) => [k, fim.cache.get(fimCh(k))]).filter(([, it]) => it); if (!itens.length) return;
+    const arqs = itens.map(([k, it]) => new File([it.blob], "euro-sette-" + k + ".jpg", { type: "image/jpeg" })), nota = $("fim-nota");
+    try { if (navigator.canShare && navigator.canShare({ files: arqs })) { await navigator.share({ files: arqs, text: TEXTO_WHATS }); return; } } catch (e) { if (e && e.name === "AbortError") return; }
+    itens.forEach(([k, it], i) => setTimeout(() => { const a = document.createElement("a"); a.href = it.url; a.download = "euro-sette-" + k + ".jpg"; document.body.appendChild(a); a.click(); a.remove(); }, i * 350));   // computador: baixa as imagens e abre o WhatsApp com o texto
+    window.open("https://wa.me/?text=" + encodeURIComponent(TEXTO_WHATS), "_blank", "noopener"); nota.textContent = "As imagens foram baixadas. Anexe no WhatsApp para enviar."; nota.hidden = false;
   }
-  function fimAbrir() { $("fim").hidden = false; document.body.style.overflow = "hidden"; fimGerar(fim.ang); }
-  function fimFechar() { $("fim").hidden = true; document.body.style.overflow = ""; if (!fim.ocupado) fim.pedido++; }
-  { const ha = $("fim-ang"); ANGULOS.forEach(([k, n]) => { const b = document.createElement("button"); b.type = "button"; b.dataset.a = k; b.textContent = n; b.addEventListener("click", () => fimGerar(k)); ha.appendChild(b); });
+  function fimAbrir() { fim.aberto = true; $("fim").hidden = false; document.body.style.overflow = "hidden"; fimMostrar(fim.ang).then(fimPreparaTodas); }
+  function fimFechar() { fim.aberto = false; $("fim").hidden = true; document.body.style.overflow = ""; fim.pedido++; }
+  { const ha = $("fim-ang"); ANGULOS.forEach(([k, n]) => { const b = document.createElement("button"); b.type = "button"; b.dataset.a = k; b.textContent = n; b.addEventListener("click", () => fimMostrar(k)); ha.appendChild(b); });
     $("b-final").addEventListener("click", fimAbrir); $("fim-x").addEventListener("click", fimFechar);
     $("fim").addEventListener("click", (e) => { if (e.target === $("fim")) fimFechar(); });
     document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("fim").hidden) fimFechar(); });
