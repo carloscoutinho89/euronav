@@ -5866,7 +5866,7 @@ if (pt.est) {   // o estofado do modelo é uma peça só: separa o assento do ni
   const gA = new T.ExtrudeGeometry(sh, { depth: 0.024, bevelEnabled: true, bevelThickness: 0.004, bevelSize: 0.004, bevelSegments: 2, curveSegments: 40 }); gA.rotateX(-Math.PI / 2);
   const assento = new T.Mesh(gA, assentoM); assento.position.set(0, Y0 + 0.262, ZB); vaso.add(assento);
   const agua = new T.Mesh(new T.CircleGeometry(0.06, 28), aguaM); agua.rotation.x = -Math.PI / 2; agua.scale.set(1, 1.2, 1); agua.position.set(0, Y0 + 0.125, ZB); vaso.add(agua);
-  vaso.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } }); gR.vaso.add(vaso); gR.vaso.position.set(3.94, 0.322, 0); gR.vaso.visible = false;
+  vaso.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } }); gR.vaso.add(vaso); gR.vaso.position.set(4.3, 0.322, 0.262); gR.vaso.visible = false;
 }
       if (pt.lona) malha(pt.lona, matR.lona, gR.capPopa); if (pt.lonalogo) malha(pt.lonalogo, matR.lonalogo, gR.capPopa); if (pt.caparm) malha(pt.caparm, matR.inox, gR.capPopa);
       if (pt.vidro) malha(pt.vidro, mat.vidro).castShadow = false;
@@ -6013,13 +6013,13 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
       // ---- Ver banheiro: o assento do nicho do console (virado para a proa) levanta e some, e a câmera vai de frente para o compartimento ----
       let nivelBan = 0, tw = null, salvo = null;
       const lerp = (a, b, k) => a + (b - a) * k, suave = (k) => k * k * (3 - 2 * k);
-      const aplicaNivel = (n) => { const g = gR.cadeira; if (!g) return; g.rotation.z = 1.45 * n; /* a porta pivota em torno da dobradiça (alto do encosto) e fica levantada */ const gv = gR.vaso; if (gv) { const f = Math.min(1, Math.max(0, (n - 0.45) / 0.45)); (matR.vasoMats || []).forEach((m) => { m.opacity = f; const tr = f < 0.999; if (m.transparent !== tr) { m.transparent = tr; m.needsUpdate = true; } }); gv.visible = f > 0.01; } };
+      const aplicaNivel = (n) => { const g = gR.cadeira; if (!g) return; g.rotation.z = 2.27 * n; /* a porta pivota em torno da dobradiça (alto do encosto) e fica levantada */ const gv = gR.vaso; if (gv) { const f = Math.min(1, Math.max(0, (n - 0.45) / 0.45)); (matR.vasoMats || []).forEach((m) => { m.opacity = f; const tr = f < 0.999; if (m.transparent !== tr) { m.transparent = tr; m.needsUpdate = true; } }); gv.visible = f > 0.01; } };
       B3D.verBanheiro = (on, instante) => {
         on = !!on; if (!B3D.realOk || !gR.cadeira) return; if (on === !!B3D.banheiro && !tw) return;
         const de = { ang, incl, zoom, foco: foco.clone(), n: nivelBan }; let para;
         if (on) {
           if (!B3D.banheiro) salvo = { ang, incl, zoom, foco: foco.clone(), pausa: !!B3D.pausa };
-          giro.updateMatrixWorld(true); para = { ang: -1.42 + 6.2832 * Math.round((ang + 1.42) / 6.2832), incl: 0.0, zoom: 0.21, foco: giro.worldToLocal(real.localToWorld(new T.Vector3(4.25, 0.95, 0))), n: 1 }; B3D.pausa = true;
+          giro.updateMatrixWorld(true); para = { ang: -1.8 + 6.2832 * Math.round((ang + 1.8) / 6.2832), incl: 0.3, zoom: 0.2, foco: giro.worldToLocal(real.localToWorld(new T.Vector3(4.3, 0.85, 0))), n: 1 }; B3D.pausa = true;
         } else { para = salvo ? { ang: salvo.ang + 6.2832 * Math.round((ang - salvo.ang) / 6.2832), incl: salvo.incl, zoom: salvo.zoom, foco: salvo.foco, n: 0 } : { ang, incl, zoom, foco: foco.clone(), n: 0 }; if (salvo) B3D.pausa = salvo.pausa; }
         B3D.banheiro = on; if (B3D.btBanheiro) { B3D.btBanheiro.textContent = on ? "Fechar banheiro" : "Ver banheiro"; B3D.btBanheiro.setAttribute("aria-pressed", String(on)); }
         reap(); tw = { t0: performance.now() - (instante ? 5000 : 0), dur: 1150, de, para }; ultimo = performance.now(); B3D.tweenBanheiro();
