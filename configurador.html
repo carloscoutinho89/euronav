@@ -158,6 +158,10 @@ body.com-precos #sec-opc, body.com-precos #sec-motor, body.com-precos #resumo, b
 .orc-det summary { cursor: pointer; padding: 6px 0; }
 .orc-det ul { margin: 2px 0 8px; padding-left: 18px; line-height: 1.5; }
 .orc-mais { margin-top: 4px; }
+.nb { margin-bottom: 14px; } .nb-bt { width: 100%; }
+.nb-campo { margin-top: 8px; }
+.nb-campo input { width: 100%; font: inherit; padding: 12px; border: 1px solid var(--line); border-radius: 4px; background: var(--card); color: inherit; text-transform: uppercase; letter-spacing: .06em; }
+.nb-campo .dica { margin: 4px 0 0; }
 .mt-passo { margin: 0 0 12px; }
 .mt-t { margin: 0 0 6px; font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
 .mt-grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
@@ -222,6 +226,7 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
     <div class="orc-barra" id="orc-barra"><span>Valor total · impostos incluídos</span><b id="orc-total">–</b></div>
   </section>
   <aside class="painel" aria-label="Personalização">
+    <div class="sec nb" id="sec-nb"><button class="opt nb-bt" type="button" id="nb-bt" aria-pressed="false"><span>Dar um nome ao barco<small>Opcional. O nome aparece nos tubulões, na proa.</small></span><i class="sw"></i></button><div class="nb-campo" id="nb-campo" hidden><input id="nb-in" type="text" maxlength="20" placeholder="Nome do barco" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Nome do barco"><p class="dica">Até 20 letras.</p></div></div>
     <div class="sec"><h2>Combinações</h2><div class="combos" id="combos"></div></div>
     <div class="sec"><h2>Estofado <b id="n-est"></b></h2><div class="dots" id="d-est" role="group" aria-label="Cor do estofado"></div></div>
     <div class="sec"><h2>Piso em EVA <b id="n-piso"></b></h2><div class="dots" id="d-piso" role="group" aria-label="Cor do piso"></div>
@@ -309,10 +314,11 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
   ];
   const VISTAS = [["360", "360°"], ["popa", "Popa"], ["cockpit", "Cockpit"], ["proa", "Proa"], ["tubo", "Tubulão"]];
   const OPC = [["cp", "Capota de proa", "Sombra extra na proa"], ["ch", "Churrasqueira", "A gás, com tábua e suporte"], ["gu", "Guincho elétrico", "Fundeio sem esforço"], ["gps", "GPS", "Navegação no console"]];
-  const PADRAO = { est: "Cinza Arizona", piso: "Cinza", li: "Branco", cap: "Cinza", tubo: "pvc", ct: "cinza", cp: false, ch: false, gu: false, gps: false, motor: "mercury", hp: 150, vv: false, vista: "360", proa: "mesa" };
+  const PADRAO = { est: "Cinza Arizona", piso: "Cinza", li: "Branco", cap: "Cinza", tubo: "pvc", ct: "cinza", cp: false, ch: false, gu: false, gps: false, motor: "mercury", hp: 150, vv: false, nb: "", vista: "360", proa: "mesa" };
   const E = Object.assign({}, PADRAO);
   let ORC = null, ORCQ = "", ORCERRO = false; const ORCS = { mi: 0, mk: 0 };   // modo orçamento com preços (tabela vinda do link)
   const nomeCor = (c) => c.toLowerCase();
+  const nomeLimpo = (v) => String(v || "").replace(/[^\p{L}\p{N} .'&-]/gu, "").replace(/\s+/g, " ").trim().slice(0, 20);   // nome do barco (opcional)
   // ---------- motor em passos: fabricante, potência e, no Mercury 200, o VesselView ----------
   const motorMarca = (n) => (/yamaha/i.test(n) ? "Yamaha" : /mercury/i.test(n) ? "Mercury" : "Outros");
   const motorHp = (n) => { const a = String(n || "").match(/(\d{2,3})\s*hp/i) || String(n || "").match(/(?:mercury|yamaha)\s+f?l?(\d{2,3})/i); return a ? +a[1] : 0; };
@@ -361,10 +367,11 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
     if (ok(h.get("v"), VISTAS.map((v) => v[0]))) E.vista = h.get("v");
     if (h.has("o")) { const o = h.get("o").split("."); OPC.forEach(([k]) => { E[k] = o.includes(k); }); }
     if (E.vv) E.gps = true;                                              // o VesselView já traz o GPS
+    E.nb = nomeLimpo(h.get("nb"));
   };
   const hashAtual = (comQ = true) => {
     const o = OPC.map(([k]) => k).filter((k) => E[k]); if (ORC && ((ORCS.mk >> 4) & 1)) o.push("ca");
-    const p = new URLSearchParams({ e: E.est, p: E.piso, li: E.li, k: E.cap, t: E.tubo, c: E.ct, m: E.motor, hp: E.hp, v: E.vista }); if (E.vv) p.set("vv", "1"); if (E.proa === "sol") p.set("pr", "sol"); if (o.length) p.set("o", o.join("."));
+    const p = new URLSearchParams({ e: E.est, p: E.piso, li: E.li, k: E.cap, t: E.tubo, c: E.ct, m: E.motor, hp: E.hp, v: E.vista }); if (E.vv) p.set("vv", "1"); if (E.nb) p.set("nb", E.nb); if (E.proa === "sol") p.set("pr", "sol"); if (o.length) p.set("o", o.join("."));
     if (ORC) { p.set("mi", ORC.m[ORCS.mi][0]); const kt = ["conforto", "lazer", "fundeio"].filter((k, j) => (ORCS.mk >> j) & 1); if (kt.length) p.set("kt", kt.join(".")); if (comQ) p.set("q", ORCQ); }
     return "#" + p.toString();
   };
@@ -376,7 +383,7 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
   const b3dVisivel = () => E.vista === "360" && !document.hidden;
   function b3dAtualizar() {
     if (B3D.estado !== "pronto" || !B3D.aplicar) return;
-    B3D.aplicar({ est: E.est, piso: E.piso, est3d: catEst(E.est)[2], pisoHex: catPiso(E.piso)[1], listraHex: CAT.listra[E.li], capHex: catCap(E.cap)[2], hyp: E.tubo === "hyp", tuboCor: corTubo(E.tubo, E.ct)[2], solario: E.proa === "sol", gps: E.gps, capProa: E.cp, pia: false, churr: E.ch, guincho: E.gu, motorBranco: E.motor === "mercury", marca: E.motor === "yamaha" ? "YAMAHA" : "MERCURY", mastro: true });
+    B3D.aplicar({ nome: E.nb || "", est: E.est, piso: E.piso, est3d: catEst(E.est)[2], pisoHex: catPiso(E.piso)[1], listraHex: CAT.listra[E.li], capHex: catCap(E.cap)[2], hyp: E.tubo === "hyp", tuboCor: corTubo(E.tubo, E.ct)[2], solario: E.proa === "sol", gps: E.gps, capProa: E.cp, pia: false, churr: E.ch, guincho: E.gu, motorBranco: E.motor === "mercury", marca: E.motor === "yamaha" ? "YAMAHA" : "MERCURY", mastro: true });
   }
   // ---------- Modelo 3D de engenharia (malhas da projetista) ----------
   // Pacote com as camadas do Rhino (fibra, tubulão, PVC, estofado, piso, acrílico, inox, capota, motor e equipamentos).
@@ -749,10 +756,22 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
       guincho: MR(0x2B2E33, { roughness: 0.35, metalness: 0.4 }), logo: MR(0x3A3D42, { roughness: 0.42, metalness: 0.75, envMapIntensity: 0.35 }), motor: MR(0xF2F2F1, { roughness: 0.16, envMapIntensity: 0.55 }), helice: MR(0x33363B, { metalness: 0.6, roughness: 0.35 })
     };
     const EST_R = { Branco: 0xF1EFEA, Bege: 0xA36C3E, Cinza: 0xA7A9A6 };
-    const gR = { mesa: new T.Group(), sol: new T.Group(), guincho: new T.Group(), capPopa: new T.Group(), capProa: new T.Group(), churr: new T.Group(), gps: new T.Group(), mastro: new T.Group() };
+    const gR = { mesa: new T.Group(), sol: new T.Group(), guincho: new T.Group(), capPopa: new T.Group(), capProa: new T.Group(), churr: new T.Group(), gps: new T.Group(), mastro: new T.Group(), nome: new T.Group() };
     Object.keys(gR).forEach((k) => real.add(gR[k]));
     let realOk = false, ultimaOp = null;
     const malha = (d, m, g) => { const ge = new T.BufferGeometry(); ge.setAttribute("position", new T.BufferAttribute(d.pos, 3)); ge.setAttribute("normal", new T.BufferAttribute(d.nor, 3)); ge.setIndex(new T.BufferAttribute(d.idx, 1)); const o = new T.Mesh(ge, m); o.castShadow = true; o.receiveShadow = true; (g || real).add(o); return o; };
+    // ---- nome do barco: texto cinza escuro nos tubulões, na proa, nos dois bordos; a faixa é projetada sobre a superfície do tubulão ----
+    const cnNome = document.createElement("canvas"); cnNome.width = 1400; cnNome.height = 200; const gnNome = cnNome.getContext("2d"), txNome = new T.CanvasTexture(cnNome); txNome.encoding = T.sRGBEncoding; txNome.anisotropy = 8;
+    let nomeAtual = null;
+    const desenhaNome = (nm) => {
+      nomeAtual = nm; gnNome.clearRect(0, 0, cnNome.width, cnNome.height); txNome.needsUpdate = true; if (!nm) return;
+      const txt = String(nm).toUpperCase(), fam = "'Saira', 'Arial Black', Arial, sans-serif", esp = 0.09; let fs = 150;
+      const larg = (f) => { gnNome.font = "italic 800 " + f + "px " + fam; let w = 0; for (const ch of txt) w += gnNome.measureText(ch).width + f * esp; return w - f * esp; };
+      while (fs > 40 && larg(fs) > cnNome.width - 60) fs -= 4;
+      gnNome.font = "italic 800 " + fs + "px " + fam; gnNome.fillStyle = "#454A52"; gnNome.textBaseline = "alphabetic"; let x = (cnNome.width - larg(fs)) / 2; for (const ch of txt) { gnNome.fillText(ch, x, cnNome.height * 0.5 + fs * 0.36); x += gnNome.measureText(ch).width + fs * esp; }
+      txNome.needsUpdate = true;
+    };
+    try { if (document.fonts && document.fonts.load) document.fonts.load("italic 800 100px Saira").then(() => { if (nomeAtual) desenhaNome(nomeAtual); }).catch(() => {}); } catch (e) { /* segue com a fonte reserva */ }
     const montarReal = (pt) => {
       const de = { fibra: matR.fibra, tubo: matR.tubo, pvc: matR.pvc, est: matR.est, piso: matR.piso, friso: matR.friso, tampo: matR.acril, preto: matR.preto, branco: matR.branco, luz: matR.luz, inox: matR.inox, logo: matR.logo, motor: matR.motor, helice: matR.helice };
       Object.keys(de).forEach((k) => { if (pt[k]) malha(pt[k], de[k]); });
@@ -827,7 +846,35 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
           if (!pos.length) return;
           const ge = new T.BufferGeometry(); ge.setAttribute("position", new T.Float32BufferAttribute(pos, 3)); ge.setAttribute("uv", new T.Float32BufferAttribute(uv, 2)); ge.computeVertexNormals();
           real.add(new T.Mesh(ge, new T.MeshStandardMaterial({ map: texMarca, transparent: true, depthWrite: false, roughness: 0.4, polygonOffset: true, polygonOffsetFactor: -4, side: T.DoubleSide }))); }); }
-      realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.22; ren.toneMappingExposure = 0.62; B3D.real = real; B3D.realOk = true;
+      { // faixas do nome sobre o tubulão: cada faixa é um plano reto (o texto fica em linha reta), ajustado por mínimos quadrados à superfície medida por raios laterais
+      const tubos = []; real.traverse((o) => { if (o.isMesh && o.material === matR.tubo) tubos.push(o); }); real.updateMatrixWorld(true);
+      const rc = new T.Raycaster(), X0 = 5.93, X1 = 6.5, ALT = 0.085, NX = 14, NY = 3, media = (v) => v.reduce((p, q) => p + q, 0) / v.length;
+      const matNome = new T.MeshStandardMaterial({ map: txNome, transparent: true, roughness: 0.45, metalness: 0, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 });
+      let desvioMax = 0;
+      [1, -1].forEach((lado) => {
+        const dw = new T.Vector3(0, 0, -lado).transformDirection(real.matrixWorld), lance = (x, y) => { rc.set(real.localToWorld(new T.Vector3(x, y, lado * 3)), dw); return rc.intersectObjects(tubos, false)[0]; }, zDe = (h) => Math.abs(real.worldToLocal(h.point.clone()).z);
+        // 1) altura em que o creme começa em cada coluna (o verdugo sobe em direção à proa), resumida numa reta única: a linha do texto não ondula
+        const xs = [], base = []; for (let i = 0; i <= NX; i++) { const x = X0 + (X1 - X0) * i / NX, h0 = lance(x, 1.15), zr = h0 ? zDe(h0) : 0.9; let yb = 1.05; for (let y = 0.95; y <= 1.2401; y += 0.01) { const h = lance(x, y); if (h && zDe(h) > zr - 0.25) { yb = y; break; } } xs.push(x); base.push(yb); }
+        const mx = media(xs), my = media(base); let sxx = 0, sxy = 0; xs.forEach((x, i) => { sxx += (x - mx) * (x - mx); sxy += (x - mx) * (base[i] - my); }); const bs = sxy / sxx; let folga = 0; xs.forEach((x, i) => { folga = Math.max(folga, base[i] - (my + bs * (x - mx))); });
+        const yLinha = (x) => my + bs * (x - mx) + folga + 0.015;
+        // 2) pontos medidos na superfície sob a faixa e ajuste z = a + b x + c y + d y² por mínimos quadrados (reto ao longo do tubo, acompanha só a curva da seção)
+        const pts = []; for (let j = 0; j <= NY; j++) for (let i = 0; i <= NX; i++) { const x = xs[i], y = yLinha(x) + ALT * (1 - j / NY), h = lance(x, y); if (h) pts.push([x, y, zDe(h)]); }
+        const K = 4, A = Array.from({ length: K }, () => new Array(K + 1).fill(0)); pts.forEach(([x, y, z]) => { const f = [1, x, y, y * y]; for (let r2 = 0; r2 < K; r2++) { for (let c2 = 0; c2 < K; c2++) A[r2][c2] += f[r2] * f[c2]; A[r2][K] += f[r2] * z; } });
+        for (let c = 0; c < K; c++) { let m = c; for (let r2 = c + 1; r2 < K; r2++) if (Math.abs(A[r2][c]) > Math.abs(A[m][c])) m = r2; [A[c], A[m]] = [A[m], A[c]]; for (let r2 = 0; r2 < K; r2++) if (r2 !== c) { const f = A[r2][c] / A[c][c]; for (let k = c; k <= K; k++) A[r2][k] -= f * A[c][k]; } }
+        const co = A.map((row, i) => row[K] / row[i]), zf = (x, y) => co[0] + co[1] * x + co[2] * y + co[3] * y * y;
+        let sobra = 0; pts.forEach(([x, y, z]) => { const rs = z - zf(x, y); desvioMax = Math.max(desvioMax, Math.abs(rs)); sobra = Math.max(sobra, rs); });
+        const folgaZ = sobra + 0.002;   // a faixa nunca afunda na superfície: no ponto mais saliente ela encosta (2 mm)
+        // 3) faixa: vértices sobre a superfície ajustada, afastada de folgaZ
+        const pos = [], nor = [], uv = [], idx = [];
+        for (let j = 0; j <= NY; j++) for (let i = 0; i <= NX; i++) { const x = xs[i], y = yLinha(x) + ALT * (1 - j / NY), z = zf(x, y) + folgaZ, n = new T.Vector3(-co[1], -(co[2] + 2 * co[3] * y), 1).normalize(); pos.push(x, y, z * lado); nor.push(n.x, n.y, n.z * lado); uv.push(lado > 0 ? i / NX : 1 - i / NX, 1 - j / NY); }
+        const nn = new T.Vector3(nor[0], nor[1], nor[2]);
+        const c0 = NX + 1, p0 = new T.Vector3(pos[0], pos[1], pos[2]), p1 = new T.Vector3(pos[3], pos[4], pos[5]), p2 = new T.Vector3(pos[c0 * 3], pos[c0 * 3 + 1], pos[c0 * 3 + 2]);
+        const fora = p1.clone().sub(p0).cross(p2.clone().sub(p0)).dot(nn) > 0;   // o triângulo (a, b, c) já olha para fora?
+        for (let j = 0; j < NY; j++) for (let i = 0; i < NX; i++) { const a2 = j * (NX + 1) + i, b2 = a2 + 1, c2 = a2 + NX + 1, d2 = c2 + 1; if (fora) idx.push(a2, b2, c2, b2, d2, c2); else idx.push(a2, c2, b2, b2, c2, d2); }
+        const ge = new T.BufferGeometry(); ge.setAttribute("position", new T.Float32BufferAttribute(pos, 3)); ge.setAttribute("normal", new T.Float32BufferAttribute(nor, 3)); ge.setAttribute("uv", new T.Float32BufferAttribute(uv, 2)); ge.setIndex(idx);
+        const m = new T.Mesh(ge, matNome); m.renderOrder = 3; gR.nome.add(m);
+      }); B3D.nomeDesvio = desvioMax; gR.nome.visible = false; }
+realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.22; ren.toneMappingExposure = 0.62; B3D.real = real; B3D.realOk = true;
       if (ultimaOp) aplicarReal(ultimaOp);
     };
     const aplicarReal = (o) => {
@@ -837,6 +884,7 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
       // regra da projetista: acessórios de PVC cinza no tubulão claro (cinza claro ou branco gelo) e brancos nos tubulões de outras cores
       matR.pvc.color.copy(C(["e6eaed", "c9c6b8"].includes(tb.getHexString().toLowerCase()) ? 0x8B8F95 : 0xF4F4F2));
       gR.mesa.visible = !o.solario; gR.sol.visible = !!o.solario; gR.guincho.visible = !!o.guincho; gR.capProa.visible = !!o.capProa && !B3D.semCapota; gR.capPopa.visible = !B3D.semCapota; gR.churr.visible = !!o.churr; gR.gps.visible = !!o.gps; gR.mastro.visible = o.mastro !== false;
+    { const nm = String(o.nome || ""); gR.nome.visible = !!nm; if (nm !== nomeAtual) desenhaNome(nm); }
     };
     const usarReal = typeof M3D_B64 === "string" && M3D_B64.length > 1000 && !!window.DecompressionStream && !M3D_ANTIGO;
     if (usarReal) { barco.visible = false; m3dAbrir(m3dBytes()).then(montarReal).catch(() => { real.visible = false; barco.visible = true; chao.position.y = -0.98; }); }
@@ -1159,7 +1207,11 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
     OPC.forEach(([k, t, s]) => { const b = document.createElement("button"); b.type = "button"; b.className = "opt"; b.dataset.k = k; const sp = document.createElement("span"); sp.textContent = t; const sm = document.createElement("small"); sm.textContent = s; sp.appendChild(sm); const sw = document.createElement("i"); sw.className = "sw"; b.append(sp, sw); b.addEventListener("click", () => { E[k] = !E[k]; render(); }); $("d-opc").appendChild(b); });
     document.querySelectorAll("[data-tema]").forEach((b) => b.addEventListener("click", () => tema(b.dataset.tema)));
     $("v-ant").addEventListener("click", () => passo(-1)); $("v-prox").addEventListener("click", () => passo(1));
-    $("b-reset").addEventListener("click", () => { Object.assign(E, PADRAO); render(); });
+    $("b-reset").addEventListener("click", () => { Object.assign(E, PADRAO); $("nb-campo").hidden = true; render(); });
+    { const bt = $("nb-bt"), campo = $("nb-campo"), inp = $("nb-in"); let tm = null;
+      bt.addEventListener("click", () => { if (campo.hidden) { campo.hidden = false; inp.focus(); } else { campo.hidden = true; E.nb = ""; inp.value = ""; render(); } bt.setAttribute("aria-pressed", String(!campo.hidden)); });
+      inp.addEventListener("input", () => { E.nb = nomeLimpo(inp.value); clearTimeout(tm); tm = setTimeout(render, 250); });
+      inp.addEventListener("blur", () => { inp.value = E.nb; }); }
     $("b-share").addEventListener("click", compartilhar); $("b-share2").addEventListener("click", () => { if (!validarContato()) return; registrarContato("link copiado"); compartilhar(); }); $("b-quero").addEventListener("click", enviarWhats); if (!ORC) contarVisita();
     // catálogo técnico: PDF hospedado junto do site; o botão só aparece se o arquivo existir
     { const bc = $("b-cat"); try { fetch(bc.getAttribute("href"), { method: "HEAD", cache: "no-store" }).then((r) => { if (r.ok) bc.hidden = false; }).catch(() => {}); } catch (e) { /* segue */ }
@@ -1182,6 +1234,7 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
     document.querySelectorAll("#d-proa .opt").forEach((b) => pressionado(b, b.dataset.v === E.proa)); $("n-proa").textContent = "Mesa e solário de série";
     const dt = $("d-tcor"); if (dt.dataset.mat !== E.tubo) { dt.dataset.mat = E.tubo; dt.replaceChildren(); TUBOS[E.tubo].forEach(([k, n, hex]) => { const b = document.createElement("button"); b.type = "button"; b.className = "dot"; b.style.background = hex; b.title = n; b.setAttribute("aria-label", "Tubulões " + n); b.dataset.c = k; b.addEventListener("click", () => { E.ct = k; render(); }); dt.appendChild(b); }); }
     dt.querySelectorAll(".dot").forEach((b) => pressionado(b, b.dataset.c === E.ct));
+    { const campo = $("nb-campo"), inp = $("nb-in"); if (E.nb && campo.hidden) campo.hidden = false; $("nb-bt").setAttribute("aria-pressed", String(!campo.hidden)); if (document.activeElement !== inp) inp.value = E.nb; }
     if (!ORC) { const mp = MOTORES_PUB.find((m) => m.marca.toLowerCase() === E.motor && m.hp === E.hp && m.vv === !!E.vv) || MOTORES_PUB.find((m) => m.marca.toLowerCase() === E.motor) || MOTORES_PUB[0]; motorPassos($("d-motor"), MOTORES_PUB, mp.id, escolherMotorPub, false); }
     { const bg = document.querySelector('#d-opc .opt[data-k="gps"]'); if (bg) { const trava = !!E.vv && !ORC; bg.disabled = trava; const sm = bg.querySelector("small"); if (sm) sm.textContent = trava ? "Incluso no VesselView" : "Navegação no console"; } }
     document.querySelectorAll("#d-opc .opt").forEach((b) => pressionado(b, !!E[b.dataset.k]));
@@ -1236,7 +1289,7 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
     const c = dadosContato(); registrarContato("WhatsApp");
     const resumo = $("resumo").textContent.replace(/^Seu Euro Sette:\s*/, "");
     const intro = ORC ? ". Conferi o orçamento do meu Euro Sette e gostaria de falar com um atendente." : ". Montei meu Euro Sette no configurador e gostaria de falar com um atendente.";
-    const msg = "Olá! Meu nome é " + c.nome + intro + "\n\nMinha configuração: " + resumo + "\n\nLink da configuração: " + linkCfg();
+    const msg = "Olá! Meu nome é " + c.nome + intro + "\n\nMinha configuração: " + resumo + (E.nb ? "\n\nNome do barco: " + E.nb : "") + "\n\nLink da configuração: " + linkCfg();
     const a = document.createElement("a"); a.href = "https://wa.me/" + WHATS + "?text=" + encodeURIComponent(msg); a.target = "_blank"; a.rel = "noopener"; document.body.appendChild(a); a.click(); a.remove();
   }
   async function compartilhar() {

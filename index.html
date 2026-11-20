@@ -345,6 +345,11 @@ details.c-group[open] > summary::after { content: "\2212"; }
 .at-linha { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; }
 .at-motor-res { margin: 6px 0 0; font-size: .82rem; color: var(--muted); }
 .at-motor-res b { color: inherit; font-weight: 600; }
+.nb { margin: 0 0 14px; }
+.nb-bt { width: 100%; }
+.nb-campo { margin-top: 8px; }
+.nb-campo input { width: 100%; font: inherit; padding: 12px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--surface); color: inherit; text-transform: uppercase; letter-spacing: .06em; }
+.nb-campo small { display: block; margin-top: 4px; color: var(--muted); font-size: .78rem; }
 .at-sair { position: fixed; right: 12px; bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); z-index: 20; font: inherit; font-size: .86rem; font-weight: 500; color: #FFFFFF; background: #1C1C1E; border: 1px solid #5B5E63; border-radius: 999px; padding: 10px 18px; box-shadow: 0 2px 10px rgba(0,0,0,.35); cursor: pointer; }
 body.cliente { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 72px); }
 body.cliente .tabs, body.cliente .band .save-state, body.cliente .at-actions, body.cliente .at-semkit { display: none; }
@@ -1220,6 +1225,7 @@ body.gated { overflow: hidden; }
       <div class="at-left">
         <div class="c-card">
           <h2 class="at-h"><span class="at-n">1</span>O barco</h2>
+          <div class="nb"><button class="opt nb-bt" type="button" id="at-nb-bt" aria-pressed="false"><span>Dar um nome ao barco<small>Opcional. O nome aparece nos tubulões, na proa.</small></span><i class="sw"></i></button><div class="nb-campo" id="at-nb-campo" hidden><input id="at-nb-in" type="text" maxlength="20" placeholder="Nome do barco" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Nome do barco"><small>Até 20 letras.</small></div></div>
           <div class="at-fixed"><span><b>Casco Euro Sette com kit básico</b><small id="at-casco-desc">Autêntico RIB de 7,75 m por 3,05 m. Tubos em PVC Sansuy.</small></span><em id="at-casco">–</em></div>
           <details class="v-incl"><summary id="at-basico-sum">Ver o que já vem</summary><ul class="v-list" id="at-basico"></ul></details>
         </div>
@@ -1341,7 +1347,8 @@ body.gated { overflow: hidden; }
           <div class="cfx-vistas" id="cfx-vistas" role="group" aria-label="Vistas"></div>
         </section>
         <aside class="cfx-painel">
-          <div class="c-card"><h2 class="at-h">Combinações</h2><div class="cfx-combos" id="cfx-combos"></div></div>
+          <div class="c-card"><div class="nb"><button class="opt nb-bt" type="button" id="cfx-nb-bt" aria-pressed="false"><span>Dar um nome ao barco<small>Opcional. O nome aparece nos tubulões, na proa.</small></span><i class="sw"></i></button><div class="nb-campo" id="cfx-nb-campo" hidden><input id="cfx-nb-in" type="text" maxlength="20" placeholder="Nome do barco" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Nome do barco"><small>Até 20 letras.</small></div></div></div>
+        <div class="c-card"><h2 class="at-h">Combinações</h2><div class="cfx-combos" id="cfx-combos"></div></div>
           <div id="cfx-slot"></div>
           <div class="cfx-total"><span>Valor total</span><b id="cfx-total">–</b><small id="cfx-resumo"></small></div>
         </aside>
@@ -3433,7 +3440,7 @@ body.gated { overflow: hidden; }
 
   // ---------- Atendimento ao cliente ----------
   const AT_KEY = "euronav-atendimento";
-  const AT_DEF = { motor: "", kits: { conforto: false, lazer: false, fundeio: false, extras: false }, kitItens: {}, hyp: false, gps: false, semKit: false, desc: 0, corEst: "Branco Ultra", corPiso: "Cinza", corListra: "Branco", corCapota: "Cinza", corTubo: "gelo" };
+  const AT_DEF = { motor: "", kits: { conforto: false, lazer: false, fundeio: false, extras: false }, kitItens: {}, hyp: false, gps: false, semKit: false, nb: "", desc: 0, corEst: "Branco Ultra", corPiso: "Cinza", corListra: "Branco", corCapota: "Cinza", corTubo: "gelo" };
   const TUBO_CORES = { pvc: [["cinza", "Cinza claro", "#C9C6B8"], ["marinho", "Azul marinho", "#232C4A"], ["royal", "Azul royal", "#2A3F9E"], ["preto", "Preto", "#232422"], ["vermelho", "Vermelho", "#A63840"], ["verde", "Verde", "#5A635B"], ["bege", "Bege", "#C6AD82"]],
     hyp: [["gelo", "Ice white", "#E6EAED"], ["creme", "Off white", "#E3DED4"], ["yoro", "Yellow Oro", "#E6DA5E"], ["sunflower", "Sun Flower", "#D28C32"], ["ycolorado", "Yellow Colorado", "#E1C541"], ["colonial", "Colonial", "#C0A06A"]] };
   const TUBO_ANT = { gelo: "cinza", areia: "bege", grafite: "preto" }; // cores que saíram da lista: atendimentos e links antigos caem na mais próxima
@@ -3527,8 +3534,22 @@ body.gated { overflow: hidden; }
   }
   function atCompute() { return atPrice(st.at); }
   function atLine(host, n, val, cls) { const tr = el("tr", cls || ""); tr.append(el("td", "", n), el("td", "n", val)); host.appendChild(tr); }
+  // ---- nome do barco (opcional): o botão abre o campo; o nome vai para o 3D (tubulões, na proa), para os links e para o atendimento salvo ----
+  const nbLimpo = (v) => String(v || "").replace(/[^\p{L}\p{N} .'&-]/gu, "").replace(/\s+/g, " ").trim().slice(0, 20);
+  function nbSync() {
+    ["at", "cfx"].forEach((pf) => { const bt = $(pf + "-nb-bt"), campo = $(pf + "-nb-campo"), inp = $(pf + "-nb-in"); if (!bt || !campo || !inp) return;
+      const nb = (st.at && st.at.nb) || ""; if (nb && campo.hidden) campo.hidden = false; else if (!nb && campo.hidden === false && !bt.dataset.manual && document.activeElement !== inp) campo.hidden = true;
+      bt.setAttribute("aria-pressed", String(!campo.hidden)); if (document.activeElement !== inp) inp.value = nb; });
+  }
+  function nbLigar() {
+    ["at", "cfx"].forEach((pf) => { const bt = $(pf + "-nb-bt"), campo = $(pf + "-nb-campo"), inp = $(pf + "-nb-in"); if (!bt || !campo || !inp) return; let tm = null;
+      bt.addEventListener("click", () => { if (!st.at) return; if (campo.hidden) { campo.hidden = false; bt.dataset.manual = "1"; inp.focus(); } else { campo.hidden = true; delete bt.dataset.manual; st.at.nb = ""; atSave(); renderAtend(); } nbSync(); });
+      inp.addEventListener("input", () => { if (!st.at) return; st.at.nb = nbLimpo(inp.value); clearTimeout(tm); tm = setTimeout(() => { atSave(); renderAtend(); }, 250); });
+      inp.addEventListener("blur", () => { inp.value = (st.at && st.at.nb) || ""; }); });
+  }
   function renderAtend() {
     if (!$("view-atendimento")) return;
+    nbSync();
     { const sk = $("at-semkit"); if (sk && sk.checked !== !!st.at.semKit) sk.checked = !!st.at.semKit; }
     const q = atCompute();
     const info = $("v-at-info");
@@ -3658,6 +3679,7 @@ body.gated { overflow: hidden; }
     const modo = (on) => { document.body.classList.toggle("cliente", on); $("at-sair").hidden = !on; const bs = $("btn-sair"); if (bs && !bs.disabled) bs.textContent = on ? "Sair do painel" : "Sair"; };
     $("at-modo").addEventListener("click", () => { modo(true); window.scrollTo(0, 0); });
     $("at-sair").addEventListener("click", () => { if (confirm("Sair da tela do cliente?")) modo(false); });
+    nbLigar();
     $("at-semkit").addEventListener("change", (e) => { st.at.semKit = e.target.checked; atSave(); renderAtend(); });
     $("at-copy").addEventListener("click", async () => {
       const t = atText();
@@ -3677,7 +3699,7 @@ body.gated { overflow: hidden; }
   const dataBR = (iso) => { const d = new Date(iso); return isNaN(d.getTime()) ? "" : d.toLocaleDateString("pt-BR"); };
   function atCur() { return st.atId ? st.ats.get(st.atId) || null : null; }
   function setAtId(id) { st.atId = id || null; try { if (id) localStorage.setItem(ATC_KEY, id); else localStorage.removeItem(ATC_KEY); } catch (e) {} }
-  function atConfig() { return { motor: st.at.motor || "", kits: Object.assign({}, st.at.kits), kitItens: JSON.parse(JSON.stringify(st.at.kitItens || {})), hyp: !!st.at.hyp, gps: !!st.at.gps, semKit: !!st.at.semKit, desc: num(st.at.desc), corEst: atCores().est, corPiso: atCores().piso, corListra: atCores().listra, corCapota: atCores().cap, corTubo: st.at.corTubo || "gelo" }; }
+  function atConfig() { return { motor: st.at.motor || "", kits: Object.assign({}, st.at.kits), kitItens: JSON.parse(JSON.stringify(st.at.kitItens || {})), hyp: !!st.at.hyp, gps: !!st.at.gps, semKit: !!st.at.semKit, nb: String(st.at.nb || ""), desc: num(st.at.desc), corEst: atCores().est, corPiso: atCores().piso, corListra: atCores().listra, corCapota: atCores().cap, corTubo: st.at.corTubo || "gelo" }; }
   function atWrite(id, fn) { atPending.add(id); return enqueue("a:" + id, fn).then((ok) => { atPending.delete(id); return ok; }); }
   function atPersist() {
     const id = st.atId; if (!id || !atCur() || !st.acol || !st.canWrite) return;
@@ -3775,7 +3797,7 @@ body.gated { overflow: hidden; }
     clearTimeout(atTimer); clearTimeout(ctTimer);
     setAtId(id);
     const c = d.config || {};
-    st.at = Object.assign(JSON.parse(JSON.stringify(AT_DEF)), { motor: c.motor || "", kits: Object.assign({}, AT_DEF.kits, c.kits || {}), kitItens: JSON.parse(JSON.stringify(c.kitItens || {})), hyp: !!c.hyp, gps: !!c.gps, semKit: !!c.semKit, desc: num(c.desc), corEst: c.corEst || AT_DEF.corEst, corPiso: c.corPiso || AT_DEF.corPiso, corListra: c.corListra || "", corCapota: c.corCapota || AT_DEF.corCapota, corTubo: c.corTubo || "gelo"});
+    st.at = Object.assign(JSON.parse(JSON.stringify(AT_DEF)), { motor: c.motor || "", kits: Object.assign({}, AT_DEF.kits, c.kits || {}), kitItens: JSON.parse(JSON.stringify(c.kitItens || {})), hyp: !!c.hyp, gps: !!c.gps, semKit: !!c.semKit, nb: String(c.nb || ""), desc: num(c.desc), corEst: c.corEst || AT_DEF.corEst, corPiso: c.corPiso || AT_DEF.corPiso, corListra: c.corListra || "", corCapota: c.corCapota || AT_DEF.corCapota, corTubo: c.corTubo || "gelo"});
     try { localStorage.setItem(AT_KEY, JSON.stringify(st.at)); } catch (e) {}
     // contato vindo do configurador público: na primeira abertura, a configuração montada pelo cliente entra no orçamento
     if (d.onlinePend && d.linkCfg && st.canWrite && st.acol) {
@@ -5632,10 +5654,22 @@ body.gated { overflow: hidden; }
       guincho: MR(0x2B2E33, { roughness: 0.35, metalness: 0.4 }), logo: MR(0x3A3D42, { roughness: 0.42, metalness: 0.75, envMapIntensity: 0.35 }), motor: MR(0xF2F2F1, { roughness: 0.16, envMapIntensity: 0.55 }), helice: MR(0x33363B, { metalness: 0.6, roughness: 0.35 })
     };
     const EST_R = { Branco: 0xF1EFEA, Bege: 0xA36C3E, Cinza: 0xA7A9A6 };
-    const gR = { mesa: new T.Group(), sol: new T.Group(), guincho: new T.Group(), capPopa: new T.Group(), capProa: new T.Group(), churr: new T.Group(), gps: new T.Group(), mastro: new T.Group() };
+    const gR = { mesa: new T.Group(), sol: new T.Group(), guincho: new T.Group(), capPopa: new T.Group(), capProa: new T.Group(), churr: new T.Group(), gps: new T.Group(), mastro: new T.Group(), nome: new T.Group() };
     Object.keys(gR).forEach((k) => real.add(gR[k]));
     let realOk = false, ultimaOp = null;
     const malha = (d, m, g) => { const ge = new T.BufferGeometry(); ge.setAttribute("position", new T.BufferAttribute(d.pos, 3)); ge.setAttribute("normal", new T.BufferAttribute(d.nor, 3)); ge.setIndex(new T.BufferAttribute(d.idx, 1)); const o = new T.Mesh(ge, m); o.castShadow = true; o.receiveShadow = true; (g || real).add(o); return o; };
+    // ---- nome do barco: texto cinza escuro nos tubulões, na proa, nos dois bordos; a faixa é projetada sobre a superfície do tubulão ----
+    const cnNome = document.createElement("canvas"); cnNome.width = 1400; cnNome.height = 200; const gnNome = cnNome.getContext("2d"), txNome = new T.CanvasTexture(cnNome); txNome.encoding = T.sRGBEncoding; txNome.anisotropy = 8;
+    let nomeAtual = null;
+    const desenhaNome = (nm) => {
+      nomeAtual = nm; gnNome.clearRect(0, 0, cnNome.width, cnNome.height); txNome.needsUpdate = true; if (!nm) return;
+      const txt = String(nm).toUpperCase(), fam = "'Saira', 'Arial Black', Arial, sans-serif", esp = 0.09; let fs = 150;
+      const larg = (f) => { gnNome.font = "italic 800 " + f + "px " + fam; let w = 0; for (const ch of txt) w += gnNome.measureText(ch).width + f * esp; return w - f * esp; };
+      while (fs > 40 && larg(fs) > cnNome.width - 60) fs -= 4;
+      gnNome.font = "italic 800 " + fs + "px " + fam; gnNome.fillStyle = "#454A52"; gnNome.textBaseline = "alphabetic"; let x = (cnNome.width - larg(fs)) / 2; for (const ch of txt) { gnNome.fillText(ch, x, cnNome.height * 0.5 + fs * 0.36); x += gnNome.measureText(ch).width + fs * esp; }
+      txNome.needsUpdate = true;
+    };
+    try { if (document.fonts && document.fonts.load) document.fonts.load("italic 800 100px Saira").then(() => { if (nomeAtual) desenhaNome(nomeAtual); }).catch(() => {}); } catch (e) { /* segue com a fonte reserva */ }
     const montarReal = (pt) => {
       const de = { fibra: matR.fibra, tubo: matR.tubo, pvc: matR.pvc, est: matR.est, piso: matR.piso, friso: matR.friso, tampo: matR.acril, preto: matR.preto, branco: matR.branco, luz: matR.luz, inox: matR.inox, logo: matR.logo, motor: matR.motor, helice: matR.helice };
       Object.keys(de).forEach((k) => { if (pt[k]) malha(pt[k], de[k]); });
@@ -5710,7 +5744,35 @@ body.gated { overflow: hidden; }
           if (!pos.length) return;
           const ge = new T.BufferGeometry(); ge.setAttribute("position", new T.Float32BufferAttribute(pos, 3)); ge.setAttribute("uv", new T.Float32BufferAttribute(uv, 2)); ge.computeVertexNormals();
           real.add(new T.Mesh(ge, new T.MeshStandardMaterial({ map: texMarca, transparent: true, depthWrite: false, roughness: 0.4, polygonOffset: true, polygonOffsetFactor: -4, side: T.DoubleSide }))); }); }
-      realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.22; ren.toneMappingExposure = 0.62; B3D.real = real; B3D.realOk = true;
+      { // faixas do nome sobre o tubulão: cada faixa é um plano reto (o texto fica em linha reta), ajustado por mínimos quadrados à superfície medida por raios laterais
+      const tubos = []; real.traverse((o) => { if (o.isMesh && o.material === matR.tubo) tubos.push(o); }); real.updateMatrixWorld(true);
+      const rc = new T.Raycaster(), X0 = 5.93, X1 = 6.5, ALT = 0.085, NX = 14, NY = 3, media = (v) => v.reduce((p, q) => p + q, 0) / v.length;
+      const matNome = new T.MeshStandardMaterial({ map: txNome, transparent: true, roughness: 0.45, metalness: 0, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 });
+      let desvioMax = 0;
+      [1, -1].forEach((lado) => {
+        const dw = new T.Vector3(0, 0, -lado).transformDirection(real.matrixWorld), lance = (x, y) => { rc.set(real.localToWorld(new T.Vector3(x, y, lado * 3)), dw); return rc.intersectObjects(tubos, false)[0]; }, zDe = (h) => Math.abs(real.worldToLocal(h.point.clone()).z);
+        // 1) altura em que o creme começa em cada coluna (o verdugo sobe em direção à proa), resumida numa reta única: a linha do texto não ondula
+        const xs = [], base = []; for (let i = 0; i <= NX; i++) { const x = X0 + (X1 - X0) * i / NX, h0 = lance(x, 1.15), zr = h0 ? zDe(h0) : 0.9; let yb = 1.05; for (let y = 0.95; y <= 1.2401; y += 0.01) { const h = lance(x, y); if (h && zDe(h) > zr - 0.25) { yb = y; break; } } xs.push(x); base.push(yb); }
+        const mx = media(xs), my = media(base); let sxx = 0, sxy = 0; xs.forEach((x, i) => { sxx += (x - mx) * (x - mx); sxy += (x - mx) * (base[i] - my); }); const bs = sxy / sxx; let folga = 0; xs.forEach((x, i) => { folga = Math.max(folga, base[i] - (my + bs * (x - mx))); });
+        const yLinha = (x) => my + bs * (x - mx) + folga + 0.015;
+        // 2) pontos medidos na superfície sob a faixa e ajuste z = a + b x + c y + d y² por mínimos quadrados (reto ao longo do tubo, acompanha só a curva da seção)
+        const pts = []; for (let j = 0; j <= NY; j++) for (let i = 0; i <= NX; i++) { const x = xs[i], y = yLinha(x) + ALT * (1 - j / NY), h = lance(x, y); if (h) pts.push([x, y, zDe(h)]); }
+        const K = 4, A = Array.from({ length: K }, () => new Array(K + 1).fill(0)); pts.forEach(([x, y, z]) => { const f = [1, x, y, y * y]; for (let r2 = 0; r2 < K; r2++) { for (let c2 = 0; c2 < K; c2++) A[r2][c2] += f[r2] * f[c2]; A[r2][K] += f[r2] * z; } });
+        for (let c = 0; c < K; c++) { let m = c; for (let r2 = c + 1; r2 < K; r2++) if (Math.abs(A[r2][c]) > Math.abs(A[m][c])) m = r2; [A[c], A[m]] = [A[m], A[c]]; for (let r2 = 0; r2 < K; r2++) if (r2 !== c) { const f = A[r2][c] / A[c][c]; for (let k = c; k <= K; k++) A[r2][k] -= f * A[c][k]; } }
+        const co = A.map((row, i) => row[K] / row[i]), zf = (x, y) => co[0] + co[1] * x + co[2] * y + co[3] * y * y;
+        let sobra = 0; pts.forEach(([x, y, z]) => { const rs = z - zf(x, y); desvioMax = Math.max(desvioMax, Math.abs(rs)); sobra = Math.max(sobra, rs); });
+        const folgaZ = sobra + 0.002;   // a faixa nunca afunda na superfície: no ponto mais saliente ela encosta (2 mm)
+        // 3) faixa: vértices sobre a superfície ajustada, afastada de folgaZ
+        const pos = [], nor = [], uv = [], idx = [];
+        for (let j = 0; j <= NY; j++) for (let i = 0; i <= NX; i++) { const x = xs[i], y = yLinha(x) + ALT * (1 - j / NY), z = zf(x, y) + folgaZ, n = new T.Vector3(-co[1], -(co[2] + 2 * co[3] * y), 1).normalize(); pos.push(x, y, z * lado); nor.push(n.x, n.y, n.z * lado); uv.push(lado > 0 ? i / NX : 1 - i / NX, 1 - j / NY); }
+        const nn = new T.Vector3(nor[0], nor[1], nor[2]);
+        const c0 = NX + 1, p0 = new T.Vector3(pos[0], pos[1], pos[2]), p1 = new T.Vector3(pos[3], pos[4], pos[5]), p2 = new T.Vector3(pos[c0 * 3], pos[c0 * 3 + 1], pos[c0 * 3 + 2]);
+        const fora = p1.clone().sub(p0).cross(p2.clone().sub(p0)).dot(nn) > 0;   // o triângulo (a, b, c) já olha para fora?
+        for (let j = 0; j < NY; j++) for (let i = 0; i < NX; i++) { const a2 = j * (NX + 1) + i, b2 = a2 + 1, c2 = a2 + NX + 1, d2 = c2 + 1; if (fora) idx.push(a2, b2, c2, b2, d2, c2); else idx.push(a2, c2, b2, b2, c2, d2); }
+        const ge = new T.BufferGeometry(); ge.setAttribute("position", new T.Float32BufferAttribute(pos, 3)); ge.setAttribute("normal", new T.Float32BufferAttribute(nor, 3)); ge.setAttribute("uv", new T.Float32BufferAttribute(uv, 2)); ge.setIndex(idx);
+        const m = new T.Mesh(ge, matNome); m.renderOrder = 3; gR.nome.add(m);
+      }); B3D.nomeDesvio = desvioMax; gR.nome.visible = false; }
+realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.22; ren.toneMappingExposure = 0.62; B3D.real = real; B3D.realOk = true;
       if (ultimaOp) aplicarReal(ultimaOp);
     };
     const aplicarReal = (o) => {
@@ -5720,6 +5782,7 @@ body.gated { overflow: hidden; }
       // regra da projetista: acessórios de PVC cinza no tubulão claro (cinza claro ou branco gelo) e brancos nos tubulões de outras cores
       matR.pvc.color.copy(C(["e6eaed", "c9c6b8"].includes(tb.getHexString().toLowerCase()) ? 0x8B8F95 : 0xF4F4F2));
       gR.mesa.visible = !o.solario; gR.sol.visible = !!o.solario; gR.guincho.visible = !!o.guincho; gR.capProa.visible = !!o.capProa && !B3D.semCapota; gR.capPopa.visible = !B3D.semCapota; gR.churr.visible = !!o.churr; gR.gps.visible = !!o.gps; gR.mastro.visible = o.mastro !== false;
+    { const nm = String(o.nome || ""); gR.nome.visible = !!nm; if (nm !== nomeAtual) desenhaNome(nm); }
     };
     const usarReal = typeof M3D_B64 === "string" && M3D_B64.length > 1000 && !!window.DecompressionStream && !M3D_ANTIGO;
     if (usarReal) { barco.visible = false; m3dAbrir(m3dBytes()).then(montarReal).catch(() => { real.visible = false; barco.visible = true; chao.position.y = -0.98; }); }
@@ -5992,6 +6055,7 @@ body.gated { overflow: hidden; }
       const cat = ms.map(([id, it], ord) => ({ id, ord, marca: motorMarca(it.item), hp: motorHp(it.item), vv: !!it.incluiGps || /vessel/i.test(it.item || ""), dest: it.destaque ? 1 : 0 })), mk = marca === "yamaha" ? "Yamaha" : "Mercury", daMarca = cat.filter((m) => m.marca === mk);
       if (daMarca.length) { const hps = [...new Set(daMarca.map((m) => m.hp))].sort((a, b) => a - b), hpL = +h.get("hp") || 0, hp = hps.includes(hpL) ? hpL : hps[0]; st.at.motor = motorEscolha(cat, daMarca[0], { marca: mk, hp, vv: h.get("vv") === "1" }); if (motorGps(st.at.motor)) { st.at.gps = true; st.at.gpsAuto = true; } }
     }
+    if (h.has("nb")) st.at.nb = nbLimpo(h.get("nb"));
     const mi = h.get("mi"); if (mi && ms.some(([id]) => id === mi)) { st.at.motor = mi; if (motorGps(mi)) { st.at.gps = true; st.at.gpsAuto = true; } }   // link com preços: o motor exato que o cliente escolheu
     (h.get("kt") || "").split(".").filter((k) => KIT_KEYS.includes(k) && k !== "basico").forEach((k) => { st.at.kits = Object.assign({}, st.at.kits, { [k]: true }); });   // kits completos escolhidos
     const o = (h.get("o") || "").split(".").filter(Boolean);
@@ -6057,7 +6121,7 @@ body.gated { overflow: hidden; }
     const q = atCompute(), mi = q && q.mid ? st.items.get(q.mid) : null, nm = String((mi && mi.item) || "");
     const o = [[/capota de proa/i, "cp"], [/churrasqueira/i, "ch"], [/guincho/i, "gu"], [/carreta/i, "ca"]].filter(([re]) => b3dTemItem(re)).map(([, k]) => k);
     if (st.at.gps && !(q && motorGps(q.mid) && st.at.gpsAuto)) o.push("gps");   // o VesselView já traz o GPS: só vai no link o GPS escolhido à mão
-    const pr = new URLSearchParams({ e: atCores().est, p: atCores().piso, li: atCores().listra, k: atCores().cap, c: tuboCor(st.at.hyp, st.at.corTubo)[0], t: st.at.hyp ? "hyp" : "pvc", m: /yamaha/i.test(nm) ? "yamaha" : "mercury", hp: String(motorHp(nm) || 150), v: "360" }); if ((mi && mi.incluiGps) || /vessel/i.test(nm)) pr.set("vv", "1");
+    const pr = new URLSearchParams({ e: atCores().est, p: atCores().piso, li: atCores().listra, k: atCores().cap, c: tuboCor(st.at.hyp, st.at.corTubo)[0], t: st.at.hyp ? "hyp" : "pvc", m: /yamaha/i.test(nm) ? "yamaha" : "mercury", hp: String(motorHp(nm) || 150), v: "360" }); if ((mi && mi.incluiGps) || /vessel/i.test(nm)) pr.set("vv", "1"); if (st.at.nb) pr.set("nb", st.at.nb);
     if (o.length) pr.set("o", o.join("."));
     const kt = ["conforto", "lazer", "fundeio"].filter((k) => st.at.kits && st.at.kits[k]); if (kt.length) pr.set("kt", kt.join("."));
     if (q && q.mid) pr.set("mi", q.mid);
@@ -6081,7 +6145,7 @@ body.gated { overflow: hidden; }
     const q = atCompute(), mi = q && q.mid ? st.items.get(q.mid) : null, nm = String((mi && mi.item) || "");
     const o = [[/capota de proa/i, "cp"], [/churrasqueira/i, "ch"], [/guincho/i, "gu"]].filter(([re]) => b3dTemItem(re)).map(([, k]) => k);
     if (st.at.gps || (q && motorGps(q.mid))) o.push("gps");
-    const pr = new URLSearchParams({ e: atCores().est, p: atCores().piso, li: atCores().listra, k: atCores().cap, c: tuboCor(st.at.hyp, st.at.corTubo)[0], t: st.at.hyp ? "hyp" : "pvc", m: /yamaha/i.test(nm) ? "yamaha" : "mercury", hp: String(motorHp(nm) || 150), v: "360" }); if ((mi && mi.incluiGps) || /vessel/i.test(nm)) pr.set("vv", "1");
+    const pr = new URLSearchParams({ e: atCores().est, p: atCores().piso, li: atCores().listra, k: atCores().cap, c: tuboCor(st.at.hyp, st.at.corTubo)[0], t: st.at.hyp ? "hyp" : "pvc", m: /yamaha/i.test(nm) ? "yamaha" : "mercury", hp: String(motorHp(nm) || 150), v: "360" }); if ((mi && mi.incluiGps) || /vessel/i.test(nm)) pr.set("vv", "1"); if (st.at.nb) pr.set("nb", st.at.nb);
     if (o.length) pr.set("o", o.join("."));
     a.href = CONFIG_URL + "#" + pr.toString();
   }
@@ -6092,7 +6156,7 @@ body.gated { overflow: hidden; }
     const q = atCompute(); const mid = q ? q.mid : null; const mi = mid ? st.items.get(mid) : null;
     const nomeM = String((mi && mi.item) || "");
     B3D.aplicar({
-      est: atCores().est, piso: atCores().piso, est3d: catEst(atCores().est)[2], pisoHex: catPiso(atCores().piso)[1], listraHex: CAT.listra[atCores().listra], capHex: catCap(atCores().cap)[2], hyp: !!st.at.hyp, tuboCor: tuboCor(st.at.hyp, st.at.corTubo)[2], solario: !!B3D.solario,
+      nome: st.at.nb || "", est: atCores().est, piso: atCores().piso, est3d: catEst(atCores().est)[2], pisoHex: catPiso(atCores().piso)[1], listraHex: CAT.listra[atCores().listra], capHex: catCap(atCores().cap)[2], hyp: !!st.at.hyp, tuboCor: tuboCor(st.at.hyp, st.at.corTubo)[2], solario: !!B3D.solario,
       gps: !!st.at.gps || motorGps(mid), capProa: b3dTemItem(/capota de proa/i), pia: b3dTemItem(/pia e fog/i),
       churr: b3dTemItem(/churrasqueira/i), guincho: b3dTemItem(/guincho/i), motorBranco: /mercury|branco|white/i.test(nomeM) || !nomeM,
       marca: /yamaha/i.test(nomeM) ? "YAMAHA" : "MERCURY", mastro: b3dTemItem(/mastro de bandeira/i)
