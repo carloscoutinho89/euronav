@@ -350,6 +350,30 @@ details.c-group[open] > summary::after { content: "\2212"; }
 .nb-campo { margin-top: 8px; }
 .nb-campo input { width: 100%; font: inherit; padding: 12px; border: 1px solid var(--line-strong); border-radius: 4px; background: var(--surface); color: inherit; text-transform: uppercase; letter-spacing: .06em; }
 .nb-campo small { display: block; margin-top: 4px; color: var(--muted); font-size: .78rem; }
+.at-img-bt { width: 100%; margin-top: 8px; appearance: none; border: 1px solid var(--line-strong); background: transparent; color: inherit; font: inherit; font-weight: 600; padding: 10px 14px; border-radius: var(--radius); cursor: pointer; }
+.afim { position: fixed; inset: 0; z-index: 2000; background: rgba(8, 10, 14, .94); display: flex; align-items: center; justify-content: center; padding: calc(env(safe-area-inset-top, 0px) + 12px) 12px calc(env(safe-area-inset-bottom, 0px) + 12px); overflow: auto; }
+.afim[hidden] { display: none; }
+.afim-c { width: min(1040px, 100%); color: #EEF0F3; }
+.afim-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.afim-top h2 { margin: 0; font-size: 1.05rem; letter-spacing: .12em; text-transform: uppercase; }
+.afim-x { appearance: none; border: 1px solid rgba(255,255,255,.3); background: transparent; color: #fff; width: 40px; height: 40px; border-radius: 999px; font-size: 1.5rem; line-height: 1; cursor: pointer; }
+.afim-img { position: relative; aspect-ratio: 16 / 10; background: #0d1117; border-radius: 6px; overflow: hidden; }
+.afim[data-tema=light] .afim-img { background: #F3F4F6; }
+.afim-img img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.afim-img img:not([src]) { visibility: hidden; }
+.afim-car { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(13, 17, 23, .72); font-size: .95rem; letter-spacing: .04em; }
+.afim-car[hidden] { display: none; }
+.afim-ang { display: flex; gap: 8px; margin: 12px 0; }
+.afim-ang button { flex: 1 1 0; appearance: none; border: 1px solid rgba(255,255,255,.28); background: transparent; color: #EEF0F3; font: inherit; font-size: .84rem; letter-spacing: .1em; text-transform: uppercase; padding: 11px 6px; border-radius: 4px; cursor: pointer; }
+.afim-ang button[aria-pressed=true] { background: #EEF0F3; color: #14161A; border-color: #EEF0F3; }
+.afim-ang button:disabled { opacity: .45; cursor: default; }
+.afim-acoes { display: flex; gap: 8px; flex-wrap: wrap; }
+.afim-bt { flex: 1 1 180px; appearance: none; display: inline-flex; align-items: center; justify-content: center; text-align: center; text-decoration: none; font: inherit; font-weight: 600; padding: 12px 14px; border-radius: 4px; border: 1px solid rgba(255,255,255,.3); background: transparent; color: #EEF0F3; cursor: pointer; }
+.afim-bt.forte { background: #3B5998; border-color: #3B5998; color: #fff; }
+.afim-bt.wa { background: #1FA855; border-color: #1FA855; color: #fff; }
+.afim-bt:disabled { opacity: .5; cursor: default; }
+.afim-bt[aria-disabled=true] { opacity: .5; pointer-events: none; }
+.afim-nota { margin: 10px 0 0; font-size: .82rem; color: #A9AFB8; }
 .at-sair { position: fixed; right: 12px; bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); z-index: 20; font: inherit; font-size: .86rem; font-weight: 500; color: #FFFFFF; background: #1C1C1E; border: 1px solid #5B5E63; border-radius: 999px; padding: 10px 18px; box-shadow: 0 2px 10px rgba(0,0,0,.35); cursor: pointer; }
 body.cliente { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 72px); }
 body.cliente .tabs, body.cliente .band .save-state, body.cliente .at-actions, body.cliente .at-semkit { display: none; }
@@ -1275,6 +1299,7 @@ body.gated { overflow: hidden; }
           </div>
           <div class="at-cfx-acoes">
             <button class="at-cfx-abrir" type="button" id="at-cfx-abrir">Abrir configurador com o cliente</button>
+<button class="at-img-bt" type="button" id="at-afim-abrir">Gerar imagem final</button>
             <p class="at-3d-cfgp"><a class="at-3d-cfg" id="at-3d-cfg" href="#" target="_blank" rel="noopener">Página pública ↗</a> · <button class="c-link" type="button" id="at-cfg-copiar">Copiar link para o cliente</button> · <button class="c-link" type="button" id="at-cfg-precos">Link com preços para o cliente</button> · <button class="c-link" type="button" id="at-cfg-importar">Importar link do cliente</button></p>
             <p class="c-hint" id="at-cfg-msg" role="status"></p>
           </div>
@@ -1341,7 +1366,7 @@ body.gated { overflow: hidden; }
     <div class="cfx" id="cfx" hidden role="dialog" aria-modal="true" aria-label="Configurador do Euro Sette">
       <header class="cfx-top">
         <div class="cfx-marca"><b>EURO SETTE</b><span>Configurador</span><em id="cfx-cli"></em></div>
-        <div class="cfx-acoes"><button type="button" class="cfx-bt" id="cfx-tema" aria-pressed="false">Fundo escuro</button><button type="button" class="cfx-bt" id="cfx-copiar">Copiar link para o cliente</button><button type="button" class="cfx-bt forte" id="cfx-ok">Concluir e voltar ao atendimento</button></div>
+        <div class="cfx-acoes"><button type="button" class="cfx-bt" id="cfx-tema" aria-pressed="false">Fundo escuro</button><button type="button" class="cfx-bt" id="cfx-afim-abrir">Imagem final</button><button type="button" class="cfx-bt" id="cfx-copiar">Copiar link para o cliente</button><button type="button" class="cfx-bt forte" id="cfx-ok">Concluir e voltar ao atendimento</button></div>
       </header>
       <div class="cfx-main">
         <section class="cfx-palco">
@@ -3538,6 +3563,57 @@ body.gated { overflow: hidden; }
   function atCompute() { return atPrice(st.at); }
   function atLine(host, n, val, cls) { const tr = el("tr", cls || ""); tr.append(el("td", "", n), el("td", "n", val)); host.appendChild(tr); }
   // ---- nome do barco (opcional): o botão abre o campo; o nome vai para o 3D (tubulões, na proa), para os links e para o atendimento salvo ----
+  // ---- imagem final de estúdio no Atendimento: o mesmo render do configurador do cliente, no fundo claro ou escuro da tela em uso ----
+  const TEXTO_WHATS = "Veja o Euronav que configurei!";
+  const AFIM_ANG = [["proa", "Proa", { ang: -0.62, incl: -0.2, zoom: 0.84 }], ["popa", "Popa", { ang: 2.52, incl: -0.2, zoom: 0.84 }], ["lado", "Lateral", { ang: 0, incl: -0.3, zoom: 0.95 }]];
+  const afim = { cache: new Map(), ang: "proa", item: null, pedido: 0, ocupado: false };
+  const AFIM_HTML = '<div class="afim" id="afim" hidden role="dialog" aria-modal="true" aria-label="Imagem final do Euro Sette"><div class="afim-c"><div class="afim-top"><h2>Imagem final</h2><button class="afim-x" type="button" id="afim-x" aria-label="Fechar">×</button></div><div class="afim-img"><img id="afim-foto" alt=""><span class="afim-car" id="afim-car" role="status">Gerando a imagem…</span></div><div class="afim-ang" id="afim-ang" role="group" aria-label="Ângulo da imagem"></div><div class="afim-acoes"><a class="afim-bt forte" id="afim-baixar" download="euro-sette.jpg">Baixar imagem</a><button class="afim-bt wa" type="button" id="afim-wa" disabled>Enviar pelo WhatsApp</button><button class="afim-bt" type="button" id="afim-share" hidden>Compartilhar</button></div><p class="afim-nota" id="afim-nota" hidden></p></div></div>';
+  const afimTema = () => { if (cfx.aberto) return $("cfx").classList.contains("escuro") ? "dark" : "light"; const m = (getComputedStyle(document.body).backgroundColor.match(/[\d.]+/g) || [255, 255, 255]).map(Number); return (0.299 * m[0] + 0.587 * m[1] + 0.114 * m[2]) < 128 ? "dark" : "light"; };
+  const afimChave = () => { const q = atCompute(); return JSON.stringify([atCores(), !!st.at.hyp, st.at.corTubo, !!B3D.solario, q ? q.mid : null, !!st.at.gps, b3dTemItem(/capota de proa/i), b3dTemItem(/churrasqueira/i), b3dTemItem(/guincho/i), b3dTemItem(/pia e fog/i), b3dTemItem(/mastro de bandeira/i), st.at.nb || ""]); };
+  const afimEsperar3D = () => new Promise((ok, erro) => { if (B3D.estado === "off") b3dCarregar(); const t1 = Date.now(); (function ver() { if (B3D.estado === "pronto" && B3D.foto && (B3D.realOk || Date.now() - t1 > 12000)) return ok(); if (B3D.estado === "erro" || Date.now() - t1 > 45000) return erro(new Error("3d")); setTimeout(ver, 250); })(); });
+  function afimAssinar(cv, tema) {
+    const x = cv.getContext("2d"), W = cv.width, H = cv.height, fam = getComputedStyle(document.body).fontFamily || "Arial, sans-serif", cor = tema === "light" ? "#15171A" : "#FFFFFF", c = atCores(), q = atCompute(), mi = q && q.mid ? st.items.get(q.mid) : null, nm = String((mi && mi.item) || "");
+    const mot = nm ? motorMarca(nm) + " " + motorHp(nm) + " hp" + (((mi && mi.incluiGps) || /vessel/i.test(nm)) ? " com VesselView" : "") : "";
+    x.fillStyle = cor; x.textBaseline = "alphabetic"; x.font = "700 54px " + fam; x.fillText("EURO SETTE", 46, 86); x.font = "500 22px " + fam; x.globalAlpha = 0.72; x.fillText("E U R O N A V", 48, 120); x.globalAlpha = 1;
+    const l1 = "Estofado " + c.est + "  ·  Piso " + c.piso + "  ·  Capotas " + c.cap, l2 = "Tubulões em " + (st.at.hyp ? "Hypalon Orca" : "PVC") + " " + tuboCor(st.at.hyp, st.at.corTubo)[1] + (mot ? "  ·  Motor " + mot : "");
+    x.font = "600 26px Inter, Arial, sans-serif"; x.fillText(l1, 46, H - 86); x.fillText(l2, 46, H - 48);
+    x.font = "400 17px Inter, Arial, sans-serif"; x.globalAlpha = 0.6; x.textAlign = "right"; x.fillText("Imagem ilustrativa do modelo 3D", W - 44, H - 48); x.textAlign = "left"; x.globalAlpha = 1;
+  }
+  async function afimGerar(k) {
+    const tema = afimTema(), chave = k + "|" + tema + "|" + afimChave(), car = $("afim-car"), bx = $("afim-baixar"), wa = $("afim-wa"), bts = document.querySelectorAll("#afim-ang button");
+    let it = afim.cache.get(chave); if (!it && afim.ocupado) return;                    // um render por vez
+    afim.ang = k; const meu = ++afim.pedido; bts.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.a === k))); $("afim").dataset.tema = tema; $("afim-nota").hidden = true;
+    if (!it) {
+      afim.ocupado = true; bts.forEach((b) => { b.disabled = true; }); car.textContent = "Preparando o render…"; car.hidden = false; bx.setAttribute("aria-disabled", "true"); wa.disabled = true;
+      try {
+        await afimEsperar3D(); b3dAtualizar(); await new Promise((ok) => setTimeout(ok, 420));   // tempo para as cores e os itens entrarem no modelo
+        const cv = await B3D.foto(Object.assign({ w: 1600, h: 1000, ss: 1.25, tema, amostras: window.__FOTO_AMOSTRAS || 0, aoProgresso: (f) => { car.textContent = "Renderizando a imagem… " + Math.round(f * 100) + "%"; } }, AFIM_ANG.find((a) => a[0] === k)[2])); afimAssinar(cv, tema);
+        const blob = await new Promise((ok) => cv.toBlob(ok, "image/jpeg", 0.93)); it = { url: URL.createObjectURL(blob), blob }; afim.cache.set(chave, it);
+      } catch (e) { car.textContent = "Não foi possível gerar a imagem neste aparelho."; return; }
+      finally { afim.ocupado = false; bts.forEach((b) => { b.disabled = false; }); }
+    }
+    if (meu !== afim.pedido) return;
+    afim.item = it; $("afim-foto").src = it.url; $("afim-foto").alt = "Imagem de estúdio do Euro Sette, vista " + k; car.hidden = true; bx.href = it.url; bx.download = "euro-sette-" + k + ".jpg"; bx.removeAttribute("aria-disabled"); wa.disabled = false;
+    const arq = new File([it.blob], "euro-sette-" + k + ".jpg", { type: "image/jpeg" }); $("afim-share").hidden = !(navigator.canShare && navigator.canShare({ files: [arq] }));
+  }
+  // WhatsApp: abre a folha de compartilhamento do aparelho já com a imagem e o texto, para encaminhar a quem o cliente quiser
+  async function afimWhats() {
+    if (!afim.item) return; const nome = "euro-sette-" + afim.ang + ".jpg", arq = new File([afim.item.blob], nome, { type: "image/jpeg" }), nota = $("afim-nota");
+    try { if (navigator.canShare && navigator.canShare({ files: [arq] })) { await navigator.share({ files: [arq], text: TEXTO_WHATS }); return; } } catch (e) { if (e && e.name === "AbortError") return; }
+    const a = document.createElement("a"); a.href = afim.item.url; a.download = nome; document.body.appendChild(a); a.click(); a.remove();   // computador: baixa a imagem e abre o WhatsApp com o texto
+    window.open("https://wa.me/?text=" + encodeURIComponent(TEXTO_WHATS), "_blank", "noopener"); nota.textContent = "A imagem foi baixada. Anexe no WhatsApp para enviar."; nota.hidden = false;
+  }
+  function afimAbrir() { if (!st.at) return; $("afim").hidden = false; document.body.style.overflow = "hidden"; afimGerar(afim.ang); }
+  function afimFechar() { $("afim").hidden = true; document.body.style.overflow = ""; if (!afim.ocupado) afim.pedido++; }
+  function afimLigar() {
+    document.body.insertAdjacentHTML("beforeend", AFIM_HTML); const ha = $("afim-ang");
+    AFIM_ANG.forEach(([k, n]) => { const b = document.createElement("button"); b.type = "button"; b.dataset.a = k; b.textContent = n; b.setAttribute("aria-pressed", "false"); b.addEventListener("click", () => afimGerar(k)); ha.appendChild(b); });
+    ["at-afim-abrir", "cfx-afim-abrir"].forEach((id) => { const bt = $(id); if (bt) bt.addEventListener("click", afimAbrir); });
+    $("afim-x").addEventListener("click", afimFechar); $("afim").addEventListener("click", (e) => { if (e.target === $("afim")) afimFechar(); });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("afim").hidden) afimFechar(); });
+    $("afim-wa").addEventListener("click", afimWhats);
+    $("afim-share").addEventListener("click", async () => { if (!afim.item) return; try { await navigator.share({ files: [new File([afim.item.blob], "euro-sette-" + afim.ang + ".jpg", { type: "image/jpeg" })], title: "Meu Euro Sette", text: TEXTO_WHATS }); } catch (e) { /* cancelado */ } });
+  }
   const nbLimpo = (v) => String(v || "").replace(/[^\p{L}\p{N} .'&-]/gu, "").replace(/\s+/g, " ").trim().slice(0, 20);
   function nbSync() {
     ["at", "cfx"].forEach((pf) => { const bt = $(pf + "-nb-bt"), campo = $(pf + "-nb-campo"), inp = $(pf + "-nb-in"); if (!bt || !campo || !inp) return;
@@ -3683,6 +3759,7 @@ body.gated { overflow: hidden; }
     $("at-modo").addEventListener("click", () => { modo(true); window.scrollTo(0, 0); });
     $("at-sair").addEventListener("click", () => { if (confirm("Sair da tela do cliente?")) modo(false); });
     nbLigar();
+    afimLigar();
     $("at-semkit").addEventListener("change", (e) => { st.at.semKit = e.target.checked; atSave(); renderAtend(); });
     $("at-copy").addEventListener("click", async () => {
       const t = atText();

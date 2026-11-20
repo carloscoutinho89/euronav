@@ -121,6 +121,8 @@ button { font: inherit; color: inherit; }
 .fim-acoes { display: flex; gap: 8px; flex-wrap: wrap; }
 .fim-acoes .bt { flex: 1 1 180px; justify-content: center; text-align: center; text-decoration: none; }
 .fim-acoes .bt[aria-disabled=true] { opacity: .5; pointer-events: none; }
+.fim-acoes .bt.wa { background: #1FA855; border-color: #1FA855; color: #fff; }
+.fim-acoes .bt.wa:disabled { opacity: .5; cursor: default; }
 .fim-nota { margin: 10px 0 0; font-size: .78rem; color: #A9AFB8; }
 body.vitrine .top, body.vitrine .barra .espaco ~ * { display: none; }
 body.vitrine .app { height: 100%; }
@@ -271,7 +273,8 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
     <div class="fim-top"><h2>Seu Euro Sette</h2><button class="fim-x" type="button" id="fim-x" aria-label="Fechar">×</button></div>
     <div class="fim-img"><img id="fim-foto" alt=""><span class="fim-car" id="fim-car" role="status">Gerando a imagem…</span></div>
     <div class="fim-ang" id="fim-ang" role="group" aria-label="Ângulo da imagem"></div>
-    <div class="fim-acoes"><a class="bt forte" id="fim-baixar" download="euro-sette.jpg">Baixar imagem</a><button class="bt" type="button" id="fim-share" hidden>Compartilhar</button></div>
+    <div class="fim-acoes"><a class="bt forte" id="fim-baixar" download="euro-sette.jpg">Baixar imagem</a><button class="bt wa" type="button" id="fim-wa" disabled>Enviar pelo WhatsApp</button><button class="bt" type="button" id="fim-share" hidden>Compartilhar</button></div>
+    <p class="fim-nota" id="fim-nota" hidden></p>
     <p class="fim-nota">Imagem ilustrativa, gerada a partir do modelo 3D do projeto. Cores e detalhes podem variar no barco real.</p>
   </div>
 </div>
@@ -1344,18 +1347,27 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
     if (!it && fim.ocupado) return;                                     // um render por vez
     fim.ang = k; const meu = ++fim.pedido; bts.forEach((b) => pressionado(b, b.dataset.a === k)); $("fim").dataset.tema = tema;
     if (!it) {
-      fim.ocupado = true; bts.forEach((b) => { b.disabled = true; }); car.textContent = "Preparando o render…"; car.hidden = false; bx.setAttribute("aria-disabled", "true");
+      fim.ocupado = true; bts.forEach((b) => { b.disabled = true; }); car.textContent = "Preparando o render…"; car.hidden = false; bx.setAttribute("aria-disabled", "true"); $("fim-wa").disabled = true; $("fim-nota").hidden = true;
       try {
         await esperar3D(); b3dAtualizar(); await new Promise((ok) => setTimeout(ok, 420));   // tempo para as cores e os itens entrarem no modelo
-        const cv = await B3D.foto(Object.assign({ w: 1600, h: 1000, ss: 1.25, tema, aoProgresso: (f) => { car.textContent = "Renderizando a imagem… " + Math.round(f * 100) + "%"; } }, ANGULOS.find((a) => a[0] === k)[2])); fimAssinar(cv, tema);
+        const cv = await B3D.foto(Object.assign({ w: 1600, h: 1000, ss: 1.25, tema, amostras: window.__FOTO_AMOSTRAS || 0, aoProgresso: (f) => { car.textContent = "Renderizando a imagem… " + Math.round(f * 100) + "%"; } }, ANGULOS.find((a) => a[0] === k)[2])); fimAssinar(cv, tema);
         const blob = await new Promise((ok) => cv.toBlob(ok, "image/jpeg", 0.93)); it = { url: URL.createObjectURL(blob), blob }; fim.cache.set(chave, it);
       } catch (e) { car.textContent = "Não foi possível gerar a imagem neste aparelho. Use a vista 360° do configurador."; return; }
       finally { fim.ocupado = false; bts.forEach((b) => { b.disabled = false; }); }
     }
     if (meu !== fim.pedido) return;
     fim.item = it; $("fim-foto").src = it.url; $("fim-foto").alt = "Imagem de estúdio do Euro Sette, vista " + k + ", com as cores escolhidas"; car.hidden = true;
-    bx.href = it.url; bx.download = "euro-sette-" + k + ".jpg"; bx.removeAttribute("aria-disabled");
+    bx.href = it.url; bx.download = "euro-sette-" + k + ".jpg"; bx.removeAttribute("aria-disabled"); $("fim-wa").disabled = false;
     const arq = new File([it.blob], "euro-sette-" + k + ".jpg", { type: "image/jpeg" }); $("fim-share").hidden = !(navigator.canShare && navigator.canShare({ files: [arq] }));
+  }
+  // WhatsApp: abre a folha de compartilhamento do aparelho já com a imagem e o texto, para o cliente encaminhar a quem quiser
+  const TEXTO_WHATS = "Veja o Euronav que configurei!";
+  async function fimWhats() {
+    if (!fim.item) return; const nome = "euro-sette-" + fim.ang + ".jpg", arq = new File([fim.item.blob], nome, { type: "image/jpeg" }), nota = $("fim-nota");
+    try { if (navigator.canShare && navigator.canShare({ files: [arq] })) { await navigator.share({ files: [arq], text: TEXTO_WHATS }); return; } } catch (e) { if (e && e.name === "AbortError") return; }
+    // sem compartilhamento de arquivos (computador): baixa a imagem e abre o WhatsApp com o texto
+    const a = document.createElement("a"); a.href = fim.item.url; a.download = nome; document.body.appendChild(a); a.click(); a.remove();
+    window.open("https://wa.me/?text=" + encodeURIComponent(TEXTO_WHATS), "_blank", "noopener"); nota.textContent = "A imagem foi baixada. Anexe no WhatsApp para enviar."; nota.hidden = false;
   }
   function fimAbrir() { $("fim").hidden = false; document.body.style.overflow = "hidden"; fimGerar(fim.ang); }
   function fimFechar() { $("fim").hidden = true; document.body.style.overflow = ""; if (!fim.ocupado) fim.pedido++; }
@@ -1363,6 +1375,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
     $("b-final").addEventListener("click", fimAbrir); $("fim-x").addEventListener("click", fimFechar);
     $("fim").addEventListener("click", (e) => { if (e.target === $("fim")) fimFechar(); });
     document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("fim").hidden) fimFechar(); });
+    $("fim-wa").addEventListener("click", fimWhats);
     $("fim-share").addEventListener("click", async () => { if (!fim.item) return; try { await navigator.share({ files: [new File([fim.item.blob], "euro-sette-" + fim.ang + ".jpg", { type: "image/jpeg" })], title: "Meu Euro Sette", text: "Montei o meu Euro Sette no configurador da Euronav." }); } catch (e) { /* cancelado */ } }); }
   // ---------- início ----------
   let t0 = "dark"; try { t0 = localStorage.getItem("es-tema") || "dark"; } catch (e) { /* ignora */ }
