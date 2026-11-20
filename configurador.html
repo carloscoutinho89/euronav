@@ -251,7 +251,7 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
     <div class="orc-barra" id="orc-barra"><span>Valor total · impostos incluídos</span><b id="orc-total">–</b></div>
   </section>
   <aside class="painel" aria-label="Personalização">
-    <div class="sec nb" id="sec-nb"><button class="opt nb-bt" type="button" id="nb-bt" aria-pressed="false"><span>Dar um nome ao barco<small>Opcional. O nome aparece nos tubulões, na proa.</small></span><i class="sw"></i></button><div class="nb-campo" id="nb-campo" hidden><input id="nb-in" type="text" maxlength="20" placeholder="Nome do barco" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Nome do barco"><p class="dica">Até 20 letras.</p></div></div>
+    <div class="sec nb" id="sec-nb"><button class="opt nb-bt" type="button" id="nb-bt" aria-pressed="false"><span>Dar o nome ao seu barco<small>Opcional. Batize o seu Euro Sette. O nome aparece nos tubulões, na proa.</small></span><i class="sw"></i></button><div class="nb-campo" id="nb-campo" hidden><input id="nb-in" type="text" maxlength="20" placeholder="Nome do seu barco" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Nome do seu barco"><p class="dica">Até 20 letras.</p></div></div>
     <div class="sec"><h2>Combinações</h2><div class="combos" id="combos"></div></div>
     <div class="sec pers"><h2 class="pers-t">Personalize do seu jeito</h2></div>
     <div class="sec"><h2>Estofado <b id="n-est"></b></h2><div class="dots" id="d-est" role="group" aria-label="Cor do estofado"></div><button class="tc-bt" type="button" data-tc="est"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M15.5 15.5 21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Ver o tecido de perto</button></div>
@@ -1413,7 +1413,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
     const c = dadosContato(); registrarContato("WhatsApp");
     const resumo = $("resumo").textContent.replace(/^Seu Euro Sette:\s*/, "");
     const intro = ORC ? ". Conferi o orçamento do meu Euro Sette e gostaria de falar com um atendente." : ". Montei meu Euro Sette no configurador e gostaria de falar com um atendente.";
-    const msg = "Olá! Meu nome é " + c.nome + intro + "\n\nMinha configuração: " + resumo + (E.nb ? "\n\nNome do barco: " + E.nb : "") + "\n\nLink da configuração: " + linkCfg();
+    const msg = "Olá! Meu nome é " + c.nome + intro + "\n\nMinha configuração: " + resumo + (E.nb ? "\n\nNome do meu barco: " + E.nb : "") + "\n\nLink da configuração: " + linkCfg();
     const a = document.createElement("a"); a.href = "https://wa.me/" + WHATS + "?text=" + encodeURIComponent(msg); a.target = "_blank"; a.rel = "noopener"; document.body.appendChild(a); a.click(); a.remove();
   }
   async function compartilhar() {
