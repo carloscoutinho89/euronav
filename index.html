@@ -340,6 +340,11 @@ details.c-group[open] > summary::after { content: "\2212"; }
 .at-cnpj-msg[data-t="erro"] { color: #B3261E; font-weight: 600; }
 .at-cnpj-msg[data-t="aviso"] { color: #8A5A00; }
 .at-cnpj-msg[data-t="ok"] { color: #1E6B3A; }
+.at-passo { margin: 0 0 12px; }
+.at-passo-t { margin: 0 0 6px; font-size: .74rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.at-linha { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; }
+.at-motor-res { margin: 6px 0 0; font-size: .82rem; color: var(--muted); }
+.at-motor-res b { color: inherit; font-weight: 600; }
 .at-sair { position: fixed; right: 12px; bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); z-index: 20; font: inherit; font-size: .86rem; font-weight: 500; color: #FFFFFF; background: #1C1C1E; border: 1px solid #5B5E63; border-radius: 999px; padding: 10px 18px; box-shadow: 0 2px 10px rgba(0,0,0,.35); cursor: pointer; }
 body.cliente { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 72px); }
 body.cliente .tabs, body.cliente .band .save-state, body.cliente .at-actions, body.cliente .at-semkit { display: none; }
@@ -2472,6 +2477,33 @@ body.gated { overflow: hidden; }
 
   function kitOf(it) { return KIT_KEYS.includes(it.kit) ? it.kit : "basico"; }
   function kitInfo(key) { return KITS.find((k) => k.key === key) || KITS[0]; }
+  // ---- motor em passos: fabricante, potência e, no Mercury 200, o VesselView; versões do mesmo motor (branco, rotação inversa) ficam em "outras versões" ----
+  const motorMarca = (n) => (/yamaha/i.test(n) ? "Yamaha" : /mercury/i.test(n) ? "Mercury" : "Outros");
+  const motorHp = (n) => { const a = String(n || "").match(/(\d{2,3})\s*hp/i) || String(n || "").match(/(?:mercury|yamaha)\s+f?l?(\d{2,3})/i); return a ? +a[1] : 0; };
+  function motorEscolha(cat, sel, o) {
+    const marca = o.marca != null ? o.marca : sel.marca, daMarca = cat.filter((m) => m.marca === marca), hps = [...new Set(daMarca.map((m) => m.hp))].sort((a, b) => a - b);
+    const hp = o.hp != null ? o.hp : (hps.includes(sel.hp) ? sel.hp : hps[0]), grupo = daMarca.filter((m) => m.hp === hp);
+    const bases = grupo.filter((m) => !m.vv).sort((a, b) => (b.dest - a.dest) || (a.ord - b.ord)), vv = grupo.find((m) => m.vv);
+    return (o.vv && vv ? vv : (bases[0] || vv || grupo[0] || sel)).id;
+  }
+  function motorPassos(host, cat, selId, escolher) {
+    const sel = cat.find((m) => m.id === selId) || cat[0]; if (!sel) return;
+    const marcas = [...new Set(cat.map((m) => m.marca))], daMarca = cat.filter((m) => m.marca === sel.marca), hps = [...new Set(daMarca.map((m) => m.hp))].sort((a, b) => a - b);
+    const grupo = daMarca.filter((m) => m.hp === sel.hp), bases = grupo.filter((m) => !m.vv).sort((a, b) => (b.dest - a.dest) || (a.ord - b.ord)), vv = grupo.find((m) => m.vv);
+    const passo = (titulo) => { const d = el("div", "at-passo"); d.appendChild(el("p", "at-passo-t", titulo)); const l = el("div", "at-linha"); d.appendChild(l); host.appendChild(d); return l; };
+    const opc = (linha, tipo, nome, sub, em, marcado, fn) => { const lab = el("label", "v-opt"); const inp = document.createElement("input"); inp.type = tipo; inp.checked = marcado; inp.addEventListener("change", fn); const sp = el("span"); sp.append(el("b", "", nome)); if (sub) sp.append(el("small", "", sub)); lab.append(inp, sp); if (em) lab.append(el("em", "", em)); linha.appendChild(lab); return inp; };
+    const lm = passo("Fabricante");
+    marcas.forEach((mk) => { const preco = Math.min(...cat.filter((m) => m.marca === mk && !m.vv).map((m) => m.preco)); const i = opc(lm, "radio", mk, "a partir de " + money(preco), "", mk === sel.marca, () => escolher(motorEscolha(cat, sel, { marca: mk }))); i.name = "at-mt-marca"; });
+    const lh = passo("Potência");
+    hps.forEach((hp) => { const b = motorEscolha(cat, sel, { marca: sel.marca, hp }), mb = cat.find((m) => m.id === b); const i = opc(lh, "radio", hp + " hp", "", money(mb.preco), hp === sel.hp, () => escolher(b)); i.name = "at-mt-hp"; });
+    if (vv) { const base = cat.find((m) => m.id === motorEscolha(cat, sel, { marca: sel.marca, hp: sel.hp, vv: false })), lv = passo("Opcional do motor"); opc(lv, "checkbox", "VesselView", "Painel com GPS integrado no console", "+ " + money(vv.preco - base.preco), sel.vv, (ev) => escolher(motorEscolha(cat, sel, { marca: sel.marca, hp: sel.hp, vv: ev.target.checked }))); }
+    if (bases.length > 1) {
+      const det = el("details", "at-mais"); det.open = !sel.vv && sel.id !== bases[0].id; det.appendChild(el("summary", "", "Outras versões do " + sel.marca + " " + sel.hp + " hp (" + (bases.length - 1) + ")"));
+      const box = el("div", "v-opts"); bases.forEach((m) => { const lab = el("label", "v-opt"); const inp = document.createElement("input"); inp.type = "radio"; inp.name = "at-mt-ver"; inp.checked = m.id === sel.id; inp.addEventListener("change", () => escolher(m.id)); const sp = el("span"); sp.append(el("b", "", m.nome)); lab.append(inp, sp, el("em", "", money(m.preco))); box.appendChild(lab); });
+      det.appendChild(box); host.appendChild(det);
+    }
+    const res = el("p", "at-motor-res"); res.append(el("b", "", sel.nome), document.createTextNode((sel.spec ? ". " + sel.spec : "") + ". Garantia do fabricante.")); host.appendChild(res);
+  }
   function motors() {
     const out = [];
     st.items.forEach((it, id) => { if (it.grupo === "equipamentos" && it.motor) out.push([id, it]); });
@@ -3510,27 +3542,12 @@ body.gated { overflow: hidden; }
     if (bl._n !== basicos.length) { bl.replaceChildren(); basicos.sort((x, y) => String(x).localeCompare(String(y), "pt-BR")).forEach((n) => bl.appendChild(el("li", "", n))); bl._n = basicos.length; }
     setText("at-basico-sum", "Ver os " + basicos.length + " itens que já vêm no barco");
     const mh = $("at-motores"); mh.replaceChildren();
-    const mkMotor = (host, [id, it, p]) => {
-      const lab = el("label", "v-opt"); const inp = document.createElement("input"); inp.type = "radio"; inp.name = "at-motor"; inp.value = id; inp.checked = id === q.mid;
-      inp.addEventListener("change", () => {
-        const antes = motorGps(q.mid); st.at.motor = id;
-        if (motorGps(id)) { if (!st.at.gps) { st.at.gps = true; st.at.gpsAuto = true; } }
-        else if (antes && st.at.gpsAuto) { st.at.gps = false; st.at.gpsAuto = false; }
-        atSave(); renderAtend();
-      });
-      const sp = el("span"); sp.append(el("b", "", it.item), el("small", "", it.spec ? it.spec + ". Garantia do fabricante." : "Garantia do fabricante"));
-      lab.append(inp, sp, el("em", "", money(p))); host.appendChild(lab);
-    };
-    const temDest = q.motorPrices.some(([, it]) => it.destaque);
-    const visM = q.motorPrices.filter(([id, it]) => !temDest || it.destaque || id === q.mid);
-    const maisM = q.motorPrices.filter((m) => visM.indexOf(m) < 0);
-    visM.forEach((m) => mkMotor(mh, m));
-    if (maisM.length) {
-      const det = el("details", "at-mais"); det.open = !!st.atMaisMot;
-      det.addEventListener("toggle", () => { st.atMaisMot = det.open; });
-      det.appendChild(el("summary", "", "Ver mais motores (" + maisM.length + ")"));
-      const box = el("div", "v-opts"); maisM.forEach((m) => mkMotor(box, m)); det.appendChild(box); mh.appendChild(det);
-    }
+    motorPassos(mh, q.motorPrices.map(([id, it, p], ord) => ({ id, ord, marca: motorMarca(it.item), hp: motorHp(it.item), vv: !!it.incluiGps || /vessel/i.test(it.item || ""), dest: it.destaque ? 1 : 0, nome: it.item, spec: it.spec, preco: p })), q.mid, (id) => {
+      const antes = motorGps(q.mid); st.at.motor = id;
+      if (motorGps(id)) { if (!st.at.gps) { st.at.gps = true; st.at.gpsAuto = true; } }
+      else if (antes && st.at.gpsAuto) { st.at.gps = false; st.at.gpsAuto = false; }
+      atSave(); renderAtend();
+    });
     setText("at-casco-desc", "Autêntico RIB de 7,75 m por 3,05 m" + (serieTxt() ? ", com " + serieTxt() : "") + ". Tubos em PVC Sansuy.");
     const oh = $("at-opc"); oh.replaceChildren();
     const opt = (key, nome, desc, price, on, fn, lock) => {
@@ -5960,7 +5977,10 @@ body.gated { overflow: hidden; }
     if (h.get("t")) st.at.hyp = h.get("t") === "hyp";
     st.at.corTubo = tuboCor(st.at.hyp, h.get("c") || st.at.corTubo)[0];
     const marca = h.get("m"), ms = motors();
-    if (marca) { const pref = marca === "yamaha" ? "eq101" : "eq201"; const alvo = ms.find(([id]) => id === pref) || ms.find(([, it]) => new RegExp(marca, "i").test(it.item || "")); if (alvo) st.at.motor = alvo[0]; }
+    if (marca) {
+      const cat = ms.map(([id, it], ord) => ({ id, ord, marca: motorMarca(it.item), hp: motorHp(it.item), vv: !!it.incluiGps || /vessel/i.test(it.item || ""), dest: it.destaque ? 1 : 0 })), mk = marca === "yamaha" ? "Yamaha" : "Mercury", daMarca = cat.filter((m) => m.marca === mk);
+      if (daMarca.length) { const hps = [...new Set(daMarca.map((m) => m.hp))].sort((a, b) => a - b), hpL = +h.get("hp") || 0, hp = hps.includes(hpL) ? hpL : hps[0]; st.at.motor = motorEscolha(cat, daMarca[0], { marca: mk, hp, vv: h.get("vv") === "1" }); if (motorGps(st.at.motor)) { st.at.gps = true; st.at.gpsAuto = true; } }
+    }
     const mi = h.get("mi"); if (mi && ms.some(([id]) => id === mi)) { st.at.motor = mi; if (motorGps(mi)) { st.at.gps = true; st.at.gpsAuto = true; } }   // link com preços: o motor exato que o cliente escolheu
     (h.get("kt") || "").split(".").filter((k) => KIT_KEYS.includes(k) && k !== "basico").forEach((k) => { st.at.kits = Object.assign({}, st.at.kits, { [k]: true }); });   // kits completos escolhidos
     const o = (h.get("o") || "").split(".").filter(Boolean);
@@ -6025,8 +6045,8 @@ body.gated { overflow: hidden; }
   function orcParams() {
     const q = atCompute(), mi = q && q.mid ? st.items.get(q.mid) : null, nm = String((mi && mi.item) || "");
     const o = [[/capota de proa/i, "cp"], [/churrasqueira/i, "ch"], [/guincho/i, "gu"], [/carreta/i, "ca"]].filter(([re]) => b3dTemItem(re)).map(([, k]) => k);
-    if (st.at.gps || (q && motorGps(q.mid))) o.push("gps");
-    const pr = new URLSearchParams({ e: atCores().est, p: atCores().piso, li: atCores().listra, k: atCores().cap, c: tuboCor(st.at.hyp, st.at.corTubo)[0], t: st.at.hyp ? "hyp" : "pvc", m: /yamaha/i.test(nm) ? "yamaha" : "mercury", v: "360" });
+    if (st.at.gps && !(q && motorGps(q.mid) && st.at.gpsAuto)) o.push("gps");   // o VesselView já traz o GPS: só vai no link o GPS escolhido à mão
+    const pr = new URLSearchParams({ e: atCores().est, p: atCores().piso, li: atCores().listra, k: atCores().cap, c: tuboCor(st.at.hyp, st.at.corTubo)[0], t: st.at.hyp ? "hyp" : "pvc", m: /yamaha/i.test(nm) ? "yamaha" : "mercury", hp: String(motorHp(nm) || 150), v: "360" }); if ((mi && mi.incluiGps) || /vessel/i.test(nm)) pr.set("vv", "1");
     if (o.length) pr.set("o", o.join("."));
     const kt = ["conforto", "lazer", "fundeio"].filter((k) => st.at.kits && st.at.kits[k]); if (kt.length) pr.set("kt", kt.join("."));
     if (q && q.mid) pr.set("mi", q.mid);
@@ -6050,7 +6070,7 @@ body.gated { overflow: hidden; }
     const q = atCompute(), mi = q && q.mid ? st.items.get(q.mid) : null, nm = String((mi && mi.item) || "");
     const o = [[/capota de proa/i, "cp"], [/churrasqueira/i, "ch"], [/guincho/i, "gu"]].filter(([re]) => b3dTemItem(re)).map(([, k]) => k);
     if (st.at.gps || (q && motorGps(q.mid))) o.push("gps");
-    const pr = new URLSearchParams({ e: atCores().est, p: atCores().piso, li: atCores().listra, k: atCores().cap, c: tuboCor(st.at.hyp, st.at.corTubo)[0], t: st.at.hyp ? "hyp" : "pvc", m: /yamaha/i.test(nm) ? "yamaha" : "mercury", v: "360" });
+    const pr = new URLSearchParams({ e: atCores().est, p: atCores().piso, li: atCores().listra, k: atCores().cap, c: tuboCor(st.at.hyp, st.at.corTubo)[0], t: st.at.hyp ? "hyp" : "pvc", m: /yamaha/i.test(nm) ? "yamaha" : "mercury", hp: String(motorHp(nm) || 150), v: "360" }); if ((mi && mi.incluiGps) || /vessel/i.test(nm)) pr.set("vv", "1");
     if (o.length) pr.set("o", o.join("."));
     a.href = CONFIG_URL + "#" + pr.toString();
   }

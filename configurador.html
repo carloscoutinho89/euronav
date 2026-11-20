@@ -158,6 +158,15 @@ body.com-precos #sec-opc, body.com-precos #sec-motor, body.com-precos #resumo, b
 .orc-det summary { cursor: pointer; padding: 6px 0; }
 .orc-det ul { margin: 2px 0 8px; padding-left: 18px; line-height: 1.5; }
 .orc-mais { margin-top: 4px; }
+.mt-passo { margin: 0 0 12px; }
+.mt-t { margin: 0 0 6px; font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.mt-grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+.mt-opt em { font-style: normal; font-weight: 600; white-space: nowrap; margin-left: 10px; }
+.mt-opt[aria-pressed="true"] { box-shadow: 0 0 0 1px var(--accent); }
+.mt-opt[role="radio"] > span { white-space: nowrap; }
+.mt-opt[disabled], .opt[disabled] { opacity: .65; cursor: default; }
+.mt-ver { margin: 4px 0 8px; } .mt-ver .opt { width: 100%; margin-top: 6px; }
+.mt-res { margin: 8px 0 0; font-size: .8rem; color: var(--muted); } .mt-res b { color: inherit; font-weight: 600; }
 .orc-mais-bt { appearance: none; border: 0; background: none; color: var(--accent2); font: inherit; font-size: .84rem; padding: 8px 0; cursor: pointer; text-decoration: underline; }
 .orc-tab { width: 100%; border-collapse: collapse; font-size: .9rem; }
 .orc-tab td { padding: 6px 0; vertical-align: top; }
@@ -221,7 +230,7 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
     <div class="sec"><h2>Proa <b id="n-proa"></b></h2><div class="duas" id="d-proa"></div><p class="dica">O Euro Sette já vem com os dois: mesa e solário. Aqui você escolhe só como ver a proa.</p></div>
     <div class="sec"><h2>Tubulões <b id="n-tubo"></b></h2><div class="duas" id="d-tubo"></div><div class="dots tcor" id="d-tcor" role="group" aria-label="Cor dos tubulões"></div></div>
     <div class="sec" id="sec-opc"><h2>Opcionais</h2><div class="opts" id="d-opc"></div></div>
-    <div class="sec" id="sec-motor"><h2>Motor <b id="n-motor"></b></h2><div class="duas" id="d-motor"></div></div>
+    <div class="sec" id="sec-motor"><h2>Motor <b id="n-motor"></b></h2><div id="d-motor"></div></div>
     <div class="sec orc-sec" id="sec-orc-motor"><h2>Motor <b id="n-orc-motor"></b></h2><div id="orc-motores"></div></div>
     <div class="sec orc-sec" id="sec-orc-kits"><h2>Kits e opcionais</h2><div id="orc-kits"></div></div>
     <div class="sec orc-sec" id="sec-orc-res"><h2>Seu orçamento</h2><table class="orc-tab" id="orc-tab"></table><p class="orc-nota" id="orc-nota"></p></div>
@@ -300,10 +309,43 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
   ];
   const VISTAS = [["360", "360°"], ["popa", "Popa"], ["cockpit", "Cockpit"], ["proa", "Proa"], ["tubo", "Tubulão"]];
   const OPC = [["cp", "Capota de proa", "Sombra extra na proa"], ["ch", "Churrasqueira", "A gás, com tábua e suporte"], ["gu", "Guincho elétrico", "Fundeio sem esforço"], ["gps", "GPS", "Navegação no console"]];
-  const PADRAO = { est: "Cinza Arizona", piso: "Cinza", li: "Branco", cap: "Cinza", tubo: "pvc", ct: "cinza", cp: false, ch: false, gu: false, gps: false, motor: "mercury", vista: "360", proa: "mesa" };
+  const PADRAO = { est: "Cinza Arizona", piso: "Cinza", li: "Branco", cap: "Cinza", tubo: "pvc", ct: "cinza", cp: false, ch: false, gu: false, gps: false, motor: "mercury", hp: 150, vv: false, vista: "360", proa: "mesa" };
   const E = Object.assign({}, PADRAO);
   let ORC = null, ORCQ = "", ORCERRO = false; const ORCS = { mi: 0, mk: 0 };   // modo orçamento com preços (tabela vinda do link)
   const nomeCor = (c) => c.toLowerCase();
+  // ---------- motor em passos: fabricante, potência e, no Mercury 200, o VesselView ----------
+  const motorMarca = (n) => (/yamaha/i.test(n) ? "Yamaha" : /mercury/i.test(n) ? "Mercury" : "Outros");
+  const motorHp = (n) => { const a = String(n || "").match(/(\d{2,3})\s*hp/i) || String(n || "").match(/(?:mercury|yamaha)\s+f?l?(\d{2,3})/i); return a ? +a[1] : 0; };
+  const motorTxt = () => (E.motor === "yamaha" ? "Yamaha" : "Mercury") + " " + E.hp + " hp" + (E.vv ? " com VesselView" : "");
+  const MOTORES_PUB = [{ id: 0, ord: 0, dest: 1, marca: "Mercury", hp: 150, vv: false, cor: "Branco" }, { id: 1, ord: 1, dest: 1, marca: "Mercury", hp: 200, vv: false, cor: "Branco" }, { id: 2, ord: 2, dest: 0, marca: "Mercury", hp: 200, vv: true, cor: "Branco" }, { id: 3, ord: 3, dest: 1, marca: "Yamaha", hp: 150, vv: false, cor: "Cinza" }, { id: 4, ord: 4, dest: 1, marca: "Yamaha", hp: 200, vv: false, cor: "Cinza" }];
+  function motorEscolha(cat, sel, o) {
+    const marca = o.marca != null ? o.marca : sel.marca, daMarca = cat.filter((m) => m.marca === marca), hps = [...new Set(daMarca.map((m) => m.hp))].sort((a, b) => a - b);
+    const hp = o.hp != null ? o.hp : (hps.includes(sel.hp) ? sel.hp : hps[0]), grupo = daMarca.filter((m) => m.hp === hp);
+    const bases = grupo.filter((m) => !m.vv).sort((a, b) => (b.dest - a.dest) || (a.ord - b.ord)), vv = grupo.find((m) => m.vv);
+    return (o.vv && vv ? vv : (bases[0] || vv || grupo[0] || sel)).id;
+  }
+  function motorPassos(host, cat, selId, escolher, comPreco) {
+    const sel = cat.find((m) => m.id === selId) || cat[0]; if (!sel) return; host.replaceChildren();
+    const marcas = [...new Set(cat.map((m) => m.marca))], daMarca = cat.filter((m) => m.marca === sel.marca), hps = [...new Set(daMarca.map((m) => m.hp))].sort((a, b) => a - b);
+    const grupo = daMarca.filter((m) => m.hp === sel.hp), bases = grupo.filter((m) => !m.vv).sort((a, b) => (b.dest - a.dest) || (a.ord - b.ord)), vv = grupo.find((m) => m.vv);
+    const passo = (titulo) => { const d = document.createElement("div"); d.className = "mt-passo"; const tt = document.createElement("p"); tt.className = "mt-t"; tt.textContent = titulo; const g = document.createElement("div"); g.className = "mt-grade"; d.append(tt, g); host.appendChild(d); return g; };
+    const botao = (g, papel, nome, sub, em, on, fn) => { const b = document.createElement("button"); b.type = "button"; b.className = "opt mt-opt"; b.setAttribute("role", papel); b.setAttribute("aria-pressed", on ? "true" : "false"); const sp = document.createElement("span"); sp.textContent = nome; if (sub) { const sm = document.createElement("small"); sm.textContent = sub; sp.appendChild(sm); } b.appendChild(sp); if (em) { const e = document.createElement("em"); e.textContent = em; b.appendChild(e); } if (papel === "checkbox") { const sw = document.createElement("i"); sw.className = "sw"; b.appendChild(sw); } b.addEventListener("click", fn); g.appendChild(b); };
+    const gm = passo("Fabricante");
+    marcas.forEach((mk) => { const pre = comPreco ? "a partir de " + reais(Math.min(...cat.filter((m) => m.marca === mk && !m.vv).map((m) => m.preco))) : cat.find((m) => m.marca === mk).cor; botao(gm, "radio", mk, pre, "", mk === sel.marca, () => escolher(motorEscolha(cat, sel, { marca: mk }))); });
+    const gh = passo("Potência");
+    hps.forEach((hp) => { const b = motorEscolha(cat, sel, { marca: sel.marca, hp }); botao(gh, "radio", hp + " hp", "", comPreco ? reais(cat.find((m) => m.id === b).preco) : "", hp === sel.hp, () => escolher(b)); });
+    if (vv) { const base = cat.find((m) => m.id === motorEscolha(cat, sel, { marca: sel.marca, hp: sel.hp, vv: false })), gv = passo("Opcional do motor"); botao(gv, "checkbox", "VesselView", "Painel com GPS integrado no console", comPreco ? "+ " + reais(vv.preco - base.preco) : "", sel.vv, () => escolher(motorEscolha(cat, sel, { marca: sel.marca, hp: sel.hp, vv: !sel.vv }))); }
+    if (comPreco && bases.length > 1) {
+      const d = document.createElement("details"); d.className = "orc-det mt-ver"; d.open = !sel.vv && sel.id !== bases[0].id; const sm = document.createElement("summary"); sm.textContent = "Outras versões do " + sel.marca + " " + sel.hp + " hp (" + (bases.length - 1) + ")"; d.appendChild(sm);
+      bases.forEach((m) => { const b = document.createElement("button"); b.type = "button"; b.className = "opt orc-opt"; b.setAttribute("role", "radio"); b.setAttribute("aria-pressed", String(m.id === sel.id)); const sp = document.createElement("span"), nb = document.createElement("b"); nb.textContent = m.nome; sp.appendChild(nb); const e = document.createElement("em"); e.textContent = reais(m.preco); b.append(sp, e); b.addEventListener("click", () => escolher(m.id)); d.appendChild(b); }); host.appendChild(d);
+    }
+    if (comPreco) { const p = document.createElement("p"); p.className = "mt-res"; const nb = document.createElement("b"); nb.textContent = sel.nome; p.append(nb, document.createTextNode((sel.spec ? ". " + sel.spec : "") + ". Garantia do fabricante.")); host.appendChild(p); }
+  }
+  function escolherMotorPub(id) {
+    const m = MOTORES_PUB.find((x) => x.id === id), eraVV = E.vv; E.motor = m.marca.toLowerCase(); E.hp = m.hp; E.vv = m.vv;
+    if (m.vv && !eraVV) { E.gpsAntes = !!E.gps; E.gps = true; } else if (!m.vv && eraVV) E.gps = !!E.gpsAntes;
+    render();
+  }
   // ---------- estado no link ----------
   const lerHash = () => {
     const h = new URLSearchParams(location.hash.slice(1));
@@ -315,12 +357,14 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
     if (ok(h.get("pr"), ["mesa", "sol"])) E.proa = h.get("pr");
     E.ct = corTubo(E.tubo, h.get("c") || E.ct)[0];
     if (ok(h.get("m"), ["mercury", "yamaha"])) E.motor = h.get("m");
+    { const hv = +h.get("hp"); if ([150, 200].includes(hv)) E.hp = hv; E.vv = h.get("vv") === "1" && E.motor === "mercury" && E.hp === 200; }
     if (ok(h.get("v"), VISTAS.map((v) => v[0]))) E.vista = h.get("v");
     if (h.has("o")) { const o = h.get("o").split("."); OPC.forEach(([k]) => { E[k] = o.includes(k); }); }
+    if (E.vv) E.gps = true;                                              // o VesselView já traz o GPS
   };
   const hashAtual = (comQ = true) => {
     const o = OPC.map(([k]) => k).filter((k) => E[k]); if (ORC && ((ORCS.mk >> 4) & 1)) o.push("ca");
-    const p = new URLSearchParams({ e: E.est, p: E.piso, li: E.li, k: E.cap, t: E.tubo, c: E.ct, m: E.motor, v: E.vista }); if (E.proa === "sol") p.set("pr", "sol"); if (o.length) p.set("o", o.join("."));
+    const p = new URLSearchParams({ e: E.est, p: E.piso, li: E.li, k: E.cap, t: E.tubo, c: E.ct, m: E.motor, hp: E.hp, v: E.vista }); if (E.vv) p.set("vv", "1"); if (E.proa === "sol") p.set("pr", "sol"); if (o.length) p.set("o", o.join("."));
     if (ORC) { p.set("mi", ORC.m[ORCS.mi][0]); const kt = ["conforto", "lazer", "fundeio"].filter((k, j) => (ORCS.mk >> j) & 1); if (kt.length) p.set("kt", kt.join(".")); if (comQ) p.set("q", ORCQ); }
     return "#" + p.toString();
   };
@@ -1052,21 +1096,13 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
     let mk = 0; (h.get("kt") || "").split(".").forEach((k) => { const j = ["conforto", "lazer", "fundeio"].indexOf(k); if (j >= 0) mk |= 1 << j; });
     const o = (h.get("o") || "").split("."); if (o.includes("cp") && ORC.t[3]) mk |= 1 << 3; if (o.includes("ca") && ORC.t[4]) mk |= 1 << 4; if (o.includes("gps")) mk |= 1 << 6; ORCS.mk = mk;
   }
-  function orcSync() { const m = ORC.m[ORCS.mi]; E.motor = /yamaha/i.test(m[1]) ? "yamaha" : "mercury"; E.cp = !!((ORCS.mk >> 3) & 1); E.ch = !!((ORCS.mk >> 1) & 1); E.gu = !!((ORCS.mk >> 2) & 1); E.gps = !!m[4] || !!((ORCS.mk >> 6) & 1); }
+  function orcSync() { const m = ORC.m[ORCS.mi]; E.motor = /yamaha/i.test(m[1]) ? "yamaha" : "mercury"; E.hp = motorHp(m[1]) || E.hp; E.vv = !!m[4] || /vessel/i.test(m[1]); E.cp = !!((ORCS.mk >> 3) & 1); E.ch = !!((ORCS.mk >> 1) & 1); E.gu = !!((ORCS.mk >> 2) & 1); E.gps = !!m[4] || !!((ORCS.mk >> 6) & 1); }
   const orcMotorTxt = (m) => (m[2] ? m[2] + ". Garantia do fabricante." : "Garantia do fabricante");
   function orcMontar() {
     document.body.classList.add("com-precos");
     document.title = "Euro Sette · Orçamento"; document.querySelector(".marca span").textContent = "Euro Sette · Orçamento";
     document.querySelector(".titulo p").textContent = ORC.n ? "Orçamento para " + ORC.n : "Orçamento";
     document.querySelector(".contato .ct-p").textContent = "Confirme seu nome e telefone. O atendente da Euronav recebe a sua escolha e o valor, e entra em contato para fechar os detalhes.";
-    const hm = $("orc-motores"), ordem = ORC.m.map((m, i) => i).sort((a, b) => (ORC.m[b][6] - ORC.m[a][6]) || (a - b));
-    const temDest = ORC.m.some((m) => m[6]); let vis = ordem.filter((i) => (temDest ? ORC.m[i][6] : ordem.indexOf(i) < 4) || i === ORCS.mi); const resto = ordem.filter((i) => !vis.includes(i));
-    const card = (i, host) => { const m = ORC.m[i], b = document.createElement("button"); b.type = "button"; b.className = "opt orc-opt"; b.setAttribute("role", "radio"); b.dataset.i = i;
-      const sp = document.createElement("span"), nb = document.createElement("b"); nb.textContent = m[1]; const sm = document.createElement("small"); sm.textContent = orcMotorTxt(m); sp.append(nb, sm);
-      const em = document.createElement("em"); em.textContent = reais(m[3]); b.append(sp, em); b.addEventListener("click", () => { ORCS.mi = i; render(); }); host.appendChild(b); };
-    vis.forEach((i) => card(i, hm));
-    if (resto.length) { const mais = document.createElement("div"); mais.className = "orc-mais"; mais.hidden = true; resto.forEach((i) => card(i, mais)); const bt = document.createElement("button"); bt.type = "button"; bt.className = "orc-mais-bt"; bt.textContent = "Ver mais motores (" + resto.length + ")";
-      bt.addEventListener("click", () => { mais.hidden = !mais.hidden; bt.textContent = mais.hidden ? "Ver mais motores (" + resto.length + ")" : "Mostrar menos motores"; }); hm.append(mais, bt); }
     const hk = $("orc-kits"); [0, 1, 2, 3, 4, 6].forEach((j) => { const tj = ORC.t[j]; if (!tj) return;
       const w = document.createElement("div"); w.className = "orc-card"; const b = document.createElement("button"); b.type = "button"; b.className = "opt orc-opt"; b.setAttribute("role", "checkbox"); b.dataset.j = j;
       const sp = document.createElement("span"), nb = document.createElement("b"); nb.textContent = tj[1]; sp.appendChild(nb); const itens = tj[2] || [];
@@ -1077,9 +1113,8 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
   }
   function orcRender() {
     orcSync(); const mk = orcMk(ORCS.mi, ORCS.mk), S = orcCalcS(ORCS.mi, ORCS.mk, E.tubo === "hyp"), ipi = S * ORC.ip / 100, total = S + ipi, m = ORC.m[ORCS.mi];
-    $("orc-total").textContent = reais(total); $("n-orc-motor").textContent = m[1].replace(/^Motor\s+/i, "").split(",")[0];
-    document.querySelectorAll("#orc-motores .orc-opt").forEach((b) => b.setAttribute("aria-pressed", String(+b.dataset.i === ORCS.mi)));
-    const mais = document.querySelector("#orc-motores .orc-mais"); if (mais && mais.querySelector('[aria-pressed="true"]')) mais.hidden = false;
+    $("orc-total").textContent = reais(total); $("n-orc-motor").textContent = motorTxt().replace(" com VesselView", " · VesselView");
+    motorPassos($("orc-motores"), ORC.m.map((mm, i) => ({ id: i, ord: i, marca: motorMarca(mm[1]), hp: motorHp(mm[1]), vv: !!mm[4] || /vessel/i.test(mm[1]), dest: mm[6] ? 1 : 0, nome: mm[1], spec: mm[2], preco: mm[3] })), ORCS.mi, (i) => { ORCS.mi = i; render(); }, true);
     document.querySelectorAll("#orc-kits .orc-opt").forEach((b) => { const j = +b.dataset.j, gpsInc = j === 6 && m[4]; b.disabled = !!gpsInc; b.setAttribute("aria-pressed", String(gpsInc ? true : !!((ORCS.mk >> j) & 1))); const em = b.querySelector("em"); em.textContent = gpsInc ? "Incluso no motor" : "+ " + reais(ORC.t[j][3]); });
     const hy = document.querySelector('#d-tubo .opt[data-v="hyp"] small'), pv = document.querySelector('#d-tubo .opt[data-v="pvc"] small'); if (hy) hy.textContent = TUBOS.hyp.length + " cores · + " + reais(ORC.t[5][3]); if (pv) pv.textContent = "7 cores · incluso";
     // quadro do orçamento: o casco absorve o pequeno ajuste de impostos, para as linhas somarem exatamente o total
@@ -1110,7 +1145,6 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
     const dupla = (host, campo, itens) => itens.forEach(([v, t, s]) => { const b = document.createElement("button"); b.type = "button"; b.className = "opt"; b.dataset.v = v; b.innerHTML = "<span></span>"; b.firstChild.textContent = t; const sm = document.createElement("small"); sm.textContent = s; b.firstChild.appendChild(sm); b.addEventListener("click", () => { E[campo] = v; if (campo === "tubo") E.ct = corTubo(v, E.ct)[0]; render(); }); $(host).appendChild(b); });
     dupla("d-tubo", "tubo", [["pvc", "PVC Sansuy", TUBOS.pvc.length + " cores"], ["hyp", "Hypalon Orca", TUBOS.hyp.length + " cores"]]);
     dupla("d-proa", "proa", [["mesa", "Ver com a mesa", "Sofá em U com a mesa montada"], ["sol", "Ver como solário", "Mesa baixada, com o estofado por cima"]]);
-    dupla("d-motor", "motor", [["mercury", "Mercury", "Branco"], ["yamaha", "Yamaha", "Cinza"]]);
     OPC.forEach(([k, t, s]) => { const b = document.createElement("button"); b.type = "button"; b.className = "opt"; b.dataset.k = k; const sp = document.createElement("span"); sp.textContent = t; const sm = document.createElement("small"); sm.textContent = s; sp.appendChild(sm); const sw = document.createElement("i"); sw.className = "sw"; b.append(sp, sw); b.addEventListener("click", () => { E[k] = !E[k]; render(); }); $("d-opc").appendChild(b); });
     document.querySelectorAll("[data-tema]").forEach((b) => b.addEventListener("click", () => tema(b.dataset.tema)));
     $("v-ant").addEventListener("click", () => passo(-1)); $("v-prox").addEventListener("click", () => passo(1));
@@ -1137,13 +1171,14 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
     document.querySelectorAll("#d-proa .opt").forEach((b) => pressionado(b, b.dataset.v === E.proa)); $("n-proa").textContent = "Mesa e solário de série";
     const dt = $("d-tcor"); if (dt.dataset.mat !== E.tubo) { dt.dataset.mat = E.tubo; dt.replaceChildren(); TUBOS[E.tubo].forEach(([k, n, hex]) => { const b = document.createElement("button"); b.type = "button"; b.className = "dot"; b.style.background = hex; b.title = n; b.setAttribute("aria-label", "Tubulões " + n); b.dataset.c = k; b.addEventListener("click", () => { E.ct = k; render(); }); dt.appendChild(b); }); }
     dt.querySelectorAll(".dot").forEach((b) => pressionado(b, b.dataset.c === E.ct));
-    document.querySelectorAll("#d-motor .opt").forEach((b) => pressionado(b, b.dataset.v === E.motor));
+    if (!ORC) { const mp = MOTORES_PUB.find((m) => m.marca.toLowerCase() === E.motor && m.hp === E.hp && m.vv === !!E.vv) || MOTORES_PUB.find((m) => m.marca.toLowerCase() === E.motor) || MOTORES_PUB[0]; motorPassos($("d-motor"), MOTORES_PUB, mp.id, escolherMotorPub, false); }
+    { const bg = document.querySelector('#d-opc .opt[data-k="gps"]'); if (bg) { const trava = !!E.vv && !ORC; bg.disabled = trava; const sm = bg.querySelector("small"); if (sm) sm.textContent = trava ? "Incluso no VesselView" : "Navegação no console"; } }
     document.querySelectorAll("#d-opc .opt").forEach((b) => pressionado(b, !!E[b.dataset.k]));
-    $("n-est").textContent = E.est; $("n-piso").textContent = E.piso; $("n-tubo").textContent = (E.tubo === "hyp" ? "Hypalon" : "PVC") + " · " + corTubo(E.tubo, E.ct)[1]; $("n-motor").textContent = E.motor === "yamaha" ? "Yamaha" : "Mercury";
+    $("n-est").textContent = E.est; $("n-piso").textContent = E.piso; $("n-tubo").textContent = (E.tubo === "hyp" ? "Hypalon" : "PVC") + " · " + corTubo(E.tubo, E.ct)[1]; $("n-motor").textContent = motorTxt().replace(" com VesselView", " · VesselView");
     const opc = OPC.filter(([k]) => E[k]).map(([, t]) => t.toLowerCase().replace(/\bgps\b/, "GPS"));
     $("resumo").innerHTML = "";
     const r = $("resumo"); const add = (t, b) => { const e = document.createElement(b ? "b" : "span"); e.textContent = t; r.appendChild(e); };
-    add("Seu Euro Sette: "); add("estofado " + nomeCor(E.est) + ", piso em EVA " + nomeCor(E.piso) + " com listras brancas, capotas em " + nomeCor(E.cap) + ", tubulões em " + (E.tubo === "hyp" ? "Hypalon" : "PVC") + " " + corTubo(E.tubo, E.ct)[1].toLowerCase() + ", motor " + (E.motor === "yamaha" ? "Yamaha" : "Mercury"), true);
+    add("Seu Euro Sette: "); add("estofado " + nomeCor(E.est) + ", piso em EVA " + nomeCor(E.piso) + " com listras brancas, capotas em " + nomeCor(E.cap) + ", tubulões em " + (E.tubo === "hyp" ? "Hypalon" : "PVC") + " " + corTubo(E.tubo, E.ct)[1].toLowerCase() + ", motor " + motorTxt(), true);
     add(opc.length ? ", com " + (opc.length > 1 ? opc.slice(0, -1).join(", ") + " e " + opc[opc.length - 1] : opc[0]) + "." : ".");
     if (ORC) orcRender();
     gravarHash(); mostrarFoto(); b3dAtualizar();
