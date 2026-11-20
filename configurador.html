@@ -65,6 +65,10 @@ button { font: inherit; color: inherit; }
 .combo .dup { width: 26px; height: 26px; border-radius: 50%; flex: none; border: 1px solid rgba(255,255,255,.18); }
 .combo span { font-size: .82rem; line-height: 1.2; }
 .combo small { display: block; color: var(--muted); font-size: .72rem; }
+.combo[hidden] { display: none; }
+.combo .mais-i { display: grid; place-items: center; font-style: normal; font-size: 1.05rem; font-weight: 600; background: transparent; }
+.sec.pers { padding: 20px 0 0; border-bottom: 0; }
+.sec.pers h2.pers-t { display: block; margin: 0; font-family: "Saira", sans-serif; font-weight: 600; font-size: 1.3rem; letter-spacing: .01em; text-transform: none; color: var(--ink); }
 .dots { display: flex; gap: 12px; flex-wrap: wrap; }
 .dot { appearance: none; width: 38px; height: 38px; border-radius: 50%; border: 1px solid rgba(127,127,127,.35); cursor: pointer; padding: 0; position: relative; }
 .dot[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--accent); }
@@ -228,12 +232,13 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
   <aside class="painel" aria-label="Personalização">
     <div class="sec nb" id="sec-nb"><button class="opt nb-bt" type="button" id="nb-bt" aria-pressed="false"><span>Dar um nome ao barco<small>Opcional. O nome aparece nos tubulões, na proa.</small></span><i class="sw"></i></button><div class="nb-campo" id="nb-campo" hidden><input id="nb-in" type="text" maxlength="20" placeholder="Nome do barco" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Nome do barco"><p class="dica">Até 20 letras.</p></div></div>
     <div class="sec"><h2>Combinações</h2><div class="combos" id="combos"></div></div>
+    <div class="sec pers"><h2 class="pers-t">Personalize do seu jeito</h2></div>
     <div class="sec"><h2>Estofado <b id="n-est"></b></h2><div class="dots" id="d-est" role="group" aria-label="Cor do estofado"></div></div>
     <div class="sec"><h2>Piso em EVA <b id="n-piso"></b></h2><div class="dots" id="d-piso" role="group" aria-label="Cor do piso"></div>
       <h2 class="sub2">Listras do piso <b id="n-li"></b></h2><div class="dots" id="d-li" role="group" aria-label="Cor das listras do piso"></div></div>
     <div class="sec"><h2>Capotas <b id="n-cap"></b></h2><div class="dots" id="d-cap" role="group" aria-label="Cor das capotas"></div></div>
-    <div class="sec"><h2>Proa <b id="n-proa"></b></h2><div class="duas" id="d-proa"></div><p class="dica">O Euro Sette já vem com os dois: mesa e solário. Aqui você escolhe só como ver a proa.</p></div>
     <div class="sec"><h2>Tubulões <b id="n-tubo"></b></h2><div class="duas" id="d-tubo"></div><div class="dots tcor" id="d-tcor" role="group" aria-label="Cor dos tubulões"></div></div>
+    <div class="sec"><h2>Proa <b id="n-proa"></b></h2><div class="duas" id="d-proa"></div><p class="dica">O Euro Sette já vem com os dois: mesa e solário. Aqui você escolhe só como ver a proa.</p></div>
     <div class="sec" id="sec-opc"><h2>Opcionais</h2><div class="opts" id="d-opc"></div></div>
     <div class="sec" id="sec-motor"><h2>Motor <b id="n-motor"></b></h2><div id="d-motor"></div></div>
     <div class="sec orc-sec" id="sec-orc-motor"><h2>Motor <b id="n-orc-motor"></b></h2><div id="orc-motores"></div></div>
@@ -300,18 +305,21 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
   };
   const TUBO_ANT = { gelo: "cinza", areia: "bege", grafite: "preto" };
   const corTubo = (t, c) => { const l = TUBOS[t] || TUBOS.pvc; return l.find((x) => x[0] === c) || l.find((x) => x[0] === TUBO_ANT[c]) || l[0]; };
+  // as 5 primeiras ficam visíveis; as demais abrem em "Ver mais". A Wolf é a única que também define o motor (Mercury 150 hp)
   const COMBOS = [
     { nome: "Original", sub: "Cinza Arizona, tubos claros e capota cinza", est: "Cinza Arizona", piso: "Cinza", li: "Branco", tubo: "pvc", ct: "cinza", cap: "Cinza" },
+    { nome: "Inglês", sub: "Caramelo, piso ocre, tubos e capota verdes", est: "Caramelo", piso: "Ocre", li: "Branco", tubo: "pvc", ct: "verde", cap: "Verde" },
+    { nome: "Bordô", sub: "Marfim, piso madeira e capota vinho", est: "Marfim", piso: "Madeira", li: "Branco", tubo: "pvc", ct: "cinza", cap: "Vinho" },
+    { nome: "Marinho", sub: "Ice Gray, tubos e capota azul marinho", est: "Ice Gray", piso: "Cinza", li: "Branco", tubo: "pvc", ct: "marinho", cap: "Azul" },
     { nome: "Pérola", sub: "Branco Ultra, piso cinza, capota bege", est: "Branco Ultra", piso: "Cinza", li: "Branco", tubo: "pvc", ct: "cinza", cap: "Bege" },
     { nome: "Caramelo", sub: "Estofado caramelo, piso cinza e capota bege", est: "Caramelo", piso: "Cinza", li: "Branco", tubo: "pvc", ct: "cinza", cap: "Bege" },
     { nome: "Areia", sub: "Areia, piso madeira, capota cinza", est: "Areia", piso: "Madeira", li: "Branco", tubo: "pvc", ct: "bege", cap: "Cinza" },
-    { nome: "Marinho", sub: "Ice Gray, tubos e capota azul marinho", est: "Ice Gray", piso: "Cinza", li: "Branco", tubo: "pvc", ct: "marinho", cap: "Azul" },
     { nome: "Royal", sub: "Branco, tubos azul royal e capota azul", est: "Branco Ultra", piso: "Cinza", li: "Branco", tubo: "pvc", ct: "royal", cap: "Azul" },
     { nome: "Noite", sub: "Taupe com piso, tubos e capota pretos", est: "Taupe", piso: "Preto", li: "Branco", tubo: "pvc", ct: "preto", cap: "Preto" },
-    { nome: "Bordô", sub: "Marfim, piso madeira e capota vinho", est: "Marfim", piso: "Madeira", li: "Branco", tubo: "pvc", ct: "cinza", cap: "Vinho" },
-    { nome: "Inglês", sub: "Caramelo, piso ocre, tubos e capota verdes", est: "Caramelo", piso: "Ocre", li: "Branco", tubo: "pvc", ct: "verde", cap: "Verde" },
-    { nome: "Creme", sub: "Hypalon Off white, marfim e capota bege", est: "Marfim", piso: "Madeira", li: "Branco", tubo: "hyp", ct: "creme", cap: "Bege" }
+    { nome: "Creme", sub: "Hypalon Off white, marfim e capota bege", est: "Marfim", piso: "Madeira", li: "Branco", tubo: "hyp", ct: "creme", cap: "Bege" },
+    { nome: "Wolf", sub: "Marfim, piso madeira, capota azul, tubos claros e Mercury 150", est: "Marfim", piso: "Madeira", li: "Branco", tubo: "pvc", ct: "cinza", cap: "Azul", motor: "mercury", hp: 150, vv: false }
   ];
+  const COMBOS_PRINC = 5;
   const VISTAS = [["360", "360°"], ["popa", "Popa"], ["cockpit", "Cockpit"], ["proa", "Proa"], ["tubo", "Tubulão"]];
   const OPC = [["cp", "Capota de proa", "Sombra extra na proa"], ["ch", "Churrasqueira", "A gás, com tábua e suporte"], ["gu", "Guincho elétrico", "Fundeio sem esforço"], ["gps", "GPS", "Navegação no console"]];
   const PADRAO = { est: "Cinza Arizona", piso: "Cinza", li: "Branco", cap: "Cinza", tubo: "pvc", ct: "cinza", cp: false, ch: false, gu: false, gps: false, motor: "mercury", hp: 150, vv: false, nb: "", vista: "360", proa: "mesa" };
@@ -1199,7 +1207,16 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
     const ch = $("combos"); COMBOS.forEach((c, i) => { const b = document.createElement("button"); b.type = "button"; b.className = "combo"; b.dataset.i = i;
       const dup = document.createElement("i"); dup.className = "dup"; const ce = catEst(c.est)[1], cp = catPiso(c.piso)[1]; dup.style.background = "radial-gradient(circle, " + catCap(c.cap)[1] + " 0 30%, rgba(255,255,255,.85) 31% 37%, transparent 38%), linear-gradient(135deg, " + ce + " 50%, " + cp + " 50%)"; dup.style.boxShadow = "0 0 0 3px " + corTubo(c.tubo, c.ct)[2];
       const sp = document.createElement("span"); sp.textContent = c.nome; const sm = document.createElement("small"); sm.textContent = c.sub; sp.appendChild(sm); b.append(dup, sp);
-      b.addEventListener("click", () => { Object.assign(E, { est: c.est, piso: c.piso, li: c.li, cap: c.cap, tubo: c.tubo, ct: c.ct }); render(); }); ch.appendChild(b); });
+      if (i >= COMBOS_PRINC) b.hidden = true;
+      b.addEventListener("click", () => {
+        Object.assign(E, { est: c.est, piso: c.piso, li: c.li, cap: c.cap, tubo: c.tubo, ct: c.ct });
+        if (c.motor && !ORC) { const eraVV = E.vv; E.motor = c.motor; E.hp = c.hp; E.vv = !!c.vv; if (c.vv && !eraVV) { E.gpsAntes = !!E.gps; E.gps = true; } else if (!c.vv && eraVV) E.gps = !!E.gpsAntes; }   // com preços (link do vendedor) a combinação não troca o motor
+        render(); }); ch.appendChild(b); });
+    // sexto botão: "Ver mais" abre as demais combinações; aberto, o botão vai para o fim e vira "Ver menos"
+    { const mb = document.createElement("button"); mb.type = "button"; mb.className = "combo combo-mais"; mb.id = "combo-mais"; const md = document.createElement("i"); md.className = "dup mais-i"; md.textContent = "+"; const sp = document.createElement("span"), l1 = document.createTextNode("Ver mais"), sm = document.createElement("small"); sm.textContent = "Mais " + (COMBOS.length - COMBOS_PRINC) + " combinações"; sp.append(l1, sm); mb.append(md, sp);
+      const extras = () => [...ch.querySelectorAll(".combo[data-i]")].filter((x) => +x.dataset.i >= COMBOS_PRINC);
+      window.abrirCombos = (abre) => { window.combosAbertas = abre; extras().forEach((x) => { x.hidden = !abre; }); md.textContent = abre ? "−" : "+"; l1.textContent = abre ? "Ver menos" : "Ver mais"; sm.textContent = abre ? "Mostrar só as principais" : "Mais " + (COMBOS.length - COMBOS_PRINC) + " combinações"; mb.setAttribute("aria-expanded", String(abre)); if (abre) ch.appendChild(mb); else ch.insertBefore(mb, extras()[0]); };
+      window.combosAbertas = false; mb.addEventListener("click", () => window.abrirCombos(!window.combosAbertas)); ch.insertBefore(mb, extras()[0]); }
     dots("d-est", "est", CAT.est); dots("d-piso", "piso", CAT.piso, (n) => { E.li = catListra(n, E.li); }); dots("d-cap", "cap", CAT.capota);
     const dupla = (host, campo, itens) => itens.forEach(([v, t, s]) => { const b = document.createElement("button"); b.type = "button"; b.className = "opt"; b.dataset.v = v; b.innerHTML = "<span></span>"; b.firstChild.textContent = t; const sm = document.createElement("small"); sm.textContent = s; b.firstChild.appendChild(sm); b.addEventListener("click", () => { E[campo] = v; if (campo === "tubo") E.ct = corTubo(v, E.ct)[0]; render(); }); $(host).appendChild(b); });
     dupla("d-tubo", "tubo", [["pvc", "PVC Sansuy", TUBOS.pvc.length + " cores"], ["hyp", "Hypalon Orca", TUBOS.hyp.length + " cores"]]);
@@ -1224,7 +1241,8 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
   function render() {
     document.querySelectorAll(".vbt").forEach((b) => pressionado(b, b.dataset.v === E.vista));
     { const tp = document.querySelector('.vbt[data-v="proa"] img'); if (tp) tp.src = FOTOS[E.proa === "sol" ? "proa_sol" : "proa"].thumb; }   // miniatura da proa acompanha mesa ou solário
-    document.querySelectorAll(".combo").forEach((b) => { const c = COMBOS[+b.dataset.i]; pressionado(b, c.est === E.est && c.piso === E.piso && c.li === E.li && c.cap === E.cap && c.tubo === E.tubo && c.ct === E.ct); });
+    document.querySelectorAll(".combo[data-i]").forEach((b) => { const c = COMBOS[+b.dataset.i]; const ativa = c.est === E.est && c.piso === E.piso && c.li === E.li && c.cap === E.cap && c.tubo === E.tubo && c.ct === E.ct && (!c.motor || !!ORC || (E.motor === c.motor && E.hp === c.hp && !!E.vv === !!c.vv)); pressionado(b, ativa); });
+    { const at = [...document.querySelectorAll(".combo[data-i]")].find((x) => x.getAttribute("aria-pressed") === "true"), ix = at ? +at.dataset.i : -1; if (ix >= COMBOS_PRINC && ix !== window.combosUlt && window.abrirCombos && !window.combosAbertas) window.abrirCombos(true); window.combosUlt = ix; }   // a lista só abre sozinha quando uma combinação escondida passa a ficar ativa
     document.querySelectorAll("#d-est .dot").forEach((b) => pressionado(b, b.dataset.c === E.est));
     document.querySelectorAll("#d-piso .dot").forEach((b) => pressionado(b, b.dataset.c === E.piso));
     E.li = catListra(E.piso, E.li); const dl = $("d-li"); if (dl.dataset.piso !== E.piso) { dl.dataset.piso = E.piso; dl.replaceChildren(); dots("d-li", "li", catPiso(E.piso)[2].map((l) => [l, CAT.listra[l]])); }
