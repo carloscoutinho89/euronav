@@ -373,6 +373,7 @@ details.c-group[open] > summary::after { content: "\2212"; }
 .afim-bt.wa { background: #1FA855; border-color: #1FA855; color: #fff; }
 .afim-bt:disabled { opacity: .5; cursor: default; }
 .afim-bt[aria-disabled=true] { opacity: .5; pointer-events: none; }
+.afim-status { margin: 10px 0 0; font-size: .82rem; color: #A9AFB8; }
 .afim-nota { margin: 10px 0 0; font-size: .82rem; color: #A9AFB8; }
 .tc { position: fixed; inset: 0; z-index: 2100; background: #0b0d10; color: #EEF0F3; display: flex; flex-direction: column; padding: calc(env(safe-area-inset-top, 0px) + 10px) 12px calc(env(safe-area-inset-bottom, 0px) + 12px); }
 .tc[hidden] { display: none; }
@@ -393,6 +394,7 @@ details.c-group[open] > summary::after { content: "\2212"; }
 .tc-ok:disabled { opacity: .55; cursor: default; }
 .tc-bt { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; appearance: none; border: 1px solid var(--line-strong); background: transparent; color: inherit; font: inherit; font-size: .86rem; padding: 8px 14px; border-radius: 999px; cursor: pointer; }
 .cfx-painel .tc-bt { margin-top: 14px; }
+.at-desc-lib { color: var(--muted); font-size: .78rem; flex-basis: 100%; }
 .at-sair { position: fixed; right: 12px; bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); z-index: 20; font: inherit; font-size: .86rem; font-weight: 500; color: #FFFFFF; background: #1C1C1E; border: 1px solid #5B5E63; border-radius: 999px; padding: 10px 18px; box-shadow: 0 2px 10px rgba(0,0,0,.35); cursor: pointer; }
 body.cliente { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 72px); }
 body.cliente .tabs, body.cliente .band .save-state, body.cliente .at-actions, body.cliente .at-semkit { display: none; }
@@ -1336,6 +1338,7 @@ body.gated { overflow: hidden; }
                 <button class="at-desc-b" type="button" id="at-desc-mais" aria-label="Aumentar R$ 1.000">+</button>
               </div>
               <button class="c-link at-desc-x" type="button" id="at-desc-x">Remover</button>
+              <small class="at-desc-lib" id="at-desc-lib" hidden>Acima do máximo, liberado pelo gestor.</small>
             </div>
           </div>
           <table class="c-comp"><tbody id="at-tot"></tbody></table>
@@ -1776,6 +1779,11 @@ body.gated { overflow: hidden; }
   };
   window.claude = { use: async (name) => (name === "db" ? db : name === "user" ? user : name === "downloads" ? downloads : null) };
 
+  /* Confere uma senha de gestão sem trocar a sessão (libera descontos acima do permitido): devolve true, false ou null (sem conexão) */
+  window.EURONAV_GESTOR = { verificar: async (tentativa) => {
+    if (!/^https:\/\/script\.google\.com\//.test(API)) return null;
+    try { const r = await fetch(API, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ senha: String(tentativa || ""), acao: "ler", v: version }), redirect: "follow", cache: "no-store" }); if (!r.ok) return null; const j = await r.json(); return !!(j && j.ok && j.perfil === "gestao"); } catch (e) { return null; }
+  } };
   /* Tela de senha */
   const gate = document.getElementById("gate"), form = document.getElementById("gate-form");
   const pass = document.getElementById("gate-pass"), msg = document.getElementById("gate-msg"), btn = document.getElementById("gate-btn");
@@ -2273,16 +2281,19 @@ body.gated { overflow: hidden; }
     b.setAttribute("aria-pressed", vendas ? "true" : "false"); b.querySelector("span").textContent = vendas ? "Modo gestão" : "Modo vendas";
     b.title = vendas ? "Volta a mostrar todas as abas (pede a senha)" : "Mostra só Atendimento e Ficha técnica";
   }
-  function pedirSenha(definir, preco) {
+  function pedirSenha(definir, preco, gestor) {
     return new Promise((ok) => {
+      if (gestor && !window.EURONAV_GESTOR) { ok("indisponivel"); return; }
       const m = $("mv-modal"), inp = $("mv-senha"), inp2 = $("mv-senha2"), err = $("mv-erro");
-      $("mv-tit").textContent = preco ? "Precificação" : (definir ? "Senha do modo vendas" : "Voltar ao modo gestão");
+      $("mv-tit").textContent = gestor ? "Senha de gestor" : (preco ? "Precificação" : (definir ? "Senha do modo vendas" : "Voltar ao modo gestão"));
       $("mv-txt").textContent = definir ? "Defina uma senha. Ela será pedida para sair do modo vendas e voltar a ver todas as abas." : (senhaEquipe() ? "Digite a senha da equipe para ver todas as abas." : "Digite a senha do modo vendas para ver todas as abas.");
       if (preco) $("mv-txt").textContent = "Digite a senha da Precificação para abrir esta aba.";
+      if (gestor) $("mv-txt").textContent = gestor.txt;
       inp2.closest("label").hidden = !definir; inp.value = ""; inp2.value = ""; err.textContent = ""; m.hidden = false; setTimeout(() => inp.focus(), 30);
       const fim = (r) => { m.hidden = true; $("mv-ok").onclick = null; $("mv-cancelar").onclick = null; m.onkeydown = null; ok(r); };
       const tenta = () => {
         const v = inp.value;
+        if (gestor) { if (!v) { err.textContent = "Digite a senha de gestor."; return; } err.textContent = "Conferindo a senha…"; window.EURONAV_GESTOR.verificar(v).then((r2) => { if (r2 === true) fim(true); else { err.textContent = r2 === null ? "Não foi possível conferir a senha agora. Tente de novo." : "Senha de gestor incorreta."; inp.select(); } }); return; }
         if (preco) { PRECO().confere(v).then((ok2) => { if (ok2) fim(true); else { err.textContent = "Senha incorreta."; inp.select(); } }); return; }
         if (definir) { if (v.length < 4) { err.textContent = "Use pelo menos 4 caracteres."; return; } if (v !== inp2.value) { err.textContent = "As senhas não conferem."; return; } mem.set(PIN_KEY, v); fim(true); return; }
         const certa = senhaEquipe() || mem.get(PIN_KEY);
@@ -2292,6 +2303,7 @@ body.gated { overflow: hidden; }
       m.onkeydown = (e) => { if (e.key === "Enter") tenta(); if (e.key === "Escape") fim(false); };
     });
   }
+  window.EURONAV_PEDIR_SENHA = pedirSenha;   // o estudo de preço (outro trecho do código) usa a mesma janela de senha
   function showView(name) {
     let v = VIEWS.includes(name) ? name : (vendas ? "atendimento" : "pendencias");
     if (v !== "venda") precoAberto = false;
@@ -3487,7 +3499,7 @@ body.gated { overflow: hidden; }
 
   // ---------- Atendimento ao cliente ----------
   const AT_KEY = "euronav-atendimento";
-  const AT_DEF = { motor: "", kits: { conforto: false, lazer: false, fundeio: false, extras: false }, kitItens: {}, hyp: false, gps: false, semKit: false, nb: "", desc: 0, corEst: "Branco Ultra", corPiso: "Cinza", corListra: "Branco", corCapota: "Cinza", corTubo: "gelo" };
+  const AT_DEF = { motor: "", kits: { conforto: false, lazer: false, fundeio: false, extras: false }, kitItens: {}, hyp: false, gps: false, semKit: false, nb: "", desc: 0, descLib: 0, corEst: "Branco Ultra", corPiso: "Cinza", corListra: "Branco", corCapota: "Cinza", corTubo: "gelo" };
   const TUBO_CORES = { pvc: [["cinza", "Cinza claro", "#C9C6B8"], ["marinho", "Azul marinho", "#232C4A"], ["royal", "Azul royal", "#2A3F9E"], ["preto", "Preto", "#232422"], ["vermelho", "Vermelho", "#A63840"], ["verde", "Verde", "#5A635B"], ["bege", "Bege", "#C6AD82"]],
     hyp: [["gelo", "Ice white", "#E6EAED"], ["creme", "Off white", "#E3DED4"], ["yoro", "Yellow Oro", "#E6DA5E"], ["sunflower", "Sun Flower", "#D28C32"], ["ycolorado", "Yellow Colorado", "#E1C541"], ["colonial", "Colonial", "#C0A06A"]] };
   const TUBO_ANT = { gelo: "cinza", areia: "bege", grafite: "preto" }; // cores que saíram da lista: atendimentos e links antigos caem na mais próxima
@@ -3572,23 +3584,24 @@ body.gated { overflow: hidden; }
       for (let i = 0; i < 60; i++) { const md = (lo + hi) / 2; if (okAt(md)) hi = md; else lo = md; }
       maxDesc = Math.max(0, Math.floor((S - hi) / 500) * 500);
     }
-    const desc = Math.min(Math.max(0, num(A.desc)), maxDesc);
+    const lib = Math.max(0, num(A.descLib)), limite = Math.max(maxDesc, lib), desc = Math.min(Math.max(0, num(A.desc)), limite);   // descLib: desconto acima do máximo liberado pelo gestor
     const base = S - desc, ipiV = ipiOn(base), total = base + ipiV;
     const motorPrices = ms.map(([id, it]) => [id, it, up100(motCost(id) / Math.max(0.05, 1 - rate - ish - pv - mm))]);
     const optPrice = (c) => up100(c / Math.max(0.05, 1 - rate - ish - pv - mg));
     const resultado = resAt(base);
-    return { sc, r, lines, S, desc, maxDesc, base, ipi, ipiV, total, mid, motorPrices, optPrice, resultado, margem: total > 0 ? resultado / total : null, minR, custo, mg, mm };
+    return { sc, r, lines, S, desc, maxDesc, limite, base, ipi, ipiV, total, mid, motorPrices, optPrice, resultado, margem: total > 0 ? resultado / total : null, minR, custo, mg, mm };
   }
   function atCompute() { return atPrice(st.at); }
   function atLine(host, n, val, cls) { const tr = el("tr", cls || ""); tr.append(el("td", "", n), el("td", "n", val)); host.appendChild(tr); }
   // ---- nome do barco (opcional): o botão abre o campo; o nome vai para o 3D (tubulões, na proa), para os links e para o atendimento salvo ----
   // ---- imagem final de estúdio no Atendimento: o mesmo render do configurador do cliente, no fundo claro ou escuro da tela em uso ----
   const TEXTO_WHATS = "Veja o Euronav que configurei!";
-  const AFIM_ANG = [["proa", "Proa", { ang: -0.62, incl: -0.2, zoom: 0.84 }], ["popa", "Popa", { ang: 2.52, incl: -0.2, zoom: 0.84 }], ["lado", "Lateral", { ang: 0, incl: -0.3, zoom: 0.95 }]];
-  const afim = { cache: new Map(), ang: "proa", item: null, pedido: 0, ocupado: false };
-  const AFIM_HTML = '<div class="afim" id="afim" hidden role="dialog" aria-modal="true" aria-label="Imagem final do Euro Sette"><div class="afim-c"><div class="afim-top"><h2>Imagem final</h2><button class="afim-x" type="button" id="afim-x" aria-label="Fechar">×</button></div><div class="afim-img"><img id="afim-foto" alt=""><span class="afim-car" id="afim-car" role="status">Gerando a imagem…</span></div><div class="afim-ang" id="afim-ang" role="group" aria-label="Ângulo da imagem"></div><div class="afim-acoes"><a class="afim-bt forte" id="afim-baixar" download="euro-sette.jpg">Baixar imagem</a><button class="afim-bt wa" type="button" id="afim-wa" disabled>Enviar pelo WhatsApp</button><button class="afim-bt" type="button" id="afim-share" hidden>Compartilhar</button></div><p class="afim-nota" id="afim-nota" hidden></p></div></div>';
+  const AFIM_ANG = [["proa", "Proa", { ang: -0.62, incl: -0.2, zoom: 0.84 }], ["popa", "Popa", { ang: 2.52, incl: -0.2, zoom: 0.84 }], ["lado", "Lateral", { ang: 0, incl: -0.3, zoom: 0.95 }], ["cockpit", "Cockpit", { ang: 2.9, incl: -0.45, zoom: 0.62, cam: { pos: [2.8, 2.0, 0.45], alvo: [4.0, 1.55, 0.0], fov: 46 } }]];
+  const afim = { cache: new Map(), ang: "proa", item: null, pedido: 0, fila: Promise.resolve(), aberto: false, preparando: false, falhou: false };
+  const AFIM_HTML = '<div class="afim" id="afim" hidden role="dialog" aria-modal="true" aria-label="Imagem final do Euro Sette"><div class="afim-c"><div class="afim-top"><h2>Imagem final</h2><button class="afim-x" type="button" id="afim-x" aria-label="Fechar">×</button></div><div class="afim-img"><img id="afim-foto" alt=""><span class="afim-car" id="afim-car" role="status">Gerando a imagem…</span></div><div class="afim-ang" id="afim-ang" role="group" aria-label="Ângulo da imagem"></div><div class="afim-acoes"><a class="afim-bt forte" id="afim-baixar" download="euro-sette.jpg">Baixar imagem</a><button class="afim-bt wa" type="button" id="afim-wa" disabled>Enviar as 4 imagens pelo WhatsApp</button><button class="afim-bt" type="button" id="afim-share" hidden>Compartilhar</button></div><p class="afim-status" id="afim-status" role="status" hidden></p><p class="afim-nota" id="afim-nota" hidden></p></div></div>';
   const afimTema = () => { if (cfx.aberto) return $("cfx").classList.contains("escuro") ? "dark" : "light"; const m = (getComputedStyle(document.body).backgroundColor.match(/[\d.]+/g) || [255, 255, 255]).map(Number); return (0.299 * m[0] + 0.587 * m[1] + 0.114 * m[2]) < 128 ? "dark" : "light"; };
-  const afimChave = () => { const q = atCompute(); return JSON.stringify([atCores(), !!st.at.hyp, st.at.corTubo, !!B3D.solario, q ? q.mid : null, !!st.at.gps, b3dTemItem(/capota de proa/i), b3dTemItem(/churrasqueira/i), b3dTemItem(/guincho/i), b3dTemItem(/pia e fog/i), b3dTemItem(/mastro de bandeira/i), st.at.nb || ""]); };
+  const afimSig = () => { const q = atCompute(); return JSON.stringify([atCores(), !!st.at.hyp, st.at.corTubo, !!B3D.solario, q ? q.mid : null, !!st.at.gps, b3dTemItem(/capota de proa/i), b3dTemItem(/churrasqueira/i), b3dTemItem(/guincho/i), b3dTemItem(/pia e fog/i), b3dTemItem(/mastro de bandeira/i), st.at.nb || ""]); };
+  const afimCh = (k) => k + "|" + afimTema() + "|" + afimSig();
   const afimEsperar3D = () => new Promise((ok, erro) => { if (B3D.estado === "off") b3dCarregar(); const t1 = Date.now(); (function ver() { if (B3D.estado === "pronto" && B3D.foto && (B3D.realOk || Date.now() - t1 > 12000)) return ok(); if (B3D.estado === "erro" || Date.now() - t1 > 45000) return erro(new Error("3d")); setTimeout(ver, 250); })(); });
   function afimAssinar(cv, tema) {
     const x = cv.getContext("2d"), W = cv.width, H = cv.height, fam = getComputedStyle(document.body).fontFamily || "Arial, sans-serif", cor = tema === "light" ? "#15171A" : "#FFFFFF", c = atCores(), q = atCompute(), mi = q && q.mid ? st.items.get(q.mid) : null, nm = String((mi && mi.item) || "");
@@ -3598,35 +3611,55 @@ body.gated { overflow: hidden; }
     x.font = "600 26px Inter, Arial, sans-serif"; x.fillText(l1, 46, H - 86); x.fillText(l2, 46, H - 48);
     x.font = "400 17px Inter, Arial, sans-serif"; x.globalAlpha = 0.6; x.textAlign = "right"; x.fillText("Imagem ilustrativa do modelo 3D", W - 44, H - 48); x.textAlign = "left"; x.globalAlpha = 1;
   }
-  async function afimGerar(k) {
-    const tema = afimTema(), chave = k + "|" + tema + "|" + afimChave(), car = $("afim-car"), bx = $("afim-baixar"), wa = $("afim-wa"), bts = document.querySelectorAll("#afim-ang button");
-    let it = afim.cache.get(chave); if (!it && afim.ocupado) return;                    // um render por vez
+  async function afimRender(k, aoProg) {   // devolve a imagem da vista k (gera se faltar); uma geração por vez, em fila
+    const chave = afimCh(k), tema = afimTema(); if (afim.cache.has(chave)) return afim.cache.get(chave);
+    afim.fila = afim.fila.catch(() => {}).then(async () => {
+      if (afim.cache.has(chave)) return;
+      await afimEsperar3D(); b3dAtualizar(); await new Promise((ok) => setTimeout(ok, 420));   // tempo para as cores e os itens entrarem no modelo
+      const cv = await B3D.foto(Object.assign({ w: 1600, h: 1000, ss: 1.25, tema, amostras: window.__FOTO_AMOSTRAS || 0, aoProgresso: aoProg }, AFIM_ANG.find((a) => a[0] === k)[2])); afimAssinar(cv, tema);
+      const blob = await new Promise((ok) => cv.toBlob(ok, "image/jpeg", 0.93)); afim.cache.set(chave, { url: URL.createObjectURL(blob), blob });
+    });
+    await afim.fila; return afim.cache.get(chave);
+  }
+  function afimAtualizaWa() {
+    const tot = AFIM_ANG.length, n = AFIM_ANG.filter(([k]) => afim.cache.has(afimCh(k))).length, wa = $("afim-wa"), sts = $("afim-status"), pronto = n === tot || (!afim.preparando && n > 0);
+    wa.disabled = !pronto; wa.textContent = n === tot ? "Enviar as " + tot + " imagens pelo WhatsApp" : (pronto ? "Enviar as " + n + " imagens pelo WhatsApp" : "Preparando as imagens… " + n + " de " + tot);
+    sts.hidden = n === tot; if (n !== tot && !afim.preparando) sts.textContent = afim.falhou ? "Algumas vistas não puderam ser geradas neste aparelho." : "";
+  }
+  async function afimMostrar(k) {
+    const tema = afimTema(), car = $("afim-car"), bx = $("afim-baixar"), bts = document.querySelectorAll("#afim-ang button");
     afim.ang = k; const meu = ++afim.pedido; bts.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.a === k))); $("afim").dataset.tema = tema; $("afim-nota").hidden = true;
+    let it = afim.cache.get(afimCh(k));
     if (!it) {
-      afim.ocupado = true; bts.forEach((b) => { b.disabled = true; }); car.textContent = "Preparando o render…"; car.hidden = false; bx.setAttribute("aria-disabled", "true"); wa.disabled = true;
-      try {
-        await afimEsperar3D(); b3dAtualizar(); await new Promise((ok) => setTimeout(ok, 420));   // tempo para as cores e os itens entrarem no modelo
-        const cv = await B3D.foto(Object.assign({ w: 1600, h: 1000, ss: 1.25, tema, amostras: window.__FOTO_AMOSTRAS || 0, aoProgresso: (f) => { car.textContent = "Renderizando a imagem… " + Math.round(f * 100) + "%"; } }, AFIM_ANG.find((a) => a[0] === k)[2])); afimAssinar(cv, tema);
-        const blob = await new Promise((ok) => cv.toBlob(ok, "image/jpeg", 0.93)); it = { url: URL.createObjectURL(blob), blob }; afim.cache.set(chave, it);
-      } catch (e) { car.textContent = "Não foi possível gerar a imagem neste aparelho."; return; }
-      finally { afim.ocupado = false; bts.forEach((b) => { b.disabled = false; }); }
+      car.textContent = "Preparando o render…"; car.hidden = false; bx.setAttribute("aria-disabled", "true");
+      try { it = await afimRender(k, (f) => { if (meu === afim.pedido) car.textContent = "Renderizando a imagem… " + Math.round(f * 100) + "%"; }); } catch (e) { if (meu === afim.pedido) car.textContent = "Não foi possível gerar a imagem neste aparelho."; return; }
     }
     if (meu !== afim.pedido) return;
-    afim.item = it; $("afim-foto").src = it.url; $("afim-foto").alt = "Imagem de estúdio do Euro Sette, vista " + k; car.hidden = true; bx.href = it.url; bx.download = "euro-sette-" + k + ".jpg"; bx.removeAttribute("aria-disabled"); wa.disabled = false;
-    const arq = new File([it.blob], "euro-sette-" + k + ".jpg", { type: "image/jpeg" }); $("afim-share").hidden = !(navigator.canShare && navigator.canShare({ files: [arq] }));
+    afim.item = it; $("afim-foto").src = it.url; $("afim-foto").alt = "Imagem de estúdio do Euro Sette, vista " + k; car.hidden = true; bx.href = it.url; bx.download = "euro-sette-" + k + ".jpg"; bx.removeAttribute("aria-disabled");
+    const arq = new File([it.blob], "euro-sette-" + k + ".jpg", { type: "image/jpeg" }); $("afim-share").hidden = !(navigator.canShare && navigator.canShare({ files: [arq] })); afimAtualizaWa();
   }
-  // WhatsApp: abre a folha de compartilhamento do aparelho já com a imagem e o texto, para encaminhar a quem o cliente quiser
+  async function afimPreparaTodas() {   // gera as outras vistas em segundo plano, para o WhatsApp poder enviar as quatro de uma vez
+    if (afim.preparando) return; afim.preparando = true; afim.falhou = false; afimAtualizaWa();
+    for (const [k, nome] of AFIM_ANG) {
+      if (!afim.aberto) break; if (afim.cache.has(afimCh(k))) continue;
+      try { await afimRender(k, (f) => { const n = AFIM_ANG.filter(([k2]) => afim.cache.has(afimCh(k2))).length; $("afim-status").hidden = false; $("afim-status").textContent = "Preparando as " + AFIM_ANG.length + " vistas para o WhatsApp: " + n + " de " + AFIM_ANG.length + " prontas (vista " + nome + ", " + Math.round(f * 100) + "%)."; }); } catch (e) { afim.falhou = true; }
+      afimAtualizaWa();
+    }
+    afim.preparando = false; afimAtualizaWa();
+  }
+  // WhatsApp: abre a folha de compartilhamento do aparelho com as quatro imagens e o texto, para o cliente encaminhar a quem quiser
   async function afimWhats() {
-    if (!afim.item) return; const nome = "euro-sette-" + afim.ang + ".jpg", arq = new File([afim.item.blob], nome, { type: "image/jpeg" }), nota = $("afim-nota");
-    try { if (navigator.canShare && navigator.canShare({ files: [arq] })) { await navigator.share({ files: [arq], text: TEXTO_WHATS }); return; } } catch (e) { if (e && e.name === "AbortError") return; }
-    const a = document.createElement("a"); a.href = afim.item.url; a.download = nome; document.body.appendChild(a); a.click(); a.remove();   // computador: baixa a imagem e abre o WhatsApp com o texto
-    window.open("https://wa.me/?text=" + encodeURIComponent(TEXTO_WHATS), "_blank", "noopener"); nota.textContent = "A imagem foi baixada. Anexe no WhatsApp para enviar."; nota.hidden = false;
+    const itens = AFIM_ANG.map(([k]) => [k, afim.cache.get(afimCh(k))]).filter(([, it]) => it); if (!itens.length) return;
+    const arqs = itens.map(([k, it]) => new File([it.blob], "euro-sette-" + k + ".jpg", { type: "image/jpeg" })), nota = $("afim-nota");
+    try { if (navigator.canShare && navigator.canShare({ files: arqs })) { await navigator.share({ files: arqs, text: TEXTO_WHATS }); return; } } catch (e) { if (e && e.name === "AbortError") return; }
+    itens.forEach(([k, it], i) => setTimeout(() => { const a = document.createElement("a"); a.href = it.url; a.download = "euro-sette-" + k + ".jpg"; document.body.appendChild(a); a.click(); a.remove(); }, i * 350));   // computador: baixa as imagens e abre o WhatsApp com o texto
+    window.open("https://wa.me/?text=" + encodeURIComponent(TEXTO_WHATS), "_blank", "noopener"); nota.textContent = "As imagens foram baixadas. Anexe no WhatsApp para enviar."; nota.hidden = false;
   }
-  function afimAbrir() { if (!st.at) return; $("afim").hidden = false; document.body.style.overflow = "hidden"; afimGerar(afim.ang); }
-  function afimFechar() { $("afim").hidden = true; document.body.style.overflow = ""; if (!afim.ocupado) afim.pedido++; }
+  function afimAbrir() { if (!st.at) return; afim.aberto = true; $("afim").hidden = false; document.body.style.overflow = "hidden"; afimMostrar(afim.ang).then(afimPreparaTodas); }
+  function afimFechar() { afim.aberto = false; $("afim").hidden = true; document.body.style.overflow = ""; afim.pedido++; }
   function afimLigar() {
     document.body.insertAdjacentHTML("beforeend", AFIM_HTML); const ha = $("afim-ang");
-    AFIM_ANG.forEach(([k, n]) => { const b = document.createElement("button"); b.type = "button"; b.dataset.a = k; b.textContent = n; b.setAttribute("aria-pressed", "false"); b.addEventListener("click", () => afimGerar(k)); ha.appendChild(b); });
+    AFIM_ANG.forEach(([k, n]) => { const b = document.createElement("button"); b.type = "button"; b.dataset.a = k; b.textContent = n; b.setAttribute("aria-pressed", "false"); b.addEventListener("click", () => afimMostrar(k)); ha.appendChild(b); });
     ["at-afim-abrir", "cfx-afim-abrir"].forEach((id) => { const bt = $(id); if (bt) bt.addEventListener("click", afimAbrir); });
     $("afim-x").addEventListener("click", afimFechar); $("afim").addEventListener("click", (e) => { if (e.target === $("afim")) afimFechar(); });
     document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("afim").hidden) afimFechar(); });
@@ -3786,10 +3819,10 @@ body.gated { overflow: hidden; }
     setText("at-cores-res", "Cores: " + coresTxt() + ", sem custo adicional.");
     const lh = $("at-lines"); lh.replaceChildren();
     q.lines.forEach((l) => atLine(lh, l.nome, l.incluso ? "Incluído" : money(l.preco)));
-    const teto = Math.floor(q.maxDesc / 100) * 100, dAberto = !!st.atDescOpen || q.desc > 0;
+    const teto = Math.floor(q.limite / 100) * 100, dAberto = !!st.atDescOpen || q.desc > 0;
     $("at-desc-add").hidden = dAberto || teto <= 0; $("at-desc-ed").hidden = !dAberto;
     const dIn = $("at-desc-in"); if (dIn !== a) dIn.value = q.desc > 0 ? fmtN(q.desc, 0) : "";
-    $("at-desc-mais").disabled = q.desc >= teto; $("at-desc-menos").disabled = q.desc <= 0;
+    $("at-desc-mais").disabled = q.desc >= teto; $("at-desc-menos").disabled = q.desc <= 0; { const nl = $("at-desc-lib"); if (nl) nl.hidden = !(q.desc > q.maxDesc + 0.5); }
     const th = $("at-tot"); th.replaceChildren();
     atLine(th, "Subtotal", money(q.S), "sub");
     if (q.desc > 0) atLine(th, "Condição especial (" + pct(q.desc / q.S) + ")", "− " + money(q.desc));
@@ -3809,7 +3842,7 @@ body.gated { overflow: hidden; }
   }
   function buildAtend() {
     if (!$("view-atendimento")) return;
-    const setDesc = (v) => { const q = atCompute(); if (!q) return; const teto = Math.floor(q.maxDesc / 100) * 100; st.at.desc = Math.max(0, Math.min(teto, Math.round(num(v)))); atSave(); renderAtend(); };
+    const setDesc = (v) => { const q = atCompute(); if (!q) return; const teto = Math.floor(q.limite / 100) * 100; st.at.desc = Math.max(0, Math.min(teto, Math.round(num(v)))); if (st.at.desc <= q.maxDesc) st.at.descLib = 0; atSave(); renderAtend(); };
     $("at-desc-add").addEventListener("click", () => { st.atDescOpen = true; renderAtend(); $("at-desc-in").focus(); });
     $("at-desc-mais").addEventListener("click", () => setDesc(num(st.at.desc) + 1000));
     $("at-desc-menos").addEventListener("click", () => setDesc(num(st.at.desc) - 1000));
@@ -3842,7 +3875,7 @@ body.gated { overflow: hidden; }
   const dataBR = (iso) => { const d = new Date(iso); return isNaN(d.getTime()) ? "" : d.toLocaleDateString("pt-BR"); };
   function atCur() { return st.atId ? st.ats.get(st.atId) || null : null; }
   function setAtId(id) { st.atId = id || null; try { if (id) localStorage.setItem(ATC_KEY, id); else localStorage.removeItem(ATC_KEY); } catch (e) {} }
-  function atConfig() { return { motor: st.at.motor || "", kits: Object.assign({}, st.at.kits), kitItens: JSON.parse(JSON.stringify(st.at.kitItens || {})), hyp: !!st.at.hyp, gps: !!st.at.gps, semKit: !!st.at.semKit, nb: String(st.at.nb || ""), desc: num(st.at.desc), corEst: atCores().est, corPiso: atCores().piso, corListra: atCores().listra, corCapota: atCores().cap, corTubo: st.at.corTubo || "gelo" }; }
+  function atConfig() { return { motor: st.at.motor || "", kits: Object.assign({}, st.at.kits), kitItens: JSON.parse(JSON.stringify(st.at.kitItens || {})), hyp: !!st.at.hyp, gps: !!st.at.gps, semKit: !!st.at.semKit, nb: String(st.at.nb || ""), desc: num(st.at.desc), descLib: num(st.at.descLib), corEst: atCores().est, corPiso: atCores().piso, corListra: atCores().listra, corCapota: atCores().cap, corTubo: st.at.corTubo || "gelo" }; }
   function atWrite(id, fn) { atPending.add(id); return enqueue("a:" + id, fn).then((ok) => { atPending.delete(id); return ok; }); }
   function atPersist() {
     const id = st.atId; if (!id || !atCur() || !st.acol || !st.canWrite) return;
@@ -3940,7 +3973,7 @@ body.gated { overflow: hidden; }
     clearTimeout(atTimer); clearTimeout(ctTimer);
     setAtId(id);
     const c = d.config || {};
-    st.at = Object.assign(JSON.parse(JSON.stringify(AT_DEF)), { motor: c.motor || "", kits: Object.assign({}, AT_DEF.kits, c.kits || {}), kitItens: JSON.parse(JSON.stringify(c.kitItens || {})), hyp: !!c.hyp, gps: !!c.gps, semKit: !!c.semKit, nb: String(c.nb || ""), desc: num(c.desc), corEst: c.corEst || AT_DEF.corEst, corPiso: c.corPiso || AT_DEF.corPiso, corListra: c.corListra || "", corCapota: c.corCapota || AT_DEF.corCapota, corTubo: c.corTubo || "gelo"});
+    st.at = Object.assign(JSON.parse(JSON.stringify(AT_DEF)), { motor: c.motor || "", kits: Object.assign({}, AT_DEF.kits, c.kits || {}), kitItens: JSON.parse(JSON.stringify(c.kitItens || {})), hyp: !!c.hyp, gps: !!c.gps, semKit: !!c.semKit, nb: String(c.nb || ""), desc: num(c.desc), descLib: num(c.descLib), corEst: c.corEst || AT_DEF.corEst, corPiso: c.corPiso || AT_DEF.corPiso, corListra: c.corListra || "", corCapota: c.corCapota || AT_DEF.corCapota, corTubo: c.corTubo || "gelo"});
     try { localStorage.setItem(AT_KEY, JSON.stringify(st.at)); } catch (e) {}
     // contato vindo do configurador público: na primeira abertura, a configuração montada pelo cliente entra no orçamento
     if (d.onlinePend && d.linkCfg && st.canWrite && st.acol) {
@@ -5797,7 +5830,7 @@ body.gated { overflow: hidden; }
       guincho: MR(0x2B2E33, { roughness: 0.35, metalness: 0.4 }), logo: MR(0x3A3D42, { roughness: 0.42, metalness: 0.75, envMapIntensity: 0.35 }), motor: MR(0xF2F2F1, { roughness: 0.16, envMapIntensity: 0.55 }), helice: MR(0x33363B, { metalness: 0.6, roughness: 0.35 })
     };
     const EST_R = { Branco: 0xF1EFEA, Bege: 0xA36C3E, Cinza: 0xA7A9A6 };
-    const gR = { mesa: new T.Group(), sol: new T.Group(), guincho: new T.Group(), capPopa: new T.Group(), capProa: new T.Group(), churr: new T.Group(), gps: new T.Group(), mastro: new T.Group(), nome: new T.Group() };
+    const gR = { mesa: new T.Group(), sol: new T.Group(), guincho: new T.Group(), capPopa: new T.Group(), capProa: new T.Group(), churr: new T.Group(), gps: new T.Group(), mastro: new T.Group(), nome: new T.Group(), cadeira: new T.Group() };
     Object.keys(gR).forEach((k) => real.add(gR[k]));
     let realOk = false, ultimaOp = null;
     const malha = (d, m, g) => { const ge = new T.BufferGeometry(); ge.setAttribute("position", new T.BufferAttribute(d.pos, 3)); ge.setAttribute("normal", new T.BufferAttribute(d.nor, 3)); ge.setIndex(new T.BufferAttribute(d.idx, 1)); const o = new T.Mesh(ge, m); o.castShadow = true; o.receiveShadow = true; (g || real).add(o); return o; };
@@ -5809,13 +5842,19 @@ body.gated { overflow: hidden; }
       const txt = String(nm).toUpperCase(), fam = "'Saira', 'Arial Black', Arial, sans-serif", esp = 0.09; let fs = 150;
       const larg = (f) => { gnNome.font = "italic 800 " + f + "px " + fam; let w = 0; for (const ch of txt) w += gnNome.measureText(ch).width + f * esp; return w - f * esp; };
       while (fs > 40 && larg(fs) > cnNome.width - 60) fs -= 4;
-      gnNome.font = "italic 800 " + fs + "px " + fam; gnNome.fillStyle = "#454A52"; gnNome.textBaseline = "alphabetic"; let x = (cnNome.width - larg(fs)) / 2; for (const ch of txt) { gnNome.fillText(ch, x, cnNome.height * 0.5 + fs * 0.36); x += gnNome.measureText(ch).width + fs * esp; }
+      gnNome.font = "italic 800 " + fs + "px " + fam; gnNome.fillStyle = "#FFFFFF"; gnNome.textBaseline = "alphabetic"; let x = (cnNome.width - larg(fs)) / 2; for (const ch of txt) { gnNome.fillText(ch, x, cnNome.height * 0.5 + fs * 0.36); x += gnNome.measureText(ch).width + fs * esp; }
       txNome.needsUpdate = true;
     };
     try { if (document.fonts && document.fonts.load) document.fonts.load("italic 800 100px Saira").then(() => { if (nomeAtual) desenhaNome(nomeAtual); }).catch(() => {}); } catch (e) { /* segue com a fonte reserva */ }
     const montarReal = (pt) => {
       const de = { fibra: matR.fibra, tubo: matR.tubo, pvc: matR.pvc, est: matR.est, piso: matR.piso, friso: matR.friso, tampo: matR.acril, preto: matR.preto, branco: matR.branco, luz: matR.luz, inox: matR.inox, logo: matR.logo, motor: matR.motor, helice: matR.helice };
-      Object.keys(de).forEach((k) => { if (pt[k]) malha(pt[k], de[k]); });
+      Object.keys(de).forEach((k) => { if (k === "est") return; if (pt[k]) malha(pt[k], de[k]); });
+if (pt.est) {   // o estofado do modelo é uma peça só: separa o assento do nicho do console (virado para a proa), que levanta no "Ver banheiro"
+  const E = pt.est, P = E.pos, Ix = E.idx, resto = [], cad = [];
+  for (let t = 0; t < Ix.length; t += 3) { const a = Ix[t] * 3, b = Ix[t + 1] * 3, c = Ix[t + 2] * 3, cx = (P[a] + P[b] + P[c]) / 3, cy = (P[a + 1] + P[b + 1] + P[c + 1]) / 3, cz = (P[a + 2] + P[b + 2] + P[c + 2]) / 3; ((cx > 4.38 && cx < 4.95 && cy > 0.94 && cy < 1.5 && Math.abs(cz) < 0.3) ? cad : resto).push(Ix[t], Ix[t + 1], Ix[t + 2]); }
+  malha({ pos: P, nor: E.nor, idx: new Ix.constructor(resto) }, matR.est);
+  if (cad.length) { matR.estCad = matR.est.clone(); matR.estCad.transparent = true; malha({ pos: P, nor: E.nor, idx: new Ix.constructor(cad) }, matR.estCad, gR.cadeira); }
+}
       if (pt.lona) malha(pt.lona, matR.lona, gR.capPopa); if (pt.lonalogo) malha(pt.lonalogo, matR.lonalogo, gR.capPopa); if (pt.caparm) malha(pt.caparm, matR.inox, gR.capPopa);
       if (pt.vidro) malha(pt.vidro, mat.vidro).castShadow = false;
       if (pt.porta) malha(pt.porta, matR.porta).castShadow = false;
@@ -5890,7 +5929,7 @@ body.gated { overflow: hidden; }
       { // faixas do nome sobre o tubulão: cada faixa é um plano reto (o texto fica em linha reta), ajustado por mínimos quadrados à superfície medida por raios laterais
       const tubos = []; real.traverse((o) => { if (o.isMesh && o.material === matR.tubo) tubos.push(o); }); real.updateMatrixWorld(true);
       const rc = new T.Raycaster(), X0 = 5.93, X1 = 6.5, ALT = 0.085, NX = 14, NY = 3, media = (v) => v.reduce((p, q) => p + q, 0) / v.length;
-      const matNome = new T.MeshStandardMaterial({ map: txNome, transparent: true, roughness: 0.45, metalness: 0, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 });
+      const matNome = matR.pvc.clone(); matNome.map = txNome; matNome.transparent = true; matNome.depthWrite = false; matNome.polygonOffset = true; matNome.polygonOffsetFactor = -2; matNome.side = T.FrontSide; matR.nome = matNome;   // mesmo material do EURO SETTE e do 7: cinza no tubulão claro, branco nos outros
       let desvioMax = 0;
       [1, -1].forEach((lado) => {
         const dw = new T.Vector3(0, 0, -lado).transformDirection(real.matrixWorld), lance = (x, y) => { rc.set(real.localToWorld(new T.Vector3(x, y, lado * 3)), dw); return rc.intersectObjects(tubos, false)[0]; }, zDe = (h) => Math.abs(real.worldToLocal(h.point.clone()).z);
@@ -5915,17 +5954,18 @@ body.gated { overflow: hidden; }
         const ge = new T.BufferGeometry(); ge.setAttribute("position", new T.Float32BufferAttribute(pos, 3)); ge.setAttribute("normal", new T.Float32BufferAttribute(nor, 3)); ge.setAttribute("uv", new T.Float32BufferAttribute(uv, 2)); ge.setIndex(idx);
         const m = new T.Mesh(ge, matNome); m.renderOrder = 3; gR.nome.add(m);
       }); B3D.nomeDesvio = desvioMax; gR.nome.visible = false; }
-realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.22; ren.toneMappingExposure = 0.62; B3D.real = real; B3D.realOk = true;
+realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.22; ren.toneMappingExposure = 0.62; B3D.real = real; B3D.realOk = true; if (B3D.btBanheiro) B3D.btBanheiro.hidden = false;
       if (ultimaOp) aplicarReal(ultimaOp);
     };
     const aplicarReal = (o) => {
-      matR.est.color.copy(C(o.est3d != null ? o.est3d : (EST_R[o.est] || EST_R.Branco))); if (o.capHex != null) matR.lona.color.copy(C(o.capHex)); matR.acril.color.copy(mat.acril.color); matR.motor.color.copy(mat.motor.color);
+      matR.est.color.copy(C(o.est3d != null ? o.est3d : (EST_R[o.est] || EST_R.Branco))); if (matR.estCad) matR.estCad.color.copy(matR.est.color); if (o.capHex != null) matR.lona.color.copy(C(o.capHex)); matR.acril.color.copy(mat.acril.color); matR.motor.color.copy(mat.motor.color);
       const pp = o.pisoHex ? [o.pisoHex, o.listraHex || "#E6E4DE"] : (B3D_PISO[o.piso] || B3D_PISO.Cinza); matR.piso.color.copy(C(pp[0])); matR.friso.color.copy(C(pp[1]));
       const tb = new T.Color(o.tuboCor || "#ecebe2"); matR.tubo.color.copy(C(tb.getHex()));
       // regra da projetista: acessórios de PVC cinza no tubulão claro (cinza claro ou branco gelo) e brancos nos tubulões de outras cores
-      matR.pvc.color.copy(C(["e6eaed", "c9c6b8"].includes(tb.getHexString().toLowerCase()) ? 0x8B8F95 : 0xF4F4F2));
+      matR.pvc.color.copy(C(["e6eaed", "c9c6b8"].includes(tb.getHexString().toLowerCase()) ? 0x8B8F95 : 0xF4F4F2)); if (matR.nome) matR.nome.color.copy(matR.pvc.color);
       gR.mesa.visible = !o.solario; gR.sol.visible = !!o.solario; gR.guincho.visible = !!o.guincho; gR.capProa.visible = !!o.capProa && !B3D.semCapota; gR.capPopa.visible = !B3D.semCapota; gR.churr.visible = !!o.churr; gR.gps.visible = !!o.gps; gR.mastro.visible = o.mastro !== false;
     { const nm = String(o.nome || ""); gR.nome.visible = !!nm; if (nm !== nomeAtual) desenhaNome(nm); }
+    if (B3D.banheiro) { gR.mesa.visible = false; gR.sol.visible = false; gR.capProa.visible = false; }   // na vista do banheiro a proa fica livre
     };
     const usarReal = typeof M3D_B64 === "string" && M3D_B64.length > 1000 && !!window.DecompressionStream && !M3D_ANTIGO;
     if (usarReal) { barco.visible = false; m3dAbrir(m3dBytes()).then(montarReal).catch(() => { real.visible = false; barco.visible = true; chao.position.y = -0.98; }); }
@@ -5956,7 +5996,24 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
       bt("Pausar giro", "Pausar ou retomar o giro automático", (b) => { B3D.pausa = !B3D.pausa; b.textContent = B3D.pausa ? "Retomar giro" : "Pausar giro"; b.setAttribute("aria-pressed", B3D.pausa ? "true" : "false"); });
       bt("+", "Aproximar", () => { zoom = Math.max(ZMIN, zoom * 0.78); posCam(); }, "q");
       bt("−", "Afastar", () => { zoom = Math.min(ZMAX, zoom / 0.78); posCam(); }, "q");
-      bt("Centralizar", "Voltar à vista inicial", () => { foco.copy(FOCO0); zoom = 1; incl = 0; posCam(); });
+      bt("Centralizar", "Voltar à vista inicial", () => { if (B3D.banheiro && B3D.verBanheiro) B3D.verBanheiro(false, true); foco.copy(FOCO0); zoom = 1; incl = 0; posCam(); });
+      // ---- Ver banheiro: o assento do nicho do console (virado para a proa) levanta e some, e a câmera vai de frente para o compartimento ----
+      let nivelBan = 0, tw = null, salvo = null;
+      const lerp = (a, b, k) => a + (b - a) * k, suave = (k) => k * k * (3 - 2 * k);
+      const aplicaNivel = (n) => { const g = gR.cadeira; if (!g) return; g.position.y = 0.45 * n; if (matR.estCad) matR.estCad.opacity = 1 - Math.min(1, Math.max(0, (n - 0.15) / 0.6)); g.visible = n < 0.97; };
+      B3D.verBanheiro = (on, instante) => {
+        on = !!on; if (!B3D.realOk || !gR.cadeira) return; if (on === !!B3D.banheiro && !tw) return;
+        const de = { ang, incl, zoom, foco: foco.clone(), n: nivelBan }; let para;
+        if (on) {
+          if (!B3D.banheiro) salvo = { ang, incl, zoom, foco: foco.clone(), pausa: !!B3D.pausa };
+          giro.updateMatrixWorld(true); para = { ang: -1.45 + 6.2832 * Math.round((ang + 1.45) / 6.2832), incl: -0.25, zoom: 0.15, foco: giro.worldToLocal(real.localToWorld(new T.Vector3(4.62, 1.08, 0))), n: 1 }; B3D.pausa = true;
+        } else { para = salvo ? { ang: salvo.ang + 6.2832 * Math.round((ang - salvo.ang) / 6.2832), incl: salvo.incl, zoom: salvo.zoom, foco: salvo.foco, n: 0 } : { ang, incl, zoom, foco: foco.clone(), n: 0 }; if (salvo) B3D.pausa = salvo.pausa; }
+        B3D.banheiro = on; if (B3D.btBanheiro) { B3D.btBanheiro.textContent = on ? "Fechar banheiro" : "Ver banheiro"; B3D.btBanheiro.setAttribute("aria-pressed", String(on)); }
+        reap(); tw = { t0: performance.now() - (instante ? 5000 : 0), dur: 1150, de, para }; ultimo = performance.now(); B3D.tweenBanheiro();
+      };
+      B3D.tweenBanheiro = () => { if (!tw) return; const k = Math.min(1, (performance.now() - tw.t0) / tw.dur), e = suave(k); ang = lerp(tw.de.ang, tw.para.ang, e); incl = lerp(tw.de.incl, tw.para.incl, e); zoom = lerp(tw.de.zoom, tw.para.zoom, e); foco.lerpVectors(tw.de.foco, tw.para.foco, e); nivelBan = lerp(tw.de.n, tw.para.n, e); aplicaNivel(nivelBan); posCam(); if (k >= 1) tw = null; };
+      { const b = document.createElement("button"); b.type = "button"; b.textContent = "Ver banheiro"; b.setAttribute("aria-label", "Levantar o assento do console e ver o banheiro de frente"); b.title = "Levanta o assento do console e mostra o banheiro de frente"; b.hidden = true; b.setAttribute("aria-pressed", "false");
+        b.addEventListener("click", (e) => { e.stopPropagation(); B3D.verBanheiro(!B3D.banheiro); }); bar.appendChild(b); B3D.btBanheiro = b; }
       { const pb = document.getElementById("at-3d-proa"); if (pb) bar.appendChild(pb); }   // no Atendimento, o botão de mesa ou solário fica junto dos controles da vista
       host.appendChild(bar);
       // duplo clique (ou dois toques) num ponto do barco: a câmera passa a girar em torno dele e aproxima
@@ -5996,9 +6053,9 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
       const halton = (i, b) => { let f = 1, r = 0; while (i > 0) { f /= b; r += f * (i % b); i = Math.floor(i / b); } return r; };
       // o: { w, h, ang, incl, zoom, mira, ss, tema ("dark" ou "light"), amostras (0 = decide pela velocidade do aparelho), aoProgresso(fração) }; devolve um <canvas>
       B3D.foto = async (o) => {
-        o = Object.assign({ w: 1600, h: 1000, ang: -0.62, incl: -0.2, zoom: 0.84, mira: 0.22, ss: 1.25, tema: "dark", amostras: 0, aoProgresso: null }, o || {});
+        o = Object.assign({ w: 1600, h: 1000, ang: -0.62, incl: -0.2, zoom: 0.84, mira: 0.22, ss: 1.25, tema: "dark", amostras: 0, aoProgresso: null }, o || {}); if (B3D.banheiro && B3D.verBanheiro) B3D.verBanheiro(false, true);   // a imagem final sempre mostra o barco fechado
         const es = montaEstudio(), escuro = o.tema !== "light", hemi = cena.children.find((x) => x.isHemisphereLight), lin = (hex) => new T.Color(hex).convertSRGBToLinear();
-        const ant = { pr: ren.getPixelRatio(), ang, incl, zoom, kAsp, asp: cam.aspect, env: cena.environment, fundo: cena.background, exp: ren.toneMappingExposure, mapa: sol.shadow.mapSize.x, foco: foco.clone(), hemi: hemi ? hemi.intensity : 0, pulso,
+        const ant = { fov: cam.fov, pr: ren.getPixelRatio(), ang, incl, zoom, kAsp, asp: cam.aspect, env: cena.environment, fundo: cena.background, exp: ren.toneMappingExposure, mapa: sol.shadow.mapSize.x, foco: foco.clone(), hemi: hemi ? hemi.intensity : 0, pulso,
           solP: sol.position.clone(), solI: sol.intensity, solR: sol.shadow.radius, rimI: rim.intensity, chaoO: chao.material.opacity, chaoV: chao.visible, pausa: B3D.pausa };
         B3D.fotografando = true; const out = document.createElement("canvas"); out.width = o.w; out.height = o.h;
         try {
@@ -6012,6 +6069,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
           const lado = Math.min(4096, ren.capabilities.maxTextureSize || 2048); if (sol.shadow.mapSize.x !== lado) { sol.shadow.mapSize.set(lado, lado); if (sol.shadow.map) { sol.shadow.map.dispose(); sol.shadow.map = null; } }
           const W = Math.round(o.w * o.ss), H = Math.round(o.h * o.ss);
           ren.setPixelRatio(1); ren.setSize(W, H, false); cam.aspect = W / H; kAsp = Math.max(1, 1.62 / cam.aspect); cam.updateProjectionMatrix(); posCam();
+          if (o.cam && real.visible) { real.updateMatrixWorld(true); cam.position.copy(real.localToWorld(new T.Vector3(o.cam.pos[0], o.cam.pos[1], o.cam.pos[2]))); cam.up.set(0, 1, 0); cam.lookAt(real.localToWorld(new T.Vector3(o.cam.alvo[0], o.cam.alvo[1], o.cam.alvo[2]))); if (o.cam.fov) cam.fov = o.cam.fov; cam.updateProjectionMatrix(); }   // câmera livre (cockpit), só no modelo realista
           es.fill.position.copy(cam.position); es.fill.position.y = Math.max(0.6, cam.position.y * 0.35);
           const acc = document.createElement("canvas"); acc.width = W; acc.height = H; const ax = acc.getContext("2d");
           const K = ant.solP.clone().normalize(), tx = new T.Vector3(0, 1, 0).cross(K).normalize(), ty = K.clone().cross(tx).normalize(), D = ant.solP.length();
@@ -6029,7 +6087,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
           // vinheta de estúdio: o centro fica como está e as bordas escurecem um pouco
           x2.globalCompositeOperation = "multiply"; const vg = x2.createRadialGradient(o.w * 0.5, o.h * 0.54, o.w * 0.22, o.w * 0.5, o.h * 0.54, o.w * 0.78); vg.addColorStop(0, "#ffffff"); vg.addColorStop(1, escuro ? "#8a8a8a" : "#e6e8ec"); x2.fillStyle = vg; x2.fillRect(0, 0, o.w, o.h); x2.globalCompositeOperation = "source-over";
         } finally {
-          cam.clearViewOffset(); es.ceu.visible = false; es.fill.visible = false; es.piso.visible = false; chao.visible = ant.chaoV; if (ant.chaoY !== undefined) chao.position.y = ant.chaoY; cena.environment = ant.env; cena.background = ant.fundo; if (hemi) hemi.intensity = ant.hemi; rim.intensity = ant.rimI; sol.intensity = ant.solI; sol.shadow.radius = ant.solR; sol.position.copy(ant.solP); chao.material.opacity = ant.chaoO; ren.toneMappingExposure = ant.exp;
+          cam.clearViewOffset(); cam.fov = ant.fov; cam.updateProjectionMatrix(); es.ceu.visible = false; es.fill.visible = false; es.piso.visible = false; chao.visible = ant.chaoV; if (ant.chaoY !== undefined) chao.position.y = ant.chaoY; cena.environment = ant.env; cena.background = ant.fundo; if (hemi) hemi.intensity = ant.hemi; rim.intensity = ant.rimI; sol.intensity = ant.solI; sol.shadow.radius = ant.solR; sol.position.copy(ant.solP); chao.material.opacity = ant.chaoO; ren.toneMappingExposure = ant.exp;
           if (sol.shadow.mapSize.x !== ant.mapa) { sol.shadow.mapSize.set(ant.mapa, ant.mapa); if (sol.shadow.map) { sol.shadow.map.dispose(); sol.shadow.map = null; } }
           ang = ant.ang; incl = ant.incl; zoom = ant.zoom; foco.copy(ant.foco); pulso = ant.pulso; ren.setPixelRatio(ant.pr); B3D.fotografando = false; tamanho();
         }
@@ -6044,6 +6102,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
       requestAnimationFrame(loop);
       if (B3D.fotografando || !b3dVisivel() || document.hidden) return;
       if (!arr && !B3D.pausa && t - ultimo > 2500) ang += 0.003;
+      if (B3D.tweenBanheiro) B3D.tweenBanheiro();
       posCam();
       if (pulso > 0) { pulso = Math.max(0, pulso - 0.04); const s = 1 + Math.sin(pulso * Math.PI) * 0.03; barco.scale.set(s, s, s); real.scale.set(s, s, s); }
       ren.render(cena, cam);
@@ -6089,12 +6148,12 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
     { nome: "Bordô", sub: "Marfim, piso madeira e capota vinho", est: "Marfim", piso: "Madeira", li: "Branco", hyp: false, ct: "cinza", cap: "Vinho" },
     { nome: "Marinho", sub: "Ice Gray, tubos e capota azul marinho", est: "Ice Gray", piso: "Cinza", li: "Branco", hyp: false, ct: "marinho", cap: "Azul" },
     { nome: "Pérola", sub: "Branco Ultra, piso cinza, capota bege", est: "Branco Ultra", piso: "Cinza", li: "Branco", hyp: false, ct: "cinza", cap: "Bege" },
+    { nome: "Wolf", sub: "Marfim, piso madeira, capota azul e tubos claros", est: "Marfim", piso: "Madeira", li: "Branco", hyp: false, ct: "cinza", cap: "Azul" },
     { nome: "Caramelo", sub: "Estofado caramelo, piso cinza e capota bege", est: "Caramelo", piso: "Cinza", li: "Branco", hyp: false, ct: "cinza", cap: "Bege" },
     { nome: "Areia", sub: "Areia, piso madeira, capota cinza", est: "Areia", piso: "Madeira", li: "Branco", hyp: false, ct: "bege", cap: "Cinza" },
     { nome: "Royal", sub: "Branco, tubos azul royal e capota azul", est: "Branco Ultra", piso: "Cinza", li: "Branco", hyp: false, ct: "royal", cap: "Azul" },
     { nome: "Noite", sub: "Taupe com piso, tubos e capota pretos", est: "Taupe", piso: "Preto", li: "Branco", hyp: false, ct: "preto", cap: "Preto" },
-    { nome: "Creme", sub: "Hypalon Off white, marfim e capota bege", est: "Marfim", piso: "Madeira", li: "Branco", hyp: true, ct: "creme", cap: "Bege" },
-    { nome: "Wolf", sub: "Marfim, piso madeira, capota azul e tubos claros", est: "Marfim", piso: "Madeira", li: "Branco", hyp: false, ct: "cinza", cap: "Azul" }];
+    { nome: "Creme", sub: "Hypalon Off white, marfim e capota bege", est: "Marfim", piso: "Madeira", li: "Branco", hyp: true, ct: "creme", cap: "Bege" }];
   const CFX_PRINC = 5;
   const cfx = { aberto: false, vista: "3d", marcas: [], cache: new Map(), pedido: 0 };
   function cfxMover(no, destino) { const m = document.createComment("cfx"); no.parentNode.insertBefore(m, no); destino.appendChild(no); cfx.marcas.push([m, no]); }
@@ -6514,16 +6573,21 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
     if (!st.pvAt) { st.vAntes = {}; PV_KEYS.forEach((k) => { st.vAntes[k] = st.v[k]; }); }
     Object.assign(st.v, q); st.pvAt = id; st.pvLocal = JSON.parse(JSON.stringify(q)); if (!("motor" in st.pvLocal)) st.pvLocal.motor = st.v.motor;
     const v0 = vendaCompute(), desc = Math.max(0, num(c.desc));
-    if (v0 && desc > 0) { const d2 = Math.min(desc, v0.at && v0.at.maxDesc != null ? v0.at.maxDesc : desc); q.fechamento = st.v.fechamento = st.pvLocal.fechamento = Math.round(v0.tabela - d2 * (1 + v0.ipi) - (v0.hypOn ? v0.hypPrice * (1 + v0.ipi) : 0)); }
+    if (v0 && desc > 0) { const d2 = Math.min(desc, v0.at && v0.at.limite != null ? v0.at.limite : (v0.at && v0.at.maxDesc != null ? v0.at.maxDesc : desc)); q.fechamento = st.v.fechamento = st.pvLocal.fechamento = Math.round(v0.tabela - d2 * (1 + v0.ipi) - (v0.hypOn ? v0.hypPrice * (1 + v0.ipi) : 0)); }
     recalc();
     setText("pv-msg", "Configuração de " + (d.nome || "atendimento") + " carregada. Arraste o preço de fechamento para estudar a margem.");
   }
-  function pvAplicar() {
+  async function pvAplicar() {
     const id = st.pvAt, d = id ? st.ats.get(id) : null, vr = vendaCompute(); if (!d || !vr) return;
-    const desc = Math.max(0, Math.round(vr.desconto / (1 + vr.ipi)));
-    atOpen(id); st.at.desc = desc; const q = atCompute(); if (q) st.at.desc = q.desc; atSave(); renderAtend();
-    const nome = d.nome || "cliente";
-    setText("pv-msg", q && q.desc < desc - 1 ? "O desconto estudado passa do piso do Atendimento. Foi aplicado o máximo permitido, " + money(q.desc) + ", ao atendimento de " + nome + "." : (desc > 0 ? "Desconto de " + money(desc) + " aplicado ao atendimento de " + nome + "." : "O atendimento de " + nome + " ficou sem desconto."));
+    const desc = Math.max(0, Math.round(vr.desconto / (1 + vr.ipi))), nome = d.nome || "cliente";
+    atOpen(id); const antes = num(st.at.desc); st.at.desc = desc; let q = atCompute(), liberado = false;
+    if (q && desc > q.limite + 1) {   // desconto acima do máximo permitido: só com a senha de gestor (a mesma do login da equipe)
+      const resp = window.EURONAV_PEDIR_SENHA ? await window.EURONAV_PEDIR_SENHA(false, false, { txt: "O desconto estudado, " + money(desc) + ", passa do máximo permitido para este atendimento, " + money(q.limite) + ". Digite a senha de gestor para liberar." }) : "indisponivel";
+      if (resp === true) { st.at.descLib = desc; liberado = true; }
+      else { st.at.desc = antes; atSave(); renderAtend(); setText("pv-msg", resp === "indisponivel" ? "Não foi possível pedir a senha de gestor neste ambiente. O desconto acima do permitido não foi aplicado." : "Desconto acima do permitido não aplicado: a senha de gestor não foi confirmada."); return; }
+    }
+    q = atCompute(); if (q) { st.at.desc = q.desc; if (st.at.desc <= q.maxDesc) st.at.descLib = 0; } atSave(); renderAtend();
+    setText("pv-msg", liberado ? "Desconto de " + money(desc) + " liberado pelo gestor, acima do máximo de " + money(q.maxDesc) + ", e aplicado ao atendimento de " + nome + "." : (desc > 0 ? "Desconto de " + money(desc) + " aplicado ao atendimento de " + nome + "." : "O atendimento de " + nome + " ficou sem desconto."));
   }
   function pvEncerrar() {
     const volta = st.vServ || st.vAntes; st.pvAt = null; st.pvLocal = null;
