@@ -246,7 +246,7 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
   const COR_ALVO = { est: Object.fromEntries(CAT.est.map(([n, h]) => [n, hexRgb(h)])), piso: Object.fromEntries(CAT.piso.filter(([n]) => n !== "Cinza").map(([n, h]) => [n, hexRgb(h)])) };
   const TUBOS = {
     pvc: [["cinza", "Cinza claro", "#C9C6B8"], ["marinho", "Azul marinho", "#232C4A"], ["royal", "Azul royal", "#2A3F9E"], ["preto", "Preto", "#232422"], ["vermelho", "Vermelho", "#A63840"], ["verde", "Verde", "#5A635B"], ["bege", "Bege", "#C6AD82"]],
-    hyp: [["gelo", "Ice white", "#E6EAED"], ["creme", "Off white", "#E3DED4"], ["yoro", "Yellow Oro", "#E6DA5E"], ["sunflower", "Sun Flower", "#D28C32"], ["ycolorado", "Yellow Colorado", "#E1C541"]]
+    hyp: [["gelo", "Ice white", "#E6EAED"], ["creme", "Off white", "#E3DED4"], ["yoro", "Yellow Oro", "#E6DA5E"], ["sunflower", "Sun Flower", "#D28C32"], ["ycolorado", "Yellow Colorado", "#E1C541"], ["colonial", "Colonial", "#C0A06A"]]
   };
   const TUBO_ANT = { gelo: "cinza", areia: "bege", grafite: "preto" };
   const corTubo = (t, c) => { const l = TUBOS[t] || TUBOS.pvc; return l.find((x) => x[0] === c) || l.find((x) => x[0] === TUBO_ANT[c]) || l[0]; };
@@ -960,7 +960,7 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
     document.querySelectorAll("#orc-motores .orc-opt").forEach((b) => b.setAttribute("aria-pressed", String(+b.dataset.i === ORCS.mi)));
     const mais = document.querySelector("#orc-motores .orc-mais"); if (mais && mais.querySelector('[aria-pressed="true"]')) mais.hidden = false;
     document.querySelectorAll("#orc-kits .orc-opt").forEach((b) => { const j = +b.dataset.j, gpsInc = j === 6 && m[4]; b.disabled = !!gpsInc; b.setAttribute("aria-pressed", String(gpsInc ? true : !!((ORCS.mk >> j) & 1))); const em = b.querySelector("em"); em.textContent = gpsInc ? "Incluso no motor" : "+ " + reais(ORC.t[j][3]); });
-    const hy = document.querySelector('#d-tubo .opt[data-v="hyp"] small'), pv = document.querySelector('#d-tubo .opt[data-v="pvc"] small'); if (hy) hy.textContent = "5 cores · + " + reais(ORC.t[5][3]); if (pv) pv.textContent = "7 cores · incluso";
+    const hy = document.querySelector('#d-tubo .opt[data-v="hyp"] small'), pv = document.querySelector('#d-tubo .opt[data-v="pvc"] small'); if (hy) hy.textContent = TUBOS.hyp.length + " cores · + " + reais(ORC.t[5][3]); if (pv) pv.textContent = "7 cores · incluso";
     // quadro do orçamento: o casco absorve o pequeno ajuste de impostos, para as linhas somarem exatamente o total
     const linhas = []; let somaOut = m[3]; linhas.push(["Motor", m[1].replace(/^Motor\s+/i, ""), m[3]]);
     [0, 1, 2, 3, 4].forEach((j) => { if (((mk >> j) & 1) && ORC.t[j]) { linhas.push(["", ORC.t[j][1], ORC.t[j][3]]); somaOut += ORC.t[j][3]; } });
@@ -987,7 +987,7 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
       b.addEventListener("click", () => { Object.assign(E, { est: c.est, piso: c.piso, li: c.li, cap: c.cap, tubo: c.tubo, ct: c.ct }); render(); }); ch.appendChild(b); });
     dots("d-est", "est", CAT.est); dots("d-piso", "piso", CAT.piso, (n) => { E.li = catListra(n, E.li); }); dots("d-cap", "cap", CAT.capota);
     const dupla = (host, campo, itens) => itens.forEach(([v, t, s]) => { const b = document.createElement("button"); b.type = "button"; b.className = "opt"; b.dataset.v = v; b.innerHTML = "<span></span>"; b.firstChild.textContent = t; const sm = document.createElement("small"); sm.textContent = s; b.firstChild.appendChild(sm); b.addEventListener("click", () => { E[campo] = v; if (campo === "tubo") E.ct = corTubo(v, E.ct)[0]; render(); }); $(host).appendChild(b); });
-    dupla("d-tubo", "tubo", [["pvc", "PVC Sansuy", "7 cores"], ["hyp", "Hypalon Orca", "5 cores"]]);
+    dupla("d-tubo", "tubo", [["pvc", "PVC Sansuy", TUBOS.pvc.length + " cores"], ["hyp", "Hypalon Orca", TUBOS.hyp.length + " cores"]]);
     dupla("d-proa", "proa", [["mesa", "Ver com a mesa", "Sofá em U com a mesa montada"], ["sol", "Ver como solário", "Mesa baixada, com o estofado por cima"]]);
     dupla("d-motor", "motor", [["mercury", "Mercury", "Branco"], ["yamaha", "Yamaha", "Cinza"]]);
     OPC.forEach(([k, t, s]) => { const b = document.createElement("button"); b.type = "button"; b.className = "opt"; b.dataset.k = k; const sp = document.createElement("span"); sp.textContent = t; const sm = document.createElement("small"); sm.textContent = s; sp.appendChild(sm); const sw = document.createElement("i"); sw.className = "sw"; b.append(sp, sw); b.addEventListener("click", () => { E[k] = !E[k]; render(); }); $("d-opc").appendChild(b); });

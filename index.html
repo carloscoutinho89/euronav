@@ -3403,7 +3403,7 @@ body.gated { overflow: hidden; }
   const AT_KEY = "euronav-atendimento";
   const AT_DEF = { motor: "", kits: { conforto: false, lazer: false, fundeio: false, extras: false }, kitItens: {}, hyp: false, gps: false, semKit: false, desc: 0, corEst: "Branco Ultra", corPiso: "Cinza", corListra: "Branco", corCapota: "Cinza", corTubo: "gelo" };
   const TUBO_CORES = { pvc: [["cinza", "Cinza claro", "#C9C6B8"], ["marinho", "Azul marinho", "#232C4A"], ["royal", "Azul royal", "#2A3F9E"], ["preto", "Preto", "#232422"], ["vermelho", "Vermelho", "#A63840"], ["verde", "Verde", "#5A635B"], ["bege", "Bege", "#C6AD82"]],
-    hyp: [["gelo", "Ice white", "#E6EAED"], ["creme", "Off white", "#E3DED4"], ["yoro", "Yellow Oro", "#E6DA5E"], ["sunflower", "Sun Flower", "#D28C32"], ["ycolorado", "Yellow Colorado", "#E1C541"]] };
+    hyp: [["gelo", "Ice white", "#E6EAED"], ["creme", "Off white", "#E3DED4"], ["yoro", "Yellow Oro", "#E6DA5E"], ["sunflower", "Sun Flower", "#D28C32"], ["ycolorado", "Yellow Colorado", "#E1C541"], ["colonial", "Colonial", "#C0A06A"]] };
   const TUBO_ANT = { gelo: "cinza", areia: "bege", grafite: "preto" }; // cores que saíram da lista: atendimentos e links antigos caem na mais próxima
   const tuboCor = (hyp, c) => { const l = TUBO_CORES[hyp ? "hyp" : "pvc"]; return l.find((x) => x[0] === c) || l.find((x) => x[0] === TUBO_ANT[c]) || l[0]; };
   const coresTxt = () => { const c = atCores(); return "estofado " + corTxt(c.est) + ", piso em EVA " + corTxt(c.piso) + " com listras brancas, capotas em " + corTxt(c.cap) + " e tubulões " + tuboCor(st.at.hyp, st.at.corTubo)[1].toLowerCase(); };
