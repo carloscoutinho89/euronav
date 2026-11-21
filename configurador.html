@@ -100,6 +100,7 @@ button { font: inherit; color: inherit; }
 .sub-linha { display: grid; grid-template-columns: 1fr auto; gap: 6px; align-items: stretch; }
 .sub-linha.so-tog { grid-template-columns: 1fr; }
 .ver-bt { appearance: none; border: 1px solid var(--line); background: transparent; color: var(--ink); border-radius: 4px; padding: 0 12px; font: inherit; font-size: .78rem; letter-spacing: .02em; cursor: pointer; white-space: nowrap; }
+.ver-solo { padding: 12px 18px; margin-top: 4px; }
 .ver-bt:hover, .ver-bt[aria-pressed="true"] { border-color: var(--accent); }
 .ver-bt[aria-pressed="true"] { background: var(--card); }
 .opt.parcial { border-color: var(--accent); }
@@ -274,6 +275,7 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
     <div class="sec"><h2>Capotas <b id="n-cap"></b></h2><div class="dots" id="d-cap" role="group" aria-label="Cor das capotas"></div><button class="tc-bt" type="button" data-tc="cap"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M15.5 15.5 21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Ver o tecido de perto</button></div>
     <div class="sec"><h2>Tubulões <b id="n-tubo"></b></h2><div class="duas" id="d-tubo"></div><div class="dots tcor" id="d-tcor" role="group" aria-label="Cor dos tubulões"></div></div>
     <div class="sec"><h2>Proa <b id="n-proa"></b></h2><div class="duas" id="d-proa"></div><p class="dica">O Euro Sette já vem com os dois: mesa e solário. Aqui você escolhe só como ver a proa.</p></div>
+    <div class="sec" id="sec-banheiro"><h2>Banheiro</h2><p class="dica">Já vem de série: banheiro com vaso sanitário manual.</p><button type="button" class="ver-bt ver-solo" data-ver="banheiro" aria-pressed="false">Ver no barco</button></div>
     <div class="sec" id="sec-opc"><h2>Opcionais</h2><div class="opts" id="d-opc"></div></div>
     <div class="sec" id="sec-motor"><h2>Motor <b id="n-motor"></b></h2><div id="d-motor"></div></div>
     <div class="sec orc-sec" id="sec-orc-motor"><h2>Motor <b id="n-orc-motor"></b></h2><div id="orc-motores"></div></div>
@@ -367,11 +369,17 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
   const VER_ITEM = { pia: "pia", ch: "ch", cp: "cp" };   // itens com desenho no 3D ganham o botão "Ver no barco"; caixa térmica e carreta não têm
   const OPC_CHAVES = ["cp", "ch", "gu", "pia", "cx", "ca", "kc", "gps"];
   const kitTodos = (kit) => (kit.itens.length ? kit.itens.every(([k]) => E[k]) : !!E[kit.k]), kitAlgum = (kit) => (kit.itens.length ? kit.itens.some(([k]) => E[k]) : !!E[kit.k]);
-  const atualizaVerBt = () => document.querySelectorAll("#d-opc .ver-bt").forEach((b) => { const ativo = typeof B3D !== "undefined" && B3D.itemVer === b.dataset.ver; b.textContent = ativo ? "Voltar" : "Ver no barco"; b.setAttribute("aria-pressed", ativo ? "true" : "false"); });
+  const atualizaVerBt = () => document.querySelectorAll(".ver-bt").forEach((b) => { const ativo = typeof B3D !== "undefined" && B3D.itemVer === b.dataset.ver; b.textContent = ativo ? "Voltar" : "Ver no barco"; b.setAttribute("aria-pressed", ativo ? "true" : "false"); });
+  // "Ver no barco" não marca o opcional: o item aparece no 3D só enquanto a pessoa está olhando (prévia) e some ao voltar, se ela não o marcou
+  let timerPrevia = null;
+  const pv = (k) => typeof B3D !== "undefined" && (B3D.itemVer === k || B3D.itemPrev === k);
+  const aoMudarItemPag = () => { atualizaVerBt(); clearTimeout(timerPrevia); if (B3D.itemVer) render(); else timerPrevia = setTimeout(() => { if (!B3D.itemVer && !B3D.banco && !B3D.banheiro) { B3D.itemPrev = null; render(); } }, 3700); };
+  window.aoMudarItemPag = aoMudarItemPag;   // o módulo 3D chama isto quando a vista de um item muda (o objeto B3D só existe mais adiante)
   async function verNoBarco(k) {
-    try { if (typeof B3D !== "undefined" && B3D.itemVer === k) { B3D.verItem(null); atualizaVerBt(); return; }
-      if (!E[k]) E[k] = true; if (E.vista !== "360") E.vista = "360"; render(); await esperar3D(); if (typeof B3D !== "undefined" && B3D.realOk && B3D.verItem) { B3D.aoMudarItem = atualizaVerBt; B3D.verItem(k); atualizaVerBt(); }
-    } catch (e) { /* sem 3D neste aparelho: o opcional fica marcado */ }
+    try { if (typeof B3D !== "undefined" && B3D.itemVer === k) { B3D.verItem(null); return; }
+      B3D.itemPrev = k; clearTimeout(timerPrevia); if (E.vista !== "360") E.vista = "360"; render(); await esperar3D();
+      if (B3D.realOk && B3D.verItem) { B3D.aoMudarItem = aoMudarItemPag; B3D.verItem(k); } else { B3D.itemPrev = null; render(); }
+    } catch (e) { try { B3D.itemPrev = null; render(); } catch (e2) { /* sem 3D neste aparelho */ } }
   }
   const opcNomes = () => { const out = []; KITS_PUB.forEach((kit) => { if (kitTodos(kit)) out.push(kit.nome.toLowerCase().replace(/^kit /, "kit ")); else kit.itens.forEach(([k, t]) => { if (E[k]) out.push(t.toLowerCase()); }); }); if (E.gps) out.push("GPS"); return out; };
   const PADRAO = { est: "Cinza Arizona", piso: "Cinza", li: "Branco", cap: "Cinza", tubo: "pvc", ct: "cinza", cp: false, ch: false, gu: false, pia: false, cx: false, ca: false, kc: false, gps: false, motor: "mercury", hp: 150, vv: false, nb: "", vista: "360", proa: "mesa" };
@@ -443,7 +451,7 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
   const b3dVisivel = () => E.vista === "360" && !document.hidden;
   function b3dAtualizar() {
     if (B3D.estado !== "pronto" || !B3D.aplicar) return;
-    B3D.aplicar({ nome: E.nb || "", est: E.est, piso: E.piso, est3d: catEst(E.est)[2], pisoHex: catPiso(E.piso)[1], listraHex: CAT.listra[E.li], capHex: catCap(E.cap)[2], hyp: E.tubo === "hyp", tuboCor: corTubo(E.tubo, E.ct)[2], solario: E.proa === "sol", gps: E.gps, capProa: E.cp, pia: !!E.pia, churr: E.ch, guincho: E.gu, motorBranco: E.motor === "mercury", marca: E.motor === "yamaha" ? "YAMAHA" : "MERCURY", mastro: true });
+    B3D.aplicar({ nome: E.nb || "", est: E.est, piso: E.piso, est3d: catEst(E.est)[2], pisoHex: catPiso(E.piso)[1], listraHex: CAT.listra[E.li], capHex: catCap(E.cap)[2], hyp: E.tubo === "hyp", tuboCor: corTubo(E.tubo, E.ct)[2], solario: E.proa === "sol", gps: E.gps || pv("gps"), capProa: E.cp || pv("cp"), pia: !!E.pia || pv("pia"), churr: E.ch || pv("ch"), guincho: E.gu || pv("gu"), motorBranco: E.motor === "mercury", marca: E.motor === "yamaha" ? "YAMAHA" : "MERCURY", mastro: true });
   }
   // ---------- Modelo 3D de engenharia (malhas da projetista) ----------
   // Pacote com as camadas do Rhino (fibra, tubulão, PVC, estofado, piso, acrílico, inox, capota, motor e equipamentos).
@@ -842,7 +850,7 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
   for (let t = 0; t < Ix.length; t += 3) { const a = Ix[t] * 3, b = Ix[t + 1] * 3, c = Ix[t + 2] * 3, cx = (P[a] + P[b] + P[c]) / 3, cy = (P[a + 1] + P[b + 1] + P[c + 1]) / 3, cz = (P[a + 2] + P[b + 2] + P[c + 2]) / 3;
     const dest = (regMesa && regMesa(cx, cy, cz)) ? mesa : (k === "fibra" && [a, b, c].some((v) => P[v] > 2.8 && P[v] < 3.15 && P[v + 1] > 0.66 && P[v + 1] < 1.07 && Math.abs(P[v + 2]) < 0.24)) ? cris : resto; dest.push(Ix[t], Ix[t + 1], Ix[t + 2]); }
   malha({ pos: P, nor: D.nor, idx: new Ix.constructor(resto) }, de[k]);
-  if (mesa.length) { let mt = de[k]; if (k === "tampo") { mt = matR.mesaTopo = de.tampo.clone(); B3D._corTopo0 = mt.color.clone(); B3D._corTopo1 = new T.Color(0xEBEBE8); } const mm = malha({ pos: P, nor: D.nor, idx: new Ix.constructor(mesa) }, mt, gR.mesaPopa); if (k === "inox") B3D._copos = mm; }
+  if (mesa.length) { let mt = de[k]; if (k === "tampo") { mt = matR.mesaTopo = de.tampo.clone(); mt.roughness = 0.6; B3D._corTopo0 = mt.color.clone(); B3D._corTopo1 = new T.Color(0xEBEBE8); } const mm = malha({ pos: P, nor: D.nor, idx: new Ix.constructor(mesa) }, mt, gR.mesaPopa); if (k === "inox") B3D._copos = mm; }
   if (cris.length) { matR.fibraCris = de.fibra.clone(); malha({ pos: P, nor: D.nor, idx: new Ix.constructor(cris) }, matR.fibraCris, gR.cristPlaca); }
 });
 gR.mesaPopa.position.set(2.86, 1.222, 0); gR.mesaPopa.children.forEach((m) => m.position.set(-2.86, -1.222, 0));   /* dobradiça da mesa de popa: alto do nicho da cristaleira */
@@ -881,12 +889,20 @@ if (pt.est) {   // o estofado do modelo é uma peça só: separa o assento do ni
   const mk = (cor, ru, me, em, ei) => new T.MeshStandardMaterial({ color: cor, roughness: ru, metalness: me || 0, emissive: em || 0x000000, emissiveIntensity: ei == null ? 1 : ei });
   const interior = new T.MeshBasicMaterial({ color: 0x2c5fe0 }), fundoAz = new T.MeshBasicMaterial({ color: 0x4a7dff }), led = new T.MeshBasicMaterial({ color: 0x4d86ff }), inoxC = mk(0xCDD1D5, 0.32, 0.8, 0x1d1d1d), bran = mk(0xEDEDEA, 0.3, 0, 0x2a2a2a);
   const acril = new T.MeshStandardMaterial({ color: 0xa9c4f2, transparent: true, opacity: 0.1, roughness: 0.04, side: T.DoubleSide, depthWrite: false }), vidroT = new T.MeshStandardMaterial({ color: 0xe4f1ff, transparent: true, opacity: 0.42, roughness: 0.05, emissive: 0x2a6bff, emissiveIntensity: 0.7, depthWrite: false });
-  B3D._cristLuz = [[interior, new T.Color(0xb4bcc8), new T.Color(0x2c5fe0)], [fundoAz, new T.Color(0xc9d0da), new T.Color(0x4a7dff)], [led, new T.Color(0x9aa6b8), new T.Color(0x4d86ff)]]; B3D._cristVidro = vidroT;
+  B3D._cristLuz = [[interior, new T.Color(0xb4bcc8), new T.Color(0x2c5fe0)], [fundoAz, new T.Color(0xc9d0da), new T.Color(0x4a7dff)], [led, new T.Color(0x9aa6b8), new T.Color(0x4d86ff)]];
   box(0.004, 0.33, 0.43, fundoAz, 0.27, 0, 0); box(0.27, 0.004, 0.43, interior, 0.135, 0.167, 0); box(0.27, 0.004, 0.43, interior, 0.135, -0.167, 0); box(0.27, 0.33, 0.004, interior, 0.135, 0, 0.217); box(0.27, 0.33, 0.004, interior, 0.135, 0, -0.217);   // cavidade de 43 x 33 cm, 27 cm de fundo
   [-0.2, 0.2].forEach((z) => { box(0.27, 0.012, 0.012, led, 0.135, 0.156, z); box(0.27, 0.012, 0.012, led, 0.135, -0.156, z); });   // fitas de LED azul
   box(0.26, 0.004, 0.42, acril, 0.135, -0.1, 0);   // prateleira de acrílico
-  const perfil = [[0, 0], [0.03, 0], [0.03, 0.003], [0.006, 0.006], [0.0045, 0.07], [0.006, 0.075], [0.018, 0.09], [0.025, 0.125], [0.026, 0.165], [0.023, 0.2], [0, 0.2]].map(([a, b]) => new T.Vector2(a, b)), gTaca = new T.LatheGeometry(perfil, 18);
-  [0.09, 0.17].forEach((x) => { add(new T.CylinderGeometry(0.004, 0.004, 0.41, 12), inoxC, x, 0.152, 0, 1.5708); [-0.17, -0.102, -0.034, 0.034, 0.102, 0.17].forEach((z) => { const t = add(gTaca, vidroT, x, 0.148, z, 3.14159); t.renderOrder = 3; }); });   // trilhos e 12 taças
+  const taca = new T.MeshStandardMaterial({ color: 0xF4F4F2, roughness: 0.3, metalness: 0, emissive: 0x2a6bff, emissiveIntensity: 0.34, side: T.DoubleSide }); B3D._cristVidro = taca; B3D._tacas = [];   // taça branca de plástico, como a do vídeo
+  const perfil = [[0, 0], [0.032, 0], [0.032, 0.003], [0.007, 0.007], [0.0045, 0.012], [0.0045, 0.075], [0.008, 0.085], [0.02, 0.1], [0.0245, 0.125], [0.0255, 0.15], [0.0255, 0.198], [0.0235, 0.2], [0.0225, 0.195], [0.021, 0.14], [0.012, 0.115], [0, 0.108]].map(([a, b]) => new T.Vector2(a, b)), gTaca = new T.LatheGeometry(perfil, 24);
+  [0.09, 0.17].forEach((x) => { add(new T.CylinderGeometry(0.004, 0.004, 0.41, 12), inoxC, x, 0.152, 0, 1.5708); [-0.17, -0.102, -0.034, 0.034, 0.102, 0.17].forEach((z) => { const t = add(gTaca, taca, x, 0.148, z, 3.14159); B3D._tacas.push(t); }); });   // trilhos e 12 taças
+  { // logo da Euronav impressa nas taças (letras pretas e triângulo azul), em dois lados opostos, perto da borda
+    const cv = document.createElement("canvas"); cv.width = 1024; cv.height = 190; const cx = cv.getContext("2d"), sv = document.querySelector("svg.logo");
+    if (sv) { const cl = sv.cloneNode(true); cl.removeAttribute("class"); cl.setAttribute("xmlns", "http://www.w3.org/2000/svg"); cl.setAttribute("width", "1024"); cl.setAttribute("height", "190"); cl.querySelectorAll("*").forEach((p) => { const c = p.getAttribute("class") || ""; p.removeAttribute("class"); p.removeAttribute("style"); if (p.tagName.toLowerCase() !== "title") p.setAttribute("fill", c === "a" ? "#2a52b8" : "#17171b"); });
+      const im = new Image(); im.onload = () => { cx.drawImage(im, 0, 0, 1024, 190); const tx = new T.CanvasTexture(cv); if (T.sRGBEncoding) tx.encoding = T.sRGBEncoding; tx.center.set(0.5, 0.5); tx.rotation = Math.PI; tx.anisotropy = 4;
+        const mt = new T.MeshBasicMaterial({ map: tx, transparent: true, alphaTest: 0.2, side: T.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }), gp = new T.CylinderGeometry(0.0262, 0.0262, 0.036 * 190 / 1024, 24, 1, true, 0, 1.37);
+        B3D._tacas.forEach((t) => { [-Math.PI / 2, Math.PI / 2].forEach((c) => { const pl = new T.Mesh(gp.clone(), mt); pl.rotation.y = c - 0.685 + Math.PI; pl.position.y = 0.172; t.add(pl); }); }); };
+      im.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(new XMLSerializer().serializeToString(cl)); } }
   const pa = add(new T.BoxGeometry(0.006, 0.33, 0.43), acril, -0.002, 0, 0); pa.renderOrder = 4;   // porta de acrílico transparente
   box(0.014, 0.02, 0.47, bran, -0.007, 0.175, 0); box(0.014, 0.02, 0.47, bran, -0.007, -0.175, 0); box(0.014, 0.35, 0.02, bran, -0.007, 0, 0.225); box(0.014, 0.35, 0.02, bran, -0.007, 0, -0.225);   // moldura
   [-0.15, 0, 0.15].forEach((z) => { add(new T.CylinderGeometry(0.004, 0.004, 0.003, 10), inoxC, -0.0145, 0.175, z, 0, 1.5708); add(new T.CylinderGeometry(0.004, 0.004, 0.003, 10), inoxC, -0.0145, -0.175, z, 0, 1.5708); });   // parafusos
@@ -939,7 +955,7 @@ if (pt.est) {   // o estofado do modelo é uma peça só: separa o assento do ni
   malha({ pos: P, nor: D.nor, idx: new Ix.constructor(resto) }, matR.porta).castShadow = false;
   if (tras.length) { B3D._portaTras = malha({ pos: P, nor: D.nor, idx: new Ix.constructor(tras) }, matR.porta); B3D._portaTras.castShadow = false; }
 }
-      if (pt.mesa_fibra) malha(pt.mesa_fibra, matR.fibra, gR.mesa); if (pt.mesa_tampo) malha(pt.mesa_tampo, matR.acril, gR.mesa); if (pt.mesa_inox) malha(pt.mesa_inox, matR.inox, gR.mesa);
+      if (pt.mesa_fibra) malha(pt.mesa_fibra, matR.fibra, gR.mesa); if (pt.mesa_tampo) { matR.mesaTopoProa = matR.acril.clone(); matR.mesaTopoProa.roughness = 0.6; malha(pt.mesa_tampo, matR.mesaTopoProa, gR.mesa); } if (pt.mesa_inox) malha(pt.mesa_inox, matR.inox, gR.mesa);
       if (pt.guincho) malha(pt.guincho, matR.guincho, gR.guincho);
       const sombra = (g) => g.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
       // solário: almofada lisa fechando o vão entre os assentos de proa (contorno medido nas almofadas do modelo)
@@ -1035,11 +1051,11 @@ if (pt.est) {   // o estofado do modelo é uma peça só: separa o assento do ni
         const ge = new T.BufferGeometry(); ge.setAttribute("position", new T.Float32BufferAttribute(pos, 3)); ge.setAttribute("normal", new T.Float32BufferAttribute(nor, 3)); ge.setAttribute("uv", new T.Float32BufferAttribute(uv, 2)); ge.setIndex(idx);
         const m = new T.Mesh(ge, matNome); m.renderOrder = 3; gR.nome.add(m);
       }); B3D.nomeDesvio = desvioMax; gR.nome.visible = false; }
-realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.22; ren.toneMappingExposure = 0.62; B3D.real = real; B3D.realOk = true; if (B3D.btBanheiro) B3D.btBanheiro.hidden = false; if (B3D.btMesa) B3D.btMesa.hidden = false;
+realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.22; ren.toneMappingExposure = 0.62; B3D.real = real; B3D.realOk = true; if (B3D.btBanheiro && !document.getElementById("sec-banheiro")) B3D.btBanheiro.hidden = false; if (B3D.btMesa) B3D.btMesa.hidden = false;
       if (ultimaOp) aplicarReal(ultimaOp);
     };
     const aplicarReal = (o) => {
-      matR.est.color.copy(C(o.est3d != null ? o.est3d : (EST_R[o.est] || EST_R.Branco))); if (matR.estCad) matR.estCad.color.copy(matR.est.color); if (matR.estBanco) matR.estBanco.color.copy(matR.est.color); if (o.capHex != null) matR.lona.color.copy(C(o.capHex)); matR.acril.color.copy(mat.acril.color); matR.motor.color.copy(mat.motor.color);
+      matR.est.color.copy(C(o.est3d != null ? o.est3d : (EST_R[o.est] || EST_R.Branco))); if (matR.estCad) matR.estCad.color.copy(matR.est.color); if (matR.estBanco) matR.estBanco.color.copy(matR.est.color); if (matR.mesaTopo) matR.mesaTopo.color.copy(matR.est.color); if (matR.mesaTopoProa) matR.mesaTopoProa.color.copy(matR.est.color);   // o tampo das mesas de proa e de popa acompanha a cor do estofado if (o.capHex != null) matR.lona.color.copy(C(o.capHex)); matR.acril.color.copy(mat.acril.color); matR.motor.color.copy(mat.motor.color);
       const pp = o.pisoHex ? [o.pisoHex, o.listraHex || "#E6E4DE"] : (B3D_PISO[o.piso] || B3D_PISO.Cinza); matR.piso.color.copy(C(pp[0])); matR.friso.color.copy(C(pp[1]));
       const tb = new T.Color(o.tuboCor || "#ecebe2"); matR.tubo.color.copy(C(tb.getHex()));
       // regra da projetista: acessórios de PVC cinza no tubulão claro (cinza claro ou branco gelo) e brancos nos tubulões de outras cores
@@ -1093,7 +1109,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
           if (!B3D.banheiro) salvo = { ang, incl, zoom, foco: foco.clone(), pausa: !!B3D.pausa };
           giro.updateMatrixWorld(true); para = { ang: -1.8 + 6.2832 * Math.round((ang + 1.8) / 6.2832), incl: 0.3, zoom: 0.2, foco: giro.worldToLocal(real.localToWorld(new T.Vector3(4.3, 0.85, 0))), n: 1 }; B3D.pausa = true;
         } else { para = salvo ? { ang: salvo.ang + 6.2832 * Math.round((ang - salvo.ang) / 6.2832), incl: salvo.incl, zoom: salvo.zoom, foco: salvo.foco, n: 0 } : { ang, incl, zoom, foco: foco.clone(), n: 0 }; if (salvo) B3D.pausa = salvo.pausa; }
-        B3D.banheiro = on; if (B3D.btBanheiro) { B3D.btBanheiro.textContent = on ? "Fechar banheiro" : "Ver banheiro"; B3D.btBanheiro.setAttribute("aria-pressed", String(on)); }
+        B3D.banheiro = on; B3D.itemVer = on ? "banheiro" : (B3D.itemVer === "banheiro" ? null : B3D.itemVer); if (B3D.aoMudarItem) B3D.aoMudarItem(); else if (window.aoMudarItemPag) window.aoMudarItemPag(); if (B3D.btBanheiro) { B3D.btBanheiro.textContent = on ? "Fechar banheiro" : "Ver banheiro"; B3D.btBanheiro.setAttribute("aria-pressed", String(on)); }
         reap(); tw = { t0: performance.now() - (instante ? 5000 : 0), dur: 1150, de, para }; ultimo = performance.now(); B3D.tweenBanheiro();
       };
       B3D.tweenBanheiro = () => { if (!tw) return; const k = Math.min(1, (performance.now() - tw.t0) / tw.dur), e = suave(k); ang = lerp(tw.de.ang, tw.para.ang, e); incl = lerp(tw.de.incl, tw.para.incl, e); zoom = lerp(tw.de.zoom, tw.para.zoom, e); foco.lerpVectors(tw.de.foco, tw.para.foco, e); nivelBan = lerp(tw.de.n, tw.para.n, e); aplicaNivel(nivelBan); posCam(); if (k >= 1) tw = null; };
@@ -1111,7 +1127,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
           if (!B3D.banco) salvo2 = { ang, incl, zoom, foco: foco.clone(), pausa: !!B3D.pausa };
           giro.updateMatrixWorld(true); para = { ang: 1.25 + 6.2832 * Math.round((ang - 1.25) / 6.2832), incl: 0.32, zoom: 0.14, foco: giro.worldToLocal(real.localToWorld(new T.Vector3(3.2, 1.35, 0))), n: 1 }; B3D.pausa = true;
         } else { para = salvo2 ? { ang: salvo2.ang + 6.2832 * Math.round((ang - salvo2.ang) / 6.2832), incl: salvo2.incl, zoom: salvo2.zoom, foco: salvo2.foco, n: 0 } : { ang, incl, zoom, foco: foco.clone(), n: 0 }; if (salvo2) B3D.pausa = salvo2.pausa; }
-        B3D._aplicaBanco = aplicaBanco; B3D.banco = on; B3D.itemVer = on ? "pia" : (B3D.itemVer === "pia" ? null : B3D.itemVer); if (B3D.aoMudarItem) B3D.aoMudarItem(); if (B3D.btBanco) { B3D.btBanco.textContent = on ? "Fechar o banco" : "Ver pia e fogão"; B3D.btBanco.setAttribute("aria-pressed", String(on)); }
+        B3D._aplicaBanco = aplicaBanco; B3D.banco = on; B3D.itemVer = on ? "pia" : (B3D.itemVer === "pia" ? null : B3D.itemVer); if (B3D.aoMudarItem) B3D.aoMudarItem(); else if (window.aoMudarItemPag) window.aoMudarItemPag(); if (B3D.btBanco) { B3D.btBanco.textContent = on ? "Fechar o banco" : "Ver pia e fogão"; B3D.btBanco.setAttribute("aria-pressed", String(on)); }
         reap(); tw2 = { t0: performance.now() - (instante ? 5000 : 0), dur: 3400, de, para }; ultimo = performance.now(); B3D.tweenBanco();
       };
       B3D.tweenBanco = () => { if (!tw2) return; const k = Math.min(1, (performance.now() - tw2.t0) / tw2.dur), e = suave(k); ang = lerp(tw2.de.ang, tw2.para.ang, e); incl = lerp(tw2.de.incl, tw2.para.incl, e); zoom = lerp(tw2.de.zoom, tw2.para.zoom, e); foco.lerpVectors(tw2.de.foco, tw2.para.foco, e); nivelBc = lerp(tw2.de.n, tw2.para.n, k); aplicaBanco(nivelBc); posCam(); if (k >= 1) tw2 = null; };
@@ -1121,11 +1137,11 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
       let nivelMesa = 0, twm = null, twc = null, salvoC = null;
       const aplicaMesa = (n) => {
         if (gR.mesaPopa) { gR.mesaPopa.rotation.z = 1.5708 * n; gR.mesaPopa.position.x = 2.86 - 0.065 * Math.min(1, Math.max(0, (n - 0.6) / 0.4)); }   // fechada, a mesa sai 6,5 cm para fora e cobre a moldura da cristaleira
-        if (B3D._cristLuz) { const luz = 1 - fase(n, 0.1, 0.55); B3D._cristLuz.forEach(([m, off, on]) => m.color.copy(off).lerp(on, luz)); if (B3D._cristVidro) B3D._cristVidro.emissiveIntensity = 0.08 + 0.62 * luz; }   // a luz azul acende quando a mesa abre
+        if (B3D._cristLuz) { const luz = 1 - fase(n, 0.1, 0.55); B3D._cristLuz.forEach(([m, off, on]) => m.color.copy(off).lerp(on, luz)); if (B3D._cristVidro) B3D._cristVidro.emissiveIntensity = 0.04 + 0.3 * luz; }   // a luz azul acende quando a mesa abre
       };
       B3D.mesa = (fechar, instante) => { if (!B3D.realOk || !gR.mesaPopa) return; B3D.mesaFechada = !!fechar; if (B3D.btMesa) B3D.btMesa.textContent = fechar ? "Abrir a mesa de popa" : "Fechar a mesa de popa"; twm = { t0: performance.now() - (instante ? 5000 : 0), dur: 1100, de: nivelMesa, para: fechar ? 1 : 0 }; B3D.tweenMesa(); };
       B3D.tweenMesa = () => { if (!twm) return; const k = Math.min(1, (performance.now() - twm.t0) / twm.dur); nivelMesa = lerp(twm.de, twm.para, suave(k)); aplicaMesa(nivelMesa); if (k >= 1) twm = null; };
-      B3D._aplicaMesa = (n) => { nivelMesa = n; aplicaMesa(n); }; B3D._reaplicaMesa = () => aplicaMesa(nivelMesa);
+      B3D._aplicaMesa = (n) => { nivelMesa = n; aplicaMesa(n); }; B3D._reaplicaMesa = () => aplicaMesa(nivelMesa); B3D._cores = () => ({ est: matR.est.color.getHexString(), topoPopa: matR.mesaTopo ? matR.mesaTopo.color.getHexString() : null, topoProa: matR.mesaTopoProa ? matR.mesaTopoProa.color.getHexString() : null });
       // ---- Ver cristaleira: a câmera vai para a popa, a mesa fecha, segura um instante e abre, mostrando a cristaleira iluminada ----
       B3D.verCrist = (on, instante) => {
         on = !!on; if (!B3D.realOk || !gR.crist) return; if (on === !!B3D.crist && !twc) return;
@@ -1144,17 +1160,18 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
       // ---- Ver no barco: leva a câmera para a área de cada opcional com desenho (pia e fogão, churrasqueira, guincho, capota de proa, GPS) ----
       B3D.itemVer = null; let twi = null, salvoI = null;
       const ITENS_VER = { ch: ["churr", -0.95, -0.12, 1.0], gu: ["guincho", -0.95, -0.2, 1.0], cp: ["capProa", -0.8, -0.22, 0.85], gps: ["gps", 1.05, -0.12, 0.7] };   // grupo, ângulo, inclinação, folga
-      const fechaItem = (instante) => { if (!B3D.itemVer) return; const pa = salvoI || { ang, incl, zoom, foco: foco.clone(), pausa: !!B3D.pausa }; B3D.itemVer = null; B3D.pausa = pa.pausa; twi = { t0: performance.now() - (instante ? 9000 : 0), dur: 1300, de: { ang, incl, zoom, foco: foco.clone() }, para: { ang: pa.ang + 6.2832 * Math.round((ang - pa.ang) / 6.2832), incl: pa.incl, zoom: pa.zoom, foco: pa.foco } }; ultimo = performance.now(); B3D.tweenItem(); if (B3D.aoMudarItem) B3D.aoMudarItem(); };
+      const fechaItem = (instante) => { if (!B3D.itemVer) return; const pa = salvoI || { ang, incl, zoom, foco: foco.clone(), pausa: !!B3D.pausa }; B3D.itemVer = null; B3D.pausa = pa.pausa; twi = { t0: performance.now() - (instante ? 9000 : 0), dur: 1300, de: { ang, incl, zoom, foco: foco.clone() }, para: { ang: pa.ang + 6.2832 * Math.round((ang - pa.ang) / 6.2832), incl: pa.incl, zoom: pa.zoom, foco: pa.foco } }; ultimo = performance.now(); B3D.tweenItem(); if (B3D.aoMudarItem) B3D.aoMudarItem(); else if (window.aoMudarItemPag) window.aoMudarItemPag(); };
       B3D.verItem = (k, instante) => {
         if (!B3D.realOk) return;
-        if (k == null) { if (B3D.itemVer === "pia") { if (B3D.banco && B3D.verBanco) B3D.verBanco(false, instante); } else fechaItem(instante); return; }
+        if (k == null) { if (B3D.itemVer === "pia") { if (B3D.banco && B3D.verBanco) B3D.verBanco(false, instante); } else if (B3D.itemVer === "banheiro") { if (B3D.banheiro && B3D.verBanheiro) B3D.verBanheiro(false, instante); } else fechaItem(instante); return; }
         if (k === "pia") { if (B3D.itemVer && B3D.itemVer !== "pia") fechaItem(true); if (B3D.verBanco && !B3D.banco) B3D.verBanco(true, instante); return; }
+        if (k === "banheiro") { if (B3D.itemVer && B3D.itemVer !== "banheiro") { if (B3D.itemVer === "pia") { if (B3D.verBanco) B3D.verBanco(false, true); } else fechaItem(true); } if (B3D.verBanheiro && !B3D.banheiro) B3D.verBanheiro(true, instante); return; }
         const d = ITENS_VER[k]; if (!d || !gR[d[0]]) return;
         if (B3D.banco && B3D.verBanco) B3D.verBanco(false, true); if (B3D.banheiro && B3D.verBanheiro) B3D.verBanheiro(false, true);
         reap(); real.updateMatrixWorld(true); const bb = new T.Box3().setFromObject(gR[d[0]]); let c, tam = 0.6; if (!bb.isEmpty()) { c = real.worldToLocal(bb.getCenter(new T.Vector3())); const sz = bb.getSize(new T.Vector3()); tam = Math.max(sz.x, sz.y, sz.z); } else c = new T.Vector3(4.0, 1.4, 0);
         const rr = Math.max(1.0, tam * 2.2 * d[3]), zm = Math.max(0.1, rr / (Math.hypot(6.9, 10.9) * kAsp)); B3D._itemInfo = { c: [c.x, c.y, c.z].map((v) => +v.toFixed(2)), tam: +tam.toFixed(2), zoom: +zm.toFixed(2) };
         if (!B3D.itemVer) salvoI = { ang, incl, zoom, foco: foco.clone(), pausa: !!B3D.pausa }; giro.updateMatrixWorld(true);
-        B3D.pausa = true; B3D.itemVer = k; twi = { t0: performance.now() - (instante ? 9000 : 0), dur: 1600, de: { ang, incl, zoom, foco: foco.clone() }, para: { ang: d[1] + 6.2832 * Math.round((ang - d[1]) / 6.2832), incl: d[2], zoom: zm, foco: giro.worldToLocal(real.localToWorld(c.clone())) } }; ultimo = performance.now(); B3D.tweenItem(); if (B3D.aoMudarItem) B3D.aoMudarItem();
+        B3D.pausa = true; B3D.itemVer = k; twi = { t0: performance.now() - (instante ? 9000 : 0), dur: 1600, de: { ang, incl, zoom, foco: foco.clone() }, para: { ang: d[1] + 6.2832 * Math.round((ang - d[1]) / 6.2832), incl: d[2], zoom: zm, foco: giro.worldToLocal(real.localToWorld(c.clone())) } }; ultimo = performance.now(); B3D.tweenItem(); if (B3D.aoMudarItem) B3D.aoMudarItem(); else if (window.aoMudarItemPag) window.aoMudarItemPag();
       };
       B3D.tweenItem = () => { if (!twi) return; const k = Math.min(1, (performance.now() - twi.t0) / twi.dur), e = suave(k); ang = lerp(twi.de.ang, twi.para.ang, e); incl = lerp(twi.de.incl, twi.para.incl, e); zoom = lerp(twi.de.zoom, twi.para.zoom, e); foco.lerpVectors(twi.de.foco, twi.para.foco, e); posCam(); if (k >= 1) twi = null; };
       
@@ -1471,6 +1488,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
           kit.itens.forEach(([k, t]) => { const ib = botao(t, "", "sub"); ib.dataset.k = k; ib.querySelector("small").remove(); ib.addEventListener("click", () => { E[k] = !E[k]; render(); }); box.appendChild(linha(ib, VER_ITEM[k])); }); det.appendChild(box); card.appendChild(det); }
         host.appendChild(card); });
       const gb = botao("GPS", "Navegação no console", ""); gb.dataset.k = "gps"; gb.addEventListener("click", () => { E.gps = !E.gps; render(); }); host.appendChild(linha(gb, "gps")); }
+    { const vb = document.querySelector(".ver-solo"); if (vb) vb.addEventListener("click", () => verNoBarco("banheiro")); }
     document.querySelectorAll("[data-tema]").forEach((b) => b.addEventListener("click", () => tema(b.dataset.tema)));
     $("v-ant").addEventListener("click", () => passo(-1)); $("v-prox").addEventListener("click", () => passo(1));
     $("b-reset").addEventListener("click", () => { Object.assign(E, PADRAO); $("nb-campo").hidden = true; render(); });
