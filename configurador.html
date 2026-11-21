@@ -284,7 +284,7 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
       <button class="bt" type="button" id="b-share2">Copiar link desta configuração</button>
       <a class="bt" id="b-insta" href="https://www.instagram.com/euronavbr/" target="_blank" rel="noopener">Instagram @euronavbr</a>
     </div>
-    <p class="nota">A vista 360° usa o modelo 3D do projeto do Euro Sette e mostra a cor dos tubulões; capota de proa, churrasqueira e tela do GPS são representações. As vistas de popa, cockpit e proa são fotos reais do Euro Sette, com as cores de estofado e piso aplicadas digitalmente. A vista do tubulão é uma foto real com a cor dos tubulões aplicada digitalmente. A cor das capotas aparece na vista 3D. Itens e cores sujeitos a confirmação na proposta.</p>
+    <p class="nota">A vista 360° usa o modelo 3D do projeto do Euro Sette e mostra a cor dos tubulões; capota de proa, churrasqueira, pia e fogão e tela do GPS são representações. As vistas de popa, cockpit e proa são fotos reais do Euro Sette, com as cores de estofado e piso aplicadas digitalmente. A vista do tubulão é uma foto real com a cor dos tubulões aplicada digitalmente. A cor das capotas aparece na vista 3D. Itens e cores sujeitos a confirmação na proposta.</p>
   </aside>
 </main>
 <div class="fim" id="fim" hidden role="dialog" aria-modal="true" aria-label="Imagem final do seu Euro Sette">
@@ -344,8 +344,8 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
   ];
   const COMBOS_PRINC = 5;
   const VISTAS = [["360", "360°"], ["popa", "Popa"], ["cockpit", "Cockpit"], ["proa", "Proa"], ["tubo", "Tubulão"]];
-  const OPC = [["cp", "Capota de proa", "Sombra extra na proa"], ["ch", "Churrasqueira", "A gás, com tábua e suporte"], ["gu", "Guincho elétrico", "Fundeio sem esforço"], ["gps", "GPS", "Navegação no console"]];
-  const PADRAO = { est: "Cinza Arizona", piso: "Cinza", li: "Branco", cap: "Cinza", tubo: "pvc", ct: "cinza", cp: false, ch: false, gu: false, gps: false, motor: "mercury", hp: 150, vv: false, nb: "", vista: "360", proa: "mesa" };
+  const OPC = [["cp", "Capota de proa", "Sombra extra na proa"], ["ch", "Churrasqueira", "A gás, com tábua e suporte"], ["gu", "Guincho elétrico", "Fundeio sem esforço"], ["pia", "Pia e fogão", "Sob o banco do piloto, com tampa de vidro"], ["gps", "GPS", "Navegação no console"]];
+  const PADRAO = { est: "Cinza Arizona", piso: "Cinza", li: "Branco", cap: "Cinza", tubo: "pvc", ct: "cinza", cp: false, ch: false, gu: false, pia: false, gps: false, motor: "mercury", hp: 150, vv: false, nb: "", vista: "360", proa: "mesa" };
   const E = Object.assign({}, PADRAO);
   let ORC = null, ORCQ = "", ORCERRO = false; const ORCS = { mi: 0, mk: 0 };   // modo orçamento com preços (tabela vinda do link)
   const nomeCor = (c) => c.toLowerCase();
@@ -394,7 +394,7 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
     if (ok(h.get("pr"), ["mesa", "sol"])) E.proa = h.get("pr");
     E.ct = corTubo(E.tubo, h.get("c") || E.ct)[0];
     if (ok(h.get("m"), ["mercury", "yamaha"])) E.motor = h.get("m");
-    { const hv = +h.get("hp"); if ([150, 200].includes(hv)) E.hp = hv; E.vv = h.get("vv") === "1" && E.motor === "mercury" && E.hp === 200; }
+    { const hv = +h.get("hp"); if (MOTORES_PUB.some((m) => m.marca.toLowerCase() === E.motor && m.hp === hv)) E.hp = hv; E.vv = h.get("vv") === "1" && MOTORES_PUB.some((m) => m.marca.toLowerCase() === E.motor && m.hp === E.hp && m.vv); }
     if (ok(h.get("v"), VISTAS.map((v) => v[0]))) E.vista = h.get("v");
     if (h.has("o")) { const o = h.get("o").split("."); OPC.forEach(([k]) => { E[k] = o.includes(k); }); }
     if (E.vv) E.gps = true;                                              // o VesselView já traz o GPS
@@ -414,7 +414,7 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
   const b3dVisivel = () => E.vista === "360" && !document.hidden;
   function b3dAtualizar() {
     if (B3D.estado !== "pronto" || !B3D.aplicar) return;
-    B3D.aplicar({ nome: E.nb || "", est: E.est, piso: E.piso, est3d: catEst(E.est)[2], pisoHex: catPiso(E.piso)[1], listraHex: CAT.listra[E.li], capHex: catCap(E.cap)[2], hyp: E.tubo === "hyp", tuboCor: corTubo(E.tubo, E.ct)[2], solario: E.proa === "sol", gps: E.gps, capProa: E.cp, pia: false, churr: E.ch, guincho: E.gu, motorBranco: E.motor === "mercury", marca: E.motor === "yamaha" ? "YAMAHA" : "MERCURY", mastro: true });
+    B3D.aplicar({ nome: E.nb || "", est: E.est, piso: E.piso, est3d: catEst(E.est)[2], pisoHex: catPiso(E.piso)[1], listraHex: CAT.listra[E.li], capHex: catCap(E.cap)[2], hyp: E.tubo === "hyp", tuboCor: corTubo(E.tubo, E.ct)[2], solario: E.proa === "sol", gps: E.gps, capProa: E.cp, pia: !!E.pia, churr: E.ch, guincho: E.gu, motorBranco: E.motor === "mercury", marca: E.motor === "yamaha" ? "YAMAHA" : "MERCURY", mastro: true });
   }
   // ---------- Modelo 3D de engenharia (malhas da projetista) ----------
   // Pacote com as camadas do Rhino (fibra, tubulão, PVC, estofado, piso, acrílico, inox, capota, motor e equipamentos).
@@ -787,7 +787,7 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
       guincho: MR(0x2B2E33, { roughness: 0.35, metalness: 0.4 }), logo: MR(0x3A3D42, { roughness: 0.42, metalness: 0.75, envMapIntensity: 0.35 }), motor: MR(0xF2F2F1, { roughness: 0.16, envMapIntensity: 0.55 }), helice: MR(0x33363B, { metalness: 0.6, roughness: 0.35 })
     };
     const EST_R = { Branco: 0xF1EFEA, Bege: 0xA36C3E, Cinza: 0xA7A9A6 };
-    const gR = { mesa: new T.Group(), sol: new T.Group(), guincho: new T.Group(), capPopa: new T.Group(), capProa: new T.Group(), churr: new T.Group(), gps: new T.Group(), mastro: new T.Group(), nome: new T.Group(), cadeira: new T.Group(), vaso: new T.Group() };
+    const gR = { mesa: new T.Group(), sol: new T.Group(), guincho: new T.Group(), capPopa: new T.Group(), capProa: new T.Group(), churr: new T.Group(), gps: new T.Group(), mastro: new T.Group(), nome: new T.Group(), cadeira: new T.Group(), vaso: new T.Group(), banco: new T.Group(), tampoPlaca: new T.Group(), cozi: new T.Group() };
     Object.keys(gR).forEach((k) => real.add(gR[k]));
     let realOk = false, ultimaOp = null;
     const malha = (d, m, g) => { const ge = new T.BufferGeometry(); ge.setAttribute("position", new T.BufferAttribute(d.pos, 3)); ge.setAttribute("normal", new T.BufferAttribute(d.nor, 3)); ge.setIndex(new T.BufferAttribute(d.idx, 1)); const o = new T.Mesh(ge, m); o.castShadow = true; o.receiveShadow = true; (g || real).add(o); return o; };
@@ -805,12 +805,55 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
     try { if (document.fonts && document.fonts.load) document.fonts.load("italic 800 100px Saira").then(() => { if (nomeAtual) desenhaNome(nomeAtual); }).catch(() => {}); } catch (e) { /* segue com a fonte reserva */ }
     const montarReal = (pt) => {
       const de = { fibra: matR.fibra, tubo: matR.tubo, pvc: matR.pvc, est: matR.est, piso: matR.piso, friso: matR.friso, tampo: matR.acril, preto: matR.preto, branco: matR.branco, luz: matR.luz, inox: matR.inox, logo: matR.logo, motor: matR.motor, helice: matR.helice };
+      B3D._matsCorte = [...new Set(Object.values(de).filter((m) => m && m !== matR.est))];
       Object.keys(de).forEach((k) => { if (k === "est") return; if (pt[k]) malha(pt[k], de[k]); });
 if (pt.est) {   // o estofado do modelo é uma peça só: separa o assento do nicho do console (virado para a proa), que levanta no "Ver banheiro"
-  const E = pt.est, P = E.pos, Ix = E.idx, resto = [], cad = [];
-  for (let t = 0; t < Ix.length; t += 3) { const a = Ix[t] * 3, b = Ix[t + 1] * 3, c = Ix[t + 2] * 3, cx = (P[a] + P[b] + P[c]) / 3, cy = (P[a + 1] + P[b + 1] + P[c + 1]) / 3, cz = (P[a + 2] + P[b + 2] + P[c + 2]) / 3; ((cx > 4.38 && cx < 4.95 && cy > 0.94 && cy < 1.5 && Math.abs(cz) < 0.3) ? cad : resto).push(Ix[t], Ix[t + 1], Ix[t + 2]); }
+  const E = pt.est, P = E.pos, Ix = E.idx, resto = [], cad = [], banc = [];
+  for (let t = 0; t < Ix.length; t += 3) { const a = Ix[t] * 3, b = Ix[t + 1] * 3, c = Ix[t + 2] * 3, cx = (P[a] + P[b] + P[c]) / 3, cy = (P[a + 1] + P[b + 1] + P[c + 1]) / 3, cz = (P[a + 2] + P[b + 2] + P[c + 2]) / 3; ((cx > 4.38 && cx < 4.95 && cy > 0.94 && cy < 1.5 && Math.abs(cz) < 0.3) ? cad : ((cx > 2.85 && cx < 3.5 && cy > 1.1 && Math.abs(cz) < 0.5) ? banc : resto)).push(Ix[t], Ix[t + 1], Ix[t + 2]); }
   malha({ pos: P, nor: E.nor, idx: new Ix.constructor(resto) }, matR.est);
   if (cad.length) { matR.estCad = matR.est.clone(); malha({ pos: P, nor: E.nor, idx: new Ix.constructor(cad) }, matR.estCad, gR.cadeira); gR.cadeira.position.set(4.47, 1.46, 0); gR.cadeira.children.forEach((m) => m.position.set(-4.47, -1.46, 0)); }   /* dobradiça no alto do encosto */
+  if (banc.length) {
+    matR.estBanco = matR.est.clone(); const base = [], couro = [];   // a face de baixo do banco (placa lisa a 1,267 m) é de fibra branca, como na lancha real
+    for (let t = 0; t < banc.length; t += 3) { const a = banc[t] * 3, b = banc[t + 1] * 3, c = banc[t + 2] * 3, ux = P[b] - P[a], uy = P[b + 1] - P[a + 1], uz = P[b + 2] - P[a + 2], vx = P[c] - P[a], vy = P[c + 1] - P[a + 1], vz = P[c + 2] - P[a + 2], nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx, L = Math.hypot(nx, ny, nz) || 1, cy = (P[a + 1] + P[b + 1] + P[c + 1]) / 3; ((ny / L < -0.9 && cy > 1.262 && cy < 1.272) ? base : couro).push(banc[t], banc[t + 1], banc[t + 2]); }
+    malha({ pos: P, nor: E.nor, idx: new Ix.constructor(couro) }, matR.estBanco, gR.banco);
+    if (base.length) { const bp = new Float32Array(base.length * 3), bn = new Float32Array(base.length * 3), bi = new Uint32Array(base.length); base.forEach((vi, k) => { bp[k * 3] = P[vi * 3]; bp[k * 3 + 1] = P[vi * 3 + 1]; bp[k * 3 + 2] = P[vi * 3 + 2]; bn[k * 3 + 1] = -1; bi[k] = k; }); matR.bancoBase = matR.fibra.clone(); matR.bancoBase.emissive = new T.Color(0x3c3c3c); malha({ pos: bp, nor: bn, idx: bi }, matR.bancoBase, gR.banco); }
+    gR.banco.position.set(3.37, 1.275, 0); gR.banco.children.forEach((m) => m.position.set(-3.37, -1.275, 0));
+    { // logo "euronav" em inox, na face de baixo do banco (aparece voltada para a popa quando o banco levanta), desenhada a partir da própria logo do site
+      const cv = document.createElement("canvas"); cv.width = 1024; cv.height = 190; const cx = cv.getContext("2d");
+      const pronto = () => { cx.globalCompositeOperation = "source-in"; const g = cx.createLinearGradient(0, 0, 0, cv.height); g.addColorStop(0, "#ffffff"); g.addColorStop(0.5, "#9aa0a6"); g.addColorStop(0.52, "#c9ced3"); g.addColorStop(1, "#656b71"); cx.fillStyle = g; cx.fillRect(0, 0, cv.width, cv.height);
+        const tx = new T.CanvasTexture(cv); if (T.sRGBEncoding) tx.encoding = T.sRGBEncoding; tx.anisotropy = 4;
+        const mt = new T.MeshStandardMaterial({ map: tx, transparent: true, alphaTest: 0.35, metalness: 0.55, roughness: 0.35, emissive: 0x555555, emissiveMap: tx, emissiveIntensity: 0.4, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+        const pl = new T.Mesh(new T.PlaneGeometry(0.38, 0.38 * 190 / 1024), mt); pl.quaternion.setFromRotationMatrix(new T.Matrix4().makeBasis(new T.Vector3(0, 0, 1), new T.Vector3(-1, 0, 0), new T.Vector3(0, -1, 0))); pl.position.set(3.12 - 3.37, 1.2655 - 1.275, 0); gR.banco.add(pl); };
+      const sv = document.querySelector("svg.logo");
+      if (sv) { const cl = sv.cloneNode(true); cl.removeAttribute("class"); cl.setAttribute("xmlns", "http://www.w3.org/2000/svg"); cl.setAttribute("width", "1024"); cl.setAttribute("height", "190"); cl.querySelectorAll("*").forEach((p) => { p.removeAttribute("class"); p.removeAttribute("style"); if (p.tagName.toLowerCase() !== "title") p.setAttribute("fill", "#fff"); });
+        const im = new Image(); im.onload = () => { cx.drawImage(im, 0, 0, 1024, 190); pronto(); }; im.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(new XMLSerializer().serializeToString(cl)); }
+      else { cx.fillStyle = "#fff"; cx.font = "700 150px Arial"; cx.textBaseline = "middle"; cx.fillText("euronav", 20, 95); pronto(); }
+    }
+  }   /* banco do piloto: dobradiça na borda da frente, do lado do volante */
+}
+{ // pia e fogão do banco do piloto (opcional), vistos no vídeo da Euronav: cuba inox no tampo, pia à direita e fogão de uma boca à esquerda (de quem está na popa), tampa de vidro preto articulada na borda da frente
+  const mk = (cor, ru, me, em) => new T.MeshStandardMaterial({ color: cor, roughness: ru, metalness: me || 0, emissive: em || 0x000000 });
+  const inox = mk(0xCDD1D5, 0.32, 0.8, 0x1d1d1d), inoxEsc = mk(0x9EA3A8, 0.4, 0.8, 0x141414), preto = mk(0x151516, 0.55, 0.2, 0x050505), vidro = mk(0x08090A, 0.06, 0.3, 0x040404), inoxFundo = mk(0x6c727a, 0.5, 0.85, 0x0a0a0a), inoxParede = mk(0x8b9298, 0.45, 0.85, 0x0e0e0e);
+  const cz = gR.cozi, caixa = (w, h, d, m, x, y, z, g) => { const o = new T.Mesh(new T.BoxGeometry(w, h, d), m); o.position.set(x, y, z); o.castShadow = true; o.receiveShadow = true; (g || cz).add(o); return o; };
+  const cil = (r1, r2, h, m, x, y, z, g, rx, rz) => { const o = new T.Mesh(new T.CylinderGeometry(r1, r2, h, 24), m); o.position.set(x, y, z); if (rx) o.rotation.x = rx; if (rz) o.rotation.z = rz; o.castShadow = true; o.receiveShadow = true; (g || cz).add(o); return o; };
+  caixa(0.32, 0.007, 0.02, inox, 0, 0.0035, 0.26); caixa(0.32, 0.007, 0.02, inox, 0, 0.0035, -0.26); caixa(0.015, 0.007, 0.54, inox, 0.1525, 0.0035, 0); caixa(0.015, 0.007, 0.54, inox, -0.1525, 0.0035, 0);   // moldura sobre o tampo
+  caixa(0.29, 0.15, 0.004, inoxEsc, 0, -0.075, 0.248); caixa(0.29, 0.15, 0.004, inoxEsc, 0, -0.075, -0.248); caixa(0.004, 0.15, 0.5, inoxEsc, 0.143, -0.075, 0); caixa(0.004, 0.15, 0.5, inoxEsc, -0.143, -0.075, 0);   // paredes da cuba
+  caixa(0.03, 0.006, 0.24, inox, 0.1285, -0.004, 0.125); caixa(0.03, 0.006, 0.24, inox, -0.1285, -0.004, 0.125); caixa(0.23, 0.006, 0.03, inox, 0, -0.004, 0.02); caixa(0.23, 0.006, 0.03, inox, 0, -0.004, 0.23);   // bancada da pia
+  caixa(0.004, 0.133, 0.18, inoxParede, 0.115, -0.0735, 0.125); caixa(0.004, 0.133, 0.18, inoxParede, -0.115, -0.0735, 0.125); caixa(0.23, 0.133, 0.004, inoxParede, 0, -0.0735, 0.035); caixa(0.23, 0.133, 0.004, inoxParede, 0, -0.0735, 0.215);   // paredes da cuba
+  caixa(0.23, 0.004, 0.18, inoxFundo, 0, -0.14, 0.125);   // fundo da pia, 13 cm abaixo do tampo
+  cil(0.027, 0.027, 0.006, inox, 0, -0.136, 0.125); cil(0.014, 0.014, 0.01, preto, 0, -0.134, 0.125); caixa(0.045, 0.003, 0.004, inox, 0, -0.1285, 0.125); caixa(0.004, 0.003, 0.045, inox, 0, -0.1285, 0.125);   // ralo com grelha no meio   // pia: fundo e ralo
+  caixa(0.28, 0.006, 0.235, inoxEsc, 0, -0.03, -0.127); caixa(0.29, 0.15, 0.005, inox, 0, -0.075, 0); caixa(0.29, 0.004, 0.5, inoxEsc, 0, -0.15, 0);   // fogão: chapa a 3 cm do tampo, divisória entre pia e fogão
+  cil(0.04, 0.04, 0.012, preto, 0, -0.021, -0.127); cil(0.026, 0.026, 0.01, inoxEsc, 0, -0.012, -0.127); cil(0.012, 0.012, 0.008, preto, 0, -0.007, -0.127);   // queimador
+  [0.785, 2.356].forEach((a) => { const g = caixa(0.14, 0.006, 0.008, preto, 0, 0.0, -0.127); g.rotation.y = a; });   // grelha em X
+  caixa(0.03, 0.004, 0.03, inox, 0.11, -0.027, -0.215); cil(0.011, 0.011, 0.016, preto, 0.11, -0.017, -0.215);   // botão do fogão
+  const tn = new T.Group(); tn.position.set(0.115, -0.008, 0.225); cz.add(tn); gR.torneira = tn;   // torneira dobrável: de pé com a tampa aberta, deitada com a tampa fechada
+  cil(0.016, 0.016, 0.016, inox, 0, 0, 0, tn); cil(0.008, 0.008, 0.07, inox, 0, 0.035, 0, tn); cil(0.007, 0.007, 0.07, inox, 0, 0.07, -0.035, tn, 1.5708); caixa(0.004, 0.025, 0.012, inox, 0, 0.055, 0.012, tn);
+  const tp = new T.Group(); tp.position.set(0.16, 0.007, 0); cz.add(tp); gR.tampaCozi = tp;   // tampa de vidro: dobradiça na borda da frente (lado do volante)
+  caixa(0.33, 0.012, 0.55, vidro, -0.165, 0.006, 0, tp); cil(0.007, 0.007, 0.06, inox, 0.004, 0.006, 0.17, tp, 1.5708); cil(0.007, 0.007, 0.06, inox, 0.004, 0.006, -0.17, tp, 1.5708);
+  cz.position.set(3.145, 1.267, 0); cz.visible = false;
+  ren.localClippingEnabled = true;   // recorte exato da abertura do tampo: uma caixa definida por 6 planos, sem lascas de triângulos
+  B3D._planosLocal = [[-1, 0, 0, 3.0], [1, 0, 0, -3.29], [0, 0, -1, -0.25], [0, 0, 1, -0.25], [0, -1, 0, 1.115], [0, 1, 0, -1.3]].map(([x, y, z, c]) => new T.Plane(new T.Vector3(x, y, z), c)); B3D._planosPia = B3D._planosLocal.map((p) => p.clone());
+  B3D.atualizaCorte = () => { giro.updateMatrixWorld(true); B3D._planosPia.forEach((p, i) => p.copy(B3D._planosLocal[i]).applyMatrix4(real.matrixWorld)); };
 }
 { // privada branca simples dentro da cabine do banheiro (o arquivo da projetista não traz o vaso): de lado, com a caixa para estibordo e a bacia para bombordo
   const mk = (cor, ru, me, em) => new T.MeshStandardMaterial({ color: cor, roughness: ru, metalness: me || 0, emissive: em || 0x000000, transparent: true, opacity: 0 });
@@ -928,13 +971,17 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
       if (ultimaOp) aplicarReal(ultimaOp);
     };
     const aplicarReal = (o) => {
-      matR.est.color.copy(C(o.est3d != null ? o.est3d : (EST_R[o.est] || EST_R.Branco))); if (matR.estCad) matR.estCad.color.copy(matR.est.color); if (o.capHex != null) matR.lona.color.copy(C(o.capHex)); matR.acril.color.copy(mat.acril.color); matR.motor.color.copy(mat.motor.color);
+      matR.est.color.copy(C(o.est3d != null ? o.est3d : (EST_R[o.est] || EST_R.Branco))); if (matR.estCad) matR.estCad.color.copy(matR.est.color); if (matR.estBanco) matR.estBanco.color.copy(matR.est.color); if (o.capHex != null) matR.lona.color.copy(C(o.capHex)); matR.acril.color.copy(mat.acril.color); matR.motor.color.copy(mat.motor.color);
       const pp = o.pisoHex ? [o.pisoHex, o.listraHex || "#E6E4DE"] : (B3D_PISO[o.piso] || B3D_PISO.Cinza); matR.piso.color.copy(C(pp[0])); matR.friso.color.copy(C(pp[1]));
       const tb = new T.Color(o.tuboCor || "#ecebe2"); matR.tubo.color.copy(C(tb.getHex()));
       // regra da projetista: acessórios de PVC cinza no tubulão claro (cinza claro ou branco gelo) e brancos nos tubulões de outras cores
       matR.pvc.color.copy(C(["e6eaed", "c9c6b8"].includes(tb.getHexString().toLowerCase()) ? 0x8B8F95 : 0xF4F4F2)); if (matR.nome) matR.nome.color.copy(matR.pvc.color);
-      gR.mesa.visible = !o.solario; gR.sol.visible = !!o.solario; gR.guincho.visible = !!o.guincho; gR.capProa.visible = !!o.capProa && !B3D.semCapota; gR.capPopa.visible = !B3D.semCapota; gR.churr.visible = !!o.churr; gR.gps.visible = !!o.gps; gR.mastro.visible = o.mastro !== false;
+      gR.mesa.visible = !o.solario; gR.sol.visible = !!o.solario; gR.guincho.visible = !!o.guincho; gR.capProa.visible = !!o.capProa && !B3D.semCapota; gR.capPopa.visible = !B3D.semCapota && !B3D.banco; gR.churr.visible = !!o.churr; gR.gps.visible = !!o.gps; gR.mastro.visible = o.mastro !== false;
     { const nm = String(o.nome || ""); gR.nome.visible = !!nm; if (nm !== nomeAtual) desenhaNome(nm); }
+    gR.cozi.visible = !!o.pia; { const on = !!o.pia; if (B3D._corteOn !== on && B3D._matsCorte) { B3D._corteOn = on; B3D._matsCorte.forEach((m) => { m.clippingPlanes = on ? B3D._planosPia : null; m.clipIntersection = on; m.clipShadows = on; m.needsUpdate = true; }); if (on) B3D.atualizaCorte(); } } if (B3D.btBanco) B3D.btBanco.hidden = !o.pia;   // pia e fogão: com o opcional marcado o tampo ganha a abertura
+    if (!o.pia && B3D.banco && B3D.verBanco) B3D.verBanco(false, true);
+    if (o.pia && B3D._piaAntes === false && !B3D._piaVista && B3D.verBanco) { B3D._piaVista = true; setTimeout(() => { if (B3D.realOk && !B3D.banco) B3D.verBanco(true); }, 500); }   // na primeira vez que o opcional é marcado, o banco abre para mostrar
+    B3D._piaAntes = !!o.pia;
     };
     const usarReal = typeof M3D_B64 === "string" && M3D_B64.length > 1000 && !!window.DecompressionStream && !M3D_ANTIGO;
     if (usarReal) { barco.visible = false; m3dAbrir(m3dBytes()).then(montarReal).catch(() => { real.visible = false; barco.visible = true; chao.position.y = -0.98; }); }
@@ -965,13 +1012,13 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
       bt("Pausar giro", "Pausar ou retomar o giro automático", (b) => { B3D.pausa = !B3D.pausa; b.textContent = B3D.pausa ? "Retomar giro" : "Pausar giro"; b.setAttribute("aria-pressed", B3D.pausa ? "true" : "false"); });
       bt("+", "Aproximar", () => { zoom = Math.max(ZMIN, zoom * 0.78); posCam(); }, "q");
       bt("−", "Afastar", () => { zoom = Math.min(ZMAX, zoom / 0.78); posCam(); }, "q");
-      bt("Centralizar", "Voltar à vista inicial", () => { if (B3D.banheiro && B3D.verBanheiro) B3D.verBanheiro(false, true); foco.copy(FOCO0); zoom = 1; incl = 0; posCam(); });
+      bt("Centralizar", "Voltar à vista inicial", () => { if (B3D.banheiro && B3D.verBanheiro) B3D.verBanheiro(false, true); if (B3D.banco && B3D.verBanco) B3D.verBanco(false, true); foco.copy(FOCO0); zoom = 1; incl = 0; posCam(); });
       // ---- Ver banheiro: o assento do nicho do console (virado para a proa) levanta e some, e a câmera vai de frente para o compartimento ----
       let nivelBan = 0, tw = null, salvo = null;
       const lerp = (a, b, k) => a + (b - a) * k, suave = (k) => k * k * (3 - 2 * k);
       const aplicaNivel = (n) => { const g = gR.cadeira; if (!g) return; g.rotation.z = 2.27 * n; /* a porta pivota em torno da dobradiça (alto do encosto) e fica levantada */ const gv = gR.vaso; if (gv) { const f = Math.min(1, Math.max(0, (n - 0.45) / 0.45)); (matR.vasoMats || []).forEach((m) => { m.opacity = f; const tr = f < 0.999; if (m.transparent !== tr) { m.transparent = tr; m.needsUpdate = true; } }); gv.visible = f > 0.01; } };
       B3D.verBanheiro = (on, instante) => {
-        on = !!on; if (!B3D.realOk || !gR.cadeira) return; if (on === !!B3D.banheiro && !tw) return;
+        on = !!on; if (!B3D.realOk || !gR.cadeira) return; if (on && B3D.banco && B3D.verBanco) B3D.verBanco(false, true); if (on === !!B3D.banheiro && !tw) return;
         const de = { ang, incl, zoom, foco: foco.clone(), n: nivelBan }; let para;
         if (on) {
           if (!B3D.banheiro) salvo = { ang, incl, zoom, foco: foco.clone(), pausa: !!B3D.pausa };
@@ -983,6 +1030,24 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
       B3D.tweenBanheiro = () => { if (!tw) return; const k = Math.min(1, (performance.now() - tw.t0) / tw.dur), e = suave(k); ang = lerp(tw.de.ang, tw.para.ang, e); incl = lerp(tw.de.incl, tw.para.incl, e); zoom = lerp(tw.de.zoom, tw.para.zoom, e); foco.lerpVectors(tw.de.foco, tw.para.foco, e); nivelBan = lerp(tw.de.n, tw.para.n, e); aplicaNivel(nivelBan); posCam(); if (k >= 1) tw = null; };
       { const b = document.createElement("button"); b.type = "button"; b.textContent = "Ver banheiro"; b.setAttribute("aria-label", "Levantar a porta do console e ver o banheiro de frente"); b.title = "Levanta a porta do console e mostra o banheiro de frente"; b.hidden = true; b.setAttribute("aria-pressed", "false");
         b.addEventListener("click", (e) => { e.stopPropagation(); B3D.verBanheiro(!B3D.banheiro); }); bar.appendChild(b); B3D.btBanheiro = b; }
+      // ---- Ver pia e fogão: o banco do piloto (assento de couro com encosto) é rebatido para a frente, para o lado do volante, e a tampa de vidro abre ----
+      let nivelBc = 0, tw2 = null, salvo2 = null;
+      const fase = (n, a, b) => { const k = Math.min(1, Math.max(0, (n - a) / (b - a))); return k * k * (3 - 2 * k); };
+      const aplicaBanco = (n) => { if (gR.banco) gR.banco.rotation.z = -1.5708 * fase(n, 0, 0.45); if (gR.tampaCozi) gR.tampaCozi.rotation.z = -1.75 * fase(n, 0.62, 0.92); if (gR.torneira) gR.torneira.rotation.x = -1.5708 * (1 - fase(n, 0.9, 0.98)); };
+      B3D.verBanco = (on, instante) => {
+        on = !!on; if (!B3D.realOk || !gR.banco) return; if (on === !!B3D.banco && !tw2) return;
+        if (on && B3D.banheiro && B3D.verBanheiro) B3D.verBanheiro(false, true);
+        const de = { ang, incl, zoom, foco: foco.clone(), n: nivelBc }; let para;
+        if (on) {
+          if (!B3D.banco) salvo2 = { ang, incl, zoom, foco: foco.clone(), pausa: !!B3D.pausa };
+          giro.updateMatrixWorld(true); para = { ang: 1.25 + 6.2832 * Math.round((ang - 1.25) / 6.2832), incl: 0.32, zoom: 0.14, foco: giro.worldToLocal(real.localToWorld(new T.Vector3(3.2, 1.35, 0))), n: 1 }; B3D.pausa = true;
+        } else { para = salvo2 ? { ang: salvo2.ang + 6.2832 * Math.round((ang - salvo2.ang) / 6.2832), incl: salvo2.incl, zoom: salvo2.zoom, foco: salvo2.foco, n: 0 } : { ang, incl, zoom, foco: foco.clone(), n: 0 }; if (salvo2) B3D.pausa = salvo2.pausa; }
+        B3D._aplicaBanco = aplicaBanco; B3D.banco = on; if (B3D.btBanco) { B3D.btBanco.textContent = on ? "Fechar o banco" : "Ver pia e fogão"; B3D.btBanco.setAttribute("aria-pressed", String(on)); }
+        reap(); tw2 = { t0: performance.now() - (instante ? 5000 : 0), dur: 3400, de, para }; ultimo = performance.now(); B3D.tweenBanco();
+      };
+      B3D.tweenBanco = () => { if (!tw2) return; const k = Math.min(1, (performance.now() - tw2.t0) / tw2.dur), e = suave(k); ang = lerp(tw2.de.ang, tw2.para.ang, e); incl = lerp(tw2.de.incl, tw2.para.incl, e); zoom = lerp(tw2.de.zoom, tw2.para.zoom, e); foco.lerpVectors(tw2.de.foco, tw2.para.foco, e); nivelBc = lerp(tw2.de.n, tw2.para.n, k); aplicaBanco(nivelBc); posCam(); if (k >= 1) tw2 = null; };
+      { const b = document.createElement("button"); b.type = "button"; b.textContent = "Ver pia e fogão"; b.setAttribute("aria-label", "Rebater o banco do piloto e ver a pia e o fogão"); b.title = "Rebate o banco do piloto para o lado do volante e abre a tampa da pia e do fogão"; b.hidden = true; b.setAttribute("aria-pressed", "false");
+        b.addEventListener("click", (e) => { e.stopPropagation(); B3D.verBanco(!B3D.banco); }); bar.appendChild(b); B3D.btBanco = b; }
       { const pb = document.getElementById("at-3d-proa"); if (pb) bar.appendChild(pb); }   // no Atendimento, o botão de mesa ou solário fica junto dos controles da vista
       host.appendChild(bar);
       // duplo clique (ou dois toques) num ponto do barco: a câmera passa a girar em torno dele e aproxima
@@ -1022,14 +1087,14 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
       const halton = (i, b) => { let f = 1, r = 0; while (i > 0) { f /= b; r += f * (i % b); i = Math.floor(i / b); } return r; };
       // o: { w, h, ang, incl, zoom, mira, ss, tema ("dark" ou "light"), amostras (0 = decide pela velocidade do aparelho), aoProgresso(fração) }; devolve um <canvas>
       B3D.foto = async (o) => {
-        o = Object.assign({ w: 1600, h: 1000, ang: -0.62, incl: -0.2, zoom: 0.84, mira: 0.22, ss: 1.25, tema: "dark", amostras: 0, aoProgresso: null }, o || {}); if (B3D.banheiro && B3D.verBanheiro) B3D.verBanheiro(false, true);   // a imagem final sempre mostra o barco fechado
+        o = Object.assign({ w: 1600, h: 1000, ang: -0.62, incl: -0.2, zoom: 0.84, mira: 0.22, ss: 1.25, tema: "dark", amostras: 0, aoProgresso: null }, o || {}); if (B3D.banheiro && B3D.verBanheiro) B3D.verBanheiro(false, true); if (B3D.banco && B3D.verBanco) B3D.verBanco(false, true);   // a imagem final sempre mostra o barco fechado
         const es = montaEstudio(), escuro = o.tema !== "light", hemi = cena.children.find((x) => x.isHemisphereLight), lin = (hex) => new T.Color(hex).convertSRGBToLinear();
         const ant = { fov: cam.fov, pr: ren.getPixelRatio(), ang, incl, zoom, kAsp, asp: cam.aspect, env: cena.environment, fundo: cena.background, exp: ren.toneMappingExposure, mapa: sol.shadow.mapSize.x, foco: foco.clone(), hemi: hemi ? hemi.intensity : 0, pulso,
           solP: sol.position.clone(), solI: sol.intensity, solR: sol.shadow.radius, rimI: rim.intensity, chaoO: chao.material.opacity, chaoV: chao.visible, pausa: B3D.pausa };
         B3D.fotografando = true; const out = document.createElement("canvas"); out.width = o.w; out.height = o.h;
         try {
           pulso = 0; barco.scale.set(1, 1, 1); real.scale.set(1, 1, 1);
-          ang = o.ang; incl = o.incl; zoom = o.zoom; foco.copy(FOCO0); foco.y += o.mira; giro.rotation.y = ang; giro.updateMatrixWorld(true);
+          ang = o.ang; incl = o.incl; zoom = o.zoom; foco.copy(FOCO0); foco.y += o.mira; giro.rotation.y = ang; giro.updateMatrixWorld(true); if (B3D._corteOn && B3D.atualizaCorte) B3D.atualizaCorte();
           if (!es.envs[o.tema]) es.envs[o.tema] = envEstudio(escuro); cena.environment = es.envs[o.tema]; cena.background = lin(escuro ? 0x0a0b0d : 0xf7f8fa);
           if (hemi) hemi.intensity = 0; rim.intensity = escuro ? 0.55 : 0.18; sol.intensity = escuro ? 1.95 : 2.15; sol.shadow.radius = 2; es.ceu.visible = true; es.ceu.intensity = escuro ? 0.75 : 0.5; chao.material.opacity = 0.3;
           const yPiso = new T.Box3().setFromObject(real.visible ? real : barco).min.y - 0.015; ant.chaoY = chao.position.y; chao.position.y = yPiso;        // o barco encosta no piso
@@ -1072,7 +1137,9 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
       if (B3D.fotografando || !b3dVisivel() || document.hidden) return;
       if (!arr && !B3D.pausa && t - ultimo > 2500) ang += 0.003;
       if (B3D.tweenBanheiro) B3D.tweenBanheiro();
+      if (B3D.tweenBanco) B3D.tweenBanco();
       posCam();
+      if (B3D._corteOn && B3D.atualizaCorte) B3D.atualizaCorte();
       if (pulso > 0) { pulso = Math.max(0, pulso - 0.04); const s = 1 + Math.sin(pulso * Math.PI) * 0.03; barco.scale.set(s, s, s); real.scale.set(s, s, s); }
       ren.render(cena, cam);
     };
@@ -1224,7 +1291,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
     let mk = 0; (h.get("kt") || "").split(".").forEach((k) => { const j = ["conforto", "lazer", "fundeio"].indexOf(k); if (j >= 0) mk |= 1 << j; });
     const o = (h.get("o") || "").split("."); if (o.includes("cp") && ORC.t[3]) mk |= 1 << 3; if (o.includes("ca") && ORC.t[4]) mk |= 1 << 4; if (o.includes("gps")) mk |= 1 << 6; ORCS.mk = mk;
   }
-  function orcSync() { const m = ORC.m[ORCS.mi]; E.motor = /yamaha/i.test(m[1]) ? "yamaha" : "mercury"; E.hp = motorHp(m[1]) || E.hp; E.vv = !!m[4] || /vessel/i.test(m[1]); E.cp = !!((ORCS.mk >> 3) & 1); E.ch = !!((ORCS.mk >> 1) & 1); E.gu = !!((ORCS.mk >> 2) & 1); E.gps = !!m[4] || !!((ORCS.mk >> 6) & 1); }
+  function orcSync() { const m = ORC.m[ORCS.mi]; E.motor = /yamaha/i.test(m[1]) ? "yamaha" : "mercury"; E.hp = motorHp(m[1]) || E.hp; E.vv = !!m[4] || /vessel/i.test(m[1]); E.cp = !!((ORCS.mk >> 3) & 1); E.ch = !!((ORCS.mk >> 1) & 1); E.gu = !!((ORCS.mk >> 2) & 1); E.pia = !!((ORCS.mk >> 1) & 1); E.gps = !!m[4] || !!((ORCS.mk >> 6) & 1); }
   const orcMotorTxt = (m) => (m[2] ? m[2] + ". Garantia do fabricante." : "Garantia do fabricante");
   function orcMontar() {
     document.body.classList.add("com-precos");
