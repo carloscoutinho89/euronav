@@ -6109,7 +6109,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
       const bar = document.createElement("div"); bar.className = "b3d-bar";
       const bt = (txt, rotulo, fn, cls) => { const b = document.createElement("button"); b.type = "button"; b.textContent = txt; b.setAttribute("aria-label", rotulo); b.title = rotulo; if (cls) b.className = cls; b.addEventListener("click", (e) => { e.stopPropagation(); fn(b); ultimo = performance.now(); }); bar.appendChild(b); return b; };
       const reap = () => { if (ultimaOp) B3D.aplicar(ultimaOp); };
-      bt("Ocultar capotas", "Ocultar ou mostrar as capotas", (b) => { B3D.semCapota = !B3D.semCapota; b.textContent = B3D.semCapota ? "Mostrar capotas" : "Ocultar capotas"; b.setAttribute("aria-pressed", B3D.semCapota ? "true" : "false"); reap(); });
+      bt("Ocultar capotas", "Ocultar ou mostrar as capotas", (b) => { if (B3D.itemVer === "cp") B3D.verItem(null); B3D.itemPrev = null; B3D.semCapota = !B3D.semCapota; b.textContent = B3D.semCapota ? "Mostrar capotas" : "Ocultar capotas"; b.setAttribute("aria-pressed", B3D.semCapota ? "true" : "false"); reap(); });
       bt("Pausar giro", "Pausar ou retomar o giro automático", (b) => { B3D.pausa = !B3D.pausa; b.textContent = B3D.pausa ? "Retomar giro" : "Pausar giro"; b.setAttribute("aria-pressed", B3D.pausa ? "true" : "false"); });
       bt("+", "Aproximar", () => { zoom = Math.max(ZMIN, zoom * 0.78); posCam(); }, "q");
       bt("−", "Afastar", () => { zoom = Math.min(ZMAX, zoom / 0.78); posCam(); }, "q");
@@ -6134,7 +6134,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
         const botaoCapotas = (sem) => { const cb = [...bar.querySelectorAll("button")].find((x) => /capotas/.test(x.textContent) && /(Ocultar|Mostrar)/.test(x.textContent)); if (cb) { cb.textContent = sem ? "Mostrar capotas" : "Ocultar capotas"; cb.setAttribute("aria-pressed", String(!!sem)); } };
         const clica = (k) => {
           if (k === "mesa") B3D.mesa(!B3D.mesaFechada);
-          else if (k === "capotas") { B3D.semCapota = !B3D.semCapota; botaoCapotas(B3D.semCapota); reap(); }
+          else if (k === "capotas") { if (B3D.itemVer === "cp") B3D.verItem(null); B3D.itemPrev = null; B3D.semCapota = !B3D.semCapota; botaoCapotas(B3D.semCapota); reap(); }
           else if (k === "banheiro") { if (B3D.banheiro) B3D.verBanheiro(false, false, true); else { B3D.verBanheiro(true, false, true); abertoPor.ban = true; } }
           else if (k === "pia") { if (B3D.banco) { B3D.verBanco(false, false, true); aguarda(() => { if (B3D.explorar) delete B3D.explorar.pia; reap(); refresca(); }); } else { if (!ultimaOp || !ultimaOp.pia) defx("pia", true); reap(); B3D.verBanco(true, false, true); abertoPor.pia = true; } }
           else { defx(k, !efet(k)); reap(); }
