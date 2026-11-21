@@ -97,6 +97,11 @@ button { font: inherit; color: inherit; }
 .kit .kit-its[open] summary::before { content: "▾ "; }
 .kit .kit-box { display: grid; gap: 6px; padding: 4px 0 6px 12px; border-left: 2px solid var(--line); margin-left: 6px; }
 .kit .opt.sub { padding: 10px 14px; }
+.sub-linha { display: grid; grid-template-columns: 1fr auto; gap: 6px; align-items: stretch; }
+.sub-linha.so-tog { grid-template-columns: 1fr; }
+.ver-bt { appearance: none; border: 1px solid var(--line); background: transparent; color: var(--ink); border-radius: 4px; padding: 0 12px; font: inherit; font-size: .78rem; letter-spacing: .02em; cursor: pointer; white-space: nowrap; }
+.ver-bt:hover, .ver-bt[aria-pressed="true"] { border-color: var(--accent); }
+.ver-bt[aria-pressed="true"] { background: var(--card); }
 .opt.parcial { border-color: var(--accent); }
 .opt.parcial .sw { opacity: .55; }
 .opts { display: grid; gap: 8px; }
@@ -355,12 +360,19 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
   const VISTAS = [["360", "360°"], ["popa", "Popa"], ["cockpit", "Cockpit"], ["proa", "Proa"], ["tubo", "Tubulão"]];
   // Opcionais organizados em kits, como no Atendimento: Conforto e Fundeio são marcados inteiros; Lazer e Extras têm itens que a pessoa marca e desmarca. O GPS fica à parte.
   const KITS_PUB = [
-    { k: "kc", nome: "Kit Conforto", desc: "Banheiro com vaso sanitário elétrico e ducha e amortecedores em inox na tampa do painel.", itens: [] },
+    { k: "kc", nome: "Kit Conforto", desc: "Upgrade do banheiro que já vem de série: vaso sanitário elétrico no lugar do manual, ducha e amortecedores em inox na tampa do painel.", itens: [] },
     { k: "lazer", nome: "Kit Lazer", desc: "Pia e fogão, churrasqueira a gás com tábua e suporte e caixa térmica de 26,5 L.", itens: [["pia", "Pia e fogão"], ["ch", "Churrasqueira a gás com tábua e suporte"], ["cx", "Caixa térmica de 26,5 L"]] },
     { k: "gu", nome: "Kit Fundeio", desc: "Guincho elétrico, corrente inox de 6 mm, trava de corrente e cabo de âncora de 10 m.", itens: [] },
     { k: "extras", nome: "Extras", desc: "Capota de proa e carreta de encalhe.", itens: [["cp", "Capota de proa"], ["ca", "Carreta de encalhe"]] }];
+  const VER_ITEM = { pia: "pia", ch: "ch", cp: "cp" };   // itens com desenho no 3D ganham o botão "Ver no barco"; caixa térmica e carreta não têm
   const OPC_CHAVES = ["cp", "ch", "gu", "pia", "cx", "ca", "kc", "gps"];
   const kitTodos = (kit) => (kit.itens.length ? kit.itens.every(([k]) => E[k]) : !!E[kit.k]), kitAlgum = (kit) => (kit.itens.length ? kit.itens.some(([k]) => E[k]) : !!E[kit.k]);
+  const atualizaVerBt = () => document.querySelectorAll("#d-opc .ver-bt").forEach((b) => { const ativo = typeof B3D !== "undefined" && B3D.itemVer === b.dataset.ver; b.textContent = ativo ? "Voltar" : "Ver no barco"; b.setAttribute("aria-pressed", ativo ? "true" : "false"); });
+  async function verNoBarco(k) {
+    try { if (typeof B3D !== "undefined" && B3D.itemVer === k) { B3D.verItem(null); atualizaVerBt(); return; }
+      if (!E[k]) E[k] = true; if (E.vista !== "360") E.vista = "360"; render(); await esperar3D(); if (typeof B3D !== "undefined" && B3D.realOk && B3D.verItem) { B3D.aoMudarItem = atualizaVerBt; B3D.verItem(k); atualizaVerBt(); }
+    } catch (e) { /* sem 3D neste aparelho: o opcional fica marcado */ }
+  }
   const opcNomes = () => { const out = []; KITS_PUB.forEach((kit) => { if (kitTodos(kit)) out.push(kit.nome.toLowerCase().replace(/^kit /, "kit ")); else kit.itens.forEach(([k, t]) => { if (E[k]) out.push(t.toLowerCase()); }); }); if (E.gps) out.push("GPS"); return out; };
   const PADRAO = { est: "Cinza Arizona", piso: "Cinza", li: "Branco", cap: "Cinza", tubo: "pvc", ct: "cinza", cp: false, ch: false, gu: false, pia: false, cx: false, ca: false, kc: false, gps: false, motor: "mercury", hp: 150, vv: false, nb: "", vista: "360", proa: "mesa" };
   const E = Object.assign({}, PADRAO);
@@ -1036,7 +1048,6 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
     { const nm = String(o.nome || ""); gR.nome.visible = !!nm; if (nm !== nomeAtual) desenhaNome(nm); }
     gR.cozi.visible = !!o.pia; { const on = !!o.pia; if (B3D._corteOn !== on && B3D._matsCorte) { B3D._corteOn = on; B3D._matsCorte.forEach((m) => { m.clippingPlanes = on ? B3D._planosPia : null; m.clipIntersection = on; m.clipShadows = on; m.needsUpdate = true; }); if (on) B3D.atualizaCorte(); } } if (B3D.btBanco) B3D.btBanco.hidden = !o.pia;   // pia e fogão: com o opcional marcado o tampo ganha a abertura
     if (!o.pia && B3D.banco && B3D.verBanco) B3D.verBanco(false, true);
-    if (o.pia && B3D._piaAntes === false && !B3D._piaVista && B3D.verBanco) { B3D._piaVista = true; setTimeout(() => { if (B3D.realOk && !B3D.banco) B3D.verBanco(true); }, 500); }   // na primeira vez que o opcional é marcado, o banco abre para mostrar
     B3D._piaAntes = !!o.pia;
     { gR.crist.visible = true; if (B3D._portaTras) B3D._portaTras.visible = false;   // cristaleira de série: sempre no barco
       if (!B3D._cristOn && matR.fibraCris) { B3D._cristOn = true; matR.fibraCris.clippingPlanes = B3D._planosCris; matR.fibraCris.clipIntersection = true; matR.fibraCris.clipShadows = true; matR.fibraCris.needsUpdate = true; B3D.atualizaCorte(); if (B3D._reaplicaMesa) B3D._reaplicaMesa(); } }
@@ -1070,13 +1081,13 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
       bt("Pausar giro", "Pausar ou retomar o giro automático", (b) => { B3D.pausa = !B3D.pausa; b.textContent = B3D.pausa ? "Retomar giro" : "Pausar giro"; b.setAttribute("aria-pressed", B3D.pausa ? "true" : "false"); });
       bt("+", "Aproximar", () => { zoom = Math.max(ZMIN, zoom * 0.78); posCam(); }, "q");
       bt("−", "Afastar", () => { zoom = Math.min(ZMAX, zoom / 0.78); posCam(); }, "q");
-      bt("Centralizar", "Voltar à vista inicial", () => { if (B3D.banheiro && B3D.verBanheiro) B3D.verBanheiro(false, true); if (B3D.banco && B3D.verBanco) B3D.verBanco(false, true); if (B3D.crist && B3D.verCrist) B3D.verCrist(false, true); foco.copy(FOCO0); zoom = 1; incl = 0; posCam(); });
+      bt("Centralizar", "Voltar à vista inicial", () => { if (B3D.banheiro && B3D.verBanheiro) B3D.verBanheiro(false, true); if (B3D.banco && B3D.verBanco) B3D.verBanco(false, true); if (B3D.crist && B3D.verCrist) B3D.verCrist(false, true); if (B3D.itemVer && B3D.verItem) B3D.verItem(null, true); foco.copy(FOCO0); zoom = 1; incl = 0; posCam(); });
       // ---- Ver banheiro: o assento do nicho do console (virado para a proa) levanta e some, e a câmera vai de frente para o compartimento ----
       let nivelBan = 0, tw = null, salvo = null;
       const lerp = (a, b, k) => a + (b - a) * k, suave = (k) => k * k * (3 - 2 * k);
       const aplicaNivel = (n) => { const g = gR.cadeira; if (!g) return; g.rotation.z = 2.27 * n; /* a porta pivota em torno da dobradiça (alto do encosto) e fica levantada */ const gv = gR.vaso; if (gv) { const f = Math.min(1, Math.max(0, (n - 0.45) / 0.45)); (matR.vasoMats || []).forEach((m) => { m.opacity = f; const tr = f < 0.999; if (m.transparent !== tr) { m.transparent = tr; m.needsUpdate = true; } }); gv.visible = f > 0.01; } };
       B3D.verBanheiro = (on, instante) => {
-        on = !!on; if (!B3D.realOk || !gR.cadeira) return; if (on && B3D.banco && B3D.verBanco) B3D.verBanco(false, true); if (on && B3D.crist && B3D.verCrist) B3D.verCrist(false, true); if (on === !!B3D.banheiro && !tw) return;
+        on = !!on; if (!B3D.realOk || !gR.cadeira) return; if (on && B3D.banco && B3D.verBanco) B3D.verBanco(false, true); if (on && B3D.crist && B3D.verCrist) B3D.verCrist(false, true); if (on && B3D.itemVer && B3D.verItem) B3D.verItem(null, true); if (on === !!B3D.banheiro && !tw) return;
         const de = { ang, incl, zoom, foco: foco.clone(), n: nivelBan }; let para;
         if (on) {
           if (!B3D.banheiro) salvo = { ang, incl, zoom, foco: foco.clone(), pausa: !!B3D.pausa };
@@ -1094,13 +1105,13 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
       const aplicaBanco = (n) => { if (gR.banco) gR.banco.rotation.z = -1.5708 * fase(n, 0, 0.45); if (gR.tampaCozi) gR.tampaCozi.rotation.z = -1.75 * fase(n, 0.62, 0.92); if (gR.torneira) gR.torneira.rotation.x = -1.5708 * (1 - fase(n, 0.9, 0.98)); };
       B3D.verBanco = (on, instante) => {
         on = !!on; if (!B3D.realOk || !gR.banco) return; if (on === !!B3D.banco && !tw2) return;
-        if (on && B3D.banheiro && B3D.verBanheiro) B3D.verBanheiro(false, true); if (on && B3D.crist && B3D.verCrist) B3D.verCrist(false, true);
+        if (on && B3D.banheiro && B3D.verBanheiro) B3D.verBanheiro(false, true); if (on && B3D.crist && B3D.verCrist) B3D.verCrist(false, true); if (on && B3D.itemVer && B3D.itemVer !== "pia" && B3D.verItem) B3D.verItem(null, true);
         const de = { ang, incl, zoom, foco: foco.clone(), n: nivelBc }; let para;
         if (on) {
           if (!B3D.banco) salvo2 = { ang, incl, zoom, foco: foco.clone(), pausa: !!B3D.pausa };
           giro.updateMatrixWorld(true); para = { ang: 1.25 + 6.2832 * Math.round((ang - 1.25) / 6.2832), incl: 0.32, zoom: 0.14, foco: giro.worldToLocal(real.localToWorld(new T.Vector3(3.2, 1.35, 0))), n: 1 }; B3D.pausa = true;
         } else { para = salvo2 ? { ang: salvo2.ang + 6.2832 * Math.round((ang - salvo2.ang) / 6.2832), incl: salvo2.incl, zoom: salvo2.zoom, foco: salvo2.foco, n: 0 } : { ang, incl, zoom, foco: foco.clone(), n: 0 }; if (salvo2) B3D.pausa = salvo2.pausa; }
-        B3D._aplicaBanco = aplicaBanco; B3D.banco = on; if (B3D.btBanco) { B3D.btBanco.textContent = on ? "Fechar o banco" : "Ver pia e fogão"; B3D.btBanco.setAttribute("aria-pressed", String(on)); }
+        B3D._aplicaBanco = aplicaBanco; B3D.banco = on; B3D.itemVer = on ? "pia" : (B3D.itemVer === "pia" ? null : B3D.itemVer); if (B3D.aoMudarItem) B3D.aoMudarItem(); if (B3D.btBanco) { B3D.btBanco.textContent = on ? "Fechar o banco" : "Ver pia e fogão"; B3D.btBanco.setAttribute("aria-pressed", String(on)); }
         reap(); tw2 = { t0: performance.now() - (instante ? 5000 : 0), dur: 3400, de, para }; ultimo = performance.now(); B3D.tweenBanco();
       };
       B3D.tweenBanco = () => { if (!tw2) return; const k = Math.min(1, (performance.now() - tw2.t0) / tw2.dur), e = suave(k); ang = lerp(tw2.de.ang, tw2.para.ang, e); incl = lerp(tw2.de.incl, tw2.para.incl, e); zoom = lerp(tw2.de.zoom, tw2.para.zoom, e); foco.lerpVectors(tw2.de.foco, tw2.para.foco, e); nivelBc = lerp(tw2.de.n, tw2.para.n, k); aplicaBanco(nivelBc); posCam(); if (k >= 1) tw2 = null; };
@@ -1130,6 +1141,22 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
         posCam(); if (k >= 1) twc = null; };
       { const b = document.createElement("button"); b.type = "button"; b.textContent = "Fechar a mesa de popa"; b.setAttribute("aria-label", "Fechar ou abrir a mesa de popa"); b.title = "Fecha ou abre a mesa de popa, atrás do banco do piloto. Quando abre, a luz azul da cristaleira acende"; b.hidden = true;
         b.addEventListener("click", (e) => { e.stopPropagation(); B3D.mesa(!B3D.mesaFechada); }); bar.appendChild(b); B3D.btMesa = b; }
+      // ---- Ver no barco: leva a câmera para a área de cada opcional com desenho (pia e fogão, churrasqueira, guincho, capota de proa, GPS) ----
+      B3D.itemVer = null; let twi = null, salvoI = null;
+      const ITENS_VER = { ch: ["churr", -0.95, -0.12, 1.0], gu: ["guincho", -0.95, -0.2, 1.0], cp: ["capProa", -0.8, -0.22, 0.85], gps: ["gps", 1.05, -0.12, 0.7] };   // grupo, ângulo, inclinação, folga
+      const fechaItem = (instante) => { if (!B3D.itemVer) return; const pa = salvoI || { ang, incl, zoom, foco: foco.clone(), pausa: !!B3D.pausa }; B3D.itemVer = null; B3D.pausa = pa.pausa; twi = { t0: performance.now() - (instante ? 9000 : 0), dur: 1300, de: { ang, incl, zoom, foco: foco.clone() }, para: { ang: pa.ang + 6.2832 * Math.round((ang - pa.ang) / 6.2832), incl: pa.incl, zoom: pa.zoom, foco: pa.foco } }; ultimo = performance.now(); B3D.tweenItem(); if (B3D.aoMudarItem) B3D.aoMudarItem(); };
+      B3D.verItem = (k, instante) => {
+        if (!B3D.realOk) return;
+        if (k == null) { if (B3D.itemVer === "pia") { if (B3D.banco && B3D.verBanco) B3D.verBanco(false, instante); } else fechaItem(instante); return; }
+        if (k === "pia") { if (B3D.itemVer && B3D.itemVer !== "pia") fechaItem(true); if (B3D.verBanco && !B3D.banco) B3D.verBanco(true, instante); return; }
+        const d = ITENS_VER[k]; if (!d || !gR[d[0]]) return;
+        if (B3D.banco && B3D.verBanco) B3D.verBanco(false, true); if (B3D.banheiro && B3D.verBanheiro) B3D.verBanheiro(false, true);
+        reap(); real.updateMatrixWorld(true); const bb = new T.Box3().setFromObject(gR[d[0]]); let c, tam = 0.6; if (!bb.isEmpty()) { c = real.worldToLocal(bb.getCenter(new T.Vector3())); const sz = bb.getSize(new T.Vector3()); tam = Math.max(sz.x, sz.y, sz.z); } else c = new T.Vector3(4.0, 1.4, 0);
+        const rr = Math.max(1.0, tam * 2.2 * d[3]), zm = Math.max(0.1, rr / (Math.hypot(6.9, 10.9) * kAsp)); B3D._itemInfo = { c: [c.x, c.y, c.z].map((v) => +v.toFixed(2)), tam: +tam.toFixed(2), zoom: +zm.toFixed(2) };
+        if (!B3D.itemVer) salvoI = { ang, incl, zoom, foco: foco.clone(), pausa: !!B3D.pausa }; giro.updateMatrixWorld(true);
+        B3D.pausa = true; B3D.itemVer = k; twi = { t0: performance.now() - (instante ? 9000 : 0), dur: 1600, de: { ang, incl, zoom, foco: foco.clone() }, para: { ang: d[1] + 6.2832 * Math.round((ang - d[1]) / 6.2832), incl: d[2], zoom: zm, foco: giro.worldToLocal(real.localToWorld(c.clone())) } }; ultimo = performance.now(); B3D.tweenItem(); if (B3D.aoMudarItem) B3D.aoMudarItem();
+      };
+      B3D.tweenItem = () => { if (!twi) return; const k = Math.min(1, (performance.now() - twi.t0) / twi.dur), e = suave(k); ang = lerp(twi.de.ang, twi.para.ang, e); incl = lerp(twi.de.incl, twi.para.incl, e); zoom = lerp(twi.de.zoom, twi.para.zoom, e); foco.lerpVectors(twi.de.foco, twi.para.foco, e); posCam(); if (k >= 1) twi = null; };
       
       { const pb = document.getElementById("at-3d-proa"); if (pb) bar.appendChild(pb); }   // no Atendimento, o botão de mesa ou solário fica junto dos controles da vista
       host.appendChild(bar);
@@ -1170,7 +1197,8 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
       const halton = (i, b) => { let f = 1, r = 0; while (i > 0) { f /= b; r += f * (i % b); i = Math.floor(i / b); } return r; };
       // o: { w, h, ang, incl, zoom, mira, ss, tema ("dark" ou "light"), amostras (0 = decide pela velocidade do aparelho), aoProgresso(fração) }; devolve um <canvas>
       B3D.foto = async (o) => {
-        o = Object.assign({ w: 1600, h: 1000, ang: -0.62, incl: -0.2, zoom: 0.84, mira: 0.22, ss: 1.25, tema: "dark", amostras: 0, aoProgresso: null }, o || {}); if (B3D.banheiro && B3D.verBanheiro) B3D.verBanheiro(false, true); if (B3D.banco && B3D.verBanco) B3D.verBanco(false, true); if (B3D.crist && B3D.verCrist) B3D.verCrist(false, true);   // a imagem final sempre mostra o barco fechado
+        o = Object.assign({ w: 1600, h: 1000, ang: -0.62, incl: -0.2, zoom: 0.84, mira: 0.22, ss: 1.25, tema: "dark", amostras: 0, aoProgresso: null }, o || {}); if (B3D.banheiro && B3D.verBanheiro) B3D.verBanheiro(false, true); if (B3D.banco && B3D.verBanco) B3D.verBanco(false, true); if (B3D.crist && B3D.verCrist) B3D.verCrist(false, true); if (B3D.itemVer && B3D.verItem) B3D.verItem(null, true);   if (B3D.mesaFechada && B3D.mesa) B3D.mesa(false, true);   // a imagem final sempre sai com a mesa de popa aberta
+      // a imagem final sempre mostra o barco fechado
         const es = montaEstudio(), escuro = o.tema !== "light", hemi = cena.children.find((x) => x.isHemisphereLight), lin = (hex) => new T.Color(hex).convertSRGBToLinear();
         const ant = { fov: cam.fov, pr: ren.getPixelRatio(), ang, incl, zoom, kAsp, asp: cam.aspect, env: cena.environment, fundo: cena.background, exp: ren.toneMappingExposure, mapa: sol.shadow.mapSize.x, foco: foco.clone(), hemi: hemi ? hemi.intensity : 0, pulso,
           solP: sol.position.clone(), solI: sol.intensity, solR: sol.shadow.radius, rimI: rim.intensity, chaoO: chao.material.opacity, chaoV: chao.visible, pausa: B3D.pausa };
@@ -1221,7 +1249,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
       if (!arr && !B3D.pausa && t - ultimo > 2500) ang += 0.003;
       if (B3D.tweenBanheiro) B3D.tweenBanheiro();
       if (B3D.tweenBanco) B3D.tweenBanco();
-      if (B3D.tweenMesa) B3D.tweenMesa(); if (B3D.tweenCrist) B3D.tweenCrist();
+      if (B3D.tweenMesa) B3D.tweenMesa(); if (B3D.tweenItem) B3D.tweenItem(); if (B3D.tweenCrist) B3D.tweenCrist();
       posCam();
       if ((B3D._corteOn || B3D._cristOn) && B3D.atualizaCorte) B3D.atualizaCorte();
       if (pulso > 0) { pulso = Math.max(0, pulso - 0.04); const s = 1 + Math.sin(pulso * Math.PI) * 0.03; barco.scale.set(s, s, s); real.scale.set(s, s, s); }
@@ -1434,13 +1462,15 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
     dupla("d-tubo", "tubo", [["pvc", "PVC Sansuy", TUBOS.pvc.length + " cores"], ["hyp", "Hypalon Orca", TUBOS.hyp.length + " cores"]]);
     dupla("d-proa", "proa", [["mesa", "Ver com a mesa", "Sofá em U com a mesa montada"], ["sol", "Ver como solário", "Mesa baixada, com o estofado por cima"]]);
     { const host = $("d-opc"); const botao = (rot, desc, cls) => { const b = document.createElement("button"); b.type = "button"; b.className = "opt " + cls; const sp = document.createElement("span"); sp.textContent = rot; const sm = document.createElement("small"); sm.textContent = desc; sp.appendChild(sm); const sw = document.createElement("i"); sw.className = "sw"; b.append(sp, sw); return b; };
+      const linha = (tog, ver) => { const d = document.createElement("div"); d.className = "sub-linha" + (ver ? "" : " so-tog"); d.appendChild(tog); if (ver) { const v = document.createElement("button"); v.type = "button"; v.className = "ver-bt"; v.dataset.ver = ver; v.textContent = "Ver no barco"; v.setAttribute("aria-label", "Ver no barco: " + (tog.querySelector("span").childNodes[0].textContent)); v.addEventListener("click", () => verNoBarco(ver)); d.appendChild(v); } return d; };
+      const VER_KIT = { gu: "gu" };
       KITS_PUB.forEach((kit) => {
         const card = document.createElement("div"); card.className = "kit"; const b = botao(kit.nome, kit.desc, "kit-bt"); b.dataset.kit = kit.k;
-        b.addEventListener("click", () => { const liga = !kitTodos(kit); if (kit.itens.length) kit.itens.forEach(([k]) => { E[k] = liga; }); else E[kit.k] = liga; render(); }); card.appendChild(b);
-        if (kit.itens.length) { const det = document.createElement("details"); det.className = "kit-its"; det.dataset.kit = kit.k; const sm = document.createElement("summary"); det.appendChild(sm); const box = document.createElement("div"); box.className = "kit-box";
-          kit.itens.forEach(([k, t]) => { const ib = botao(t, "", "sub"); ib.dataset.k = k; ib.querySelector("small").remove(); ib.addEventListener("click", () => { E[k] = !E[k]; render(); }); box.appendChild(ib); }); det.appendChild(box); card.appendChild(det); }
+        b.addEventListener("click", () => { const liga = !kitTodos(kit); if (kit.itens.length) kit.itens.forEach(([k]) => { E[k] = liga; }); else E[kit.k] = liga; render(); }); card.appendChild(linha(b, kit.itens.length ? null : VER_KIT[kit.k]));
+        if (kit.itens.length) { const det = document.createElement("details"); det.className = "kit-its"; det.dataset.kit = kit.k; det.open = true; const sm = document.createElement("summary"); det.appendChild(sm); const box = document.createElement("div"); box.className = "kit-box";
+          kit.itens.forEach(([k, t]) => { const ib = botao(t, "", "sub"); ib.dataset.k = k; ib.querySelector("small").remove(); ib.addEventListener("click", () => { E[k] = !E[k]; render(); }); box.appendChild(linha(ib, VER_ITEM[k])); }); det.appendChild(box); card.appendChild(det); }
         host.appendChild(card); });
-      const gb = botao("GPS", "Navegação no console", ""); gb.dataset.k = "gps"; gb.addEventListener("click", () => { E.gps = !E.gps; render(); }); host.appendChild(gb); }
+      const gb = botao("GPS", "Navegação no console", ""); gb.dataset.k = "gps"; gb.addEventListener("click", () => { E.gps = !E.gps; render(); }); host.appendChild(linha(gb, "gps")); }
     document.querySelectorAll("[data-tema]").forEach((b) => b.addEventListener("click", () => tema(b.dataset.tema)));
     $("v-ant").addEventListener("click", () => passo(-1)); $("v-prox").addEventListener("click", () => passo(1));
     $("b-reset").addEventListener("click", () => { Object.assign(E, PADRAO); $("nb-campo").hidden = true; render(); });
@@ -1474,10 +1504,10 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
     dt.querySelectorAll(".dot").forEach((b) => pressionado(b, b.dataset.c === E.ct));
     { const campo = $("nb-campo"), inp = $("nb-in"); if (E.nb && campo.hidden) campo.hidden = false; $("nb-bt").setAttribute("aria-pressed", String(!campo.hidden)); if (document.activeElement !== inp) inp.value = E.nb; }
     if (!ORC) { const mp = MOTORES_PUB.find((m) => m.marca.toLowerCase() === E.motor && m.hp === E.hp && m.vv === !!E.vv) || MOTORES_PUB.find((m) => m.marca.toLowerCase() === E.motor) || MOTORES_PUB[0]; motorPassos($("d-motor"), MOTORES_PUB, mp.id, escolherMotorPub, false); }
-    { const bg = document.querySelector('#d-opc > .opt[data-k="gps"]'); if (bg) { const trava = !!E.vv && !ORC; bg.disabled = trava; const sm = bg.querySelector("small"); if (sm) sm.textContent = trava ? "Incluso no VesselView" : "Navegação no console"; } }
+    { const bg = document.querySelector('#d-opc .opt[data-k="gps"]'); if (bg) { const trava = !!E.vv && !ORC; bg.disabled = trava; const sm = bg.querySelector("small"); if (sm) sm.textContent = trava ? "Incluso no VesselView" : "Navegação no console"; } }
     document.querySelectorAll("#d-opc .opt[data-k]").forEach((b) => pressionado(b, !!E[b.dataset.k]));
     KITS_PUB.forEach((kit) => { const b = document.querySelector('#d-opc .kit-bt[data-kit="' + kit.k + '"]'); if (!b) return; const todos = kitTodos(kit), algum = kitAlgum(kit); pressionado(b, todos); b.classList.toggle("parcial", algum && !todos);
-      const det = document.querySelector('#d-opc .kit-its[data-kit="' + kit.k + '"]'); if (det) { const n = kit.itens.filter(([k]) => E[k]).length; det.querySelector("summary").textContent = "Escolher os itens do kit (" + n + " de " + kit.itens.length + ")"; if (algum && !todos && !det.dataset.vista) { det.open = true; det.dataset.vista = "1"; } } });
+      const det = document.querySelector('#d-opc .kit-its[data-kit="' + kit.k + '"]'); if (det) { const n = kit.itens.filter(([k]) => E[k]).length; det.querySelector("summary").textContent = "Itens do kit (" + n + " de " + kit.itens.length + ")"; } });
     $("n-est").textContent = E.est; $("n-piso").textContent = E.piso; $("n-tubo").textContent = (E.tubo === "hyp" ? "Hypalon" : "PVC") + " · " + corTubo(E.tubo, E.ct)[1]; $("n-motor").textContent = motorTxt().replace(" com VesselView", " · VesselView");
     const opc = opcNomes();
     $("resumo").innerHTML = "";

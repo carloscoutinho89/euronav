@@ -2363,7 +2363,7 @@ body.gated { overflow: hidden; }
   const FAIXA = [["7,75 m", "Comprimento"], ["3,05 m", "Boca"], ["11 pessoas", "A bordo"], ["1.438 kg", "Carga útil"], ["200 L", "Combustível"], ["150 a 225 hp", "Motorização"]];
   const KITS = [
     { key: "basico", nome: "Kit básico", curto: "Básico", desc: "Incluso no casco: estofados completos, capota de popa, piso EVA, som marinizado e âncora, além de combustível, porão, água, elétrica, comando, segurança, ferragens e flutuante.", cor: "#3B5999" },
-    { key: "conforto", nome: "Kit Conforto", curto: "Conforto", desc: "Banheiro com vaso sanitário elétrico e ducha e amortecedores em inox na tampa do painel.", cor: "#7C8088" },
+    { key: "conforto", nome: "Kit Conforto", curto: "Conforto", desc: "Upgrade do banheiro que já vem de série: vaso sanitário elétrico no lugar do manual, ducha e amortecedores em inox na tampa do painel.", cor: "#7C8088" },
     { key: "lazer", nome: "Kit Lazer", curto: "Lazer", desc: "Pia e fogão, churrasqueira a gás com tábua e suporte e caixa térmica de 26,5 L.", cor: "#8FA6D6" },
     { key: "fundeio", nome: "Kit Fundeio", curto: "Fundeio", desc: "Guincho elétrico, corrente inox de 6 mm, trava de corrente e cabo de âncora de 10 m.", cor: "#C9A227" },
     { key: "extras", nome: "Extras", curto: "Extras", desc: "Capota de proa e carreta de encalhe.", cor: "#5E8C6A" }
@@ -6062,7 +6062,6 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
     { const nm = String(o.nome || ""); gR.nome.visible = !!nm; if (nm !== nomeAtual) desenhaNome(nm); }
     gR.cozi.visible = !!o.pia; { const on = !!o.pia; if (B3D._corteOn !== on && B3D._matsCorte) { B3D._corteOn = on; B3D._matsCorte.forEach((m) => { m.clippingPlanes = on ? B3D._planosPia : null; m.clipIntersection = on; m.clipShadows = on; m.needsUpdate = true; }); if (on) B3D.atualizaCorte(); } } if (B3D.btBanco) B3D.btBanco.hidden = !o.pia;   // pia e fogão: com o opcional marcado o tampo ganha a abertura
     if (!o.pia && B3D.banco && B3D.verBanco) B3D.verBanco(false, true);
-    if (o.pia && B3D._piaAntes === false && !B3D._piaVista && B3D.verBanco) { B3D._piaVista = true; setTimeout(() => { if (B3D.realOk && !B3D.banco) B3D.verBanco(true); }, 500); }   // na primeira vez que o opcional é marcado, o banco abre para mostrar
     B3D._piaAntes = !!o.pia;
     { gR.crist.visible = true; if (B3D._portaTras) B3D._portaTras.visible = false;   // cristaleira de série: sempre no barco
       if (!B3D._cristOn && matR.fibraCris) { B3D._cristOn = true; matR.fibraCris.clippingPlanes = B3D._planosCris; matR.fibraCris.clipIntersection = true; matR.fibraCris.clipShadows = true; matR.fibraCris.needsUpdate = true; B3D.atualizaCorte(); if (B3D._reaplicaMesa) B3D._reaplicaMesa(); } }
@@ -6096,13 +6095,13 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
       bt("Pausar giro", "Pausar ou retomar o giro automático", (b) => { B3D.pausa = !B3D.pausa; b.textContent = B3D.pausa ? "Retomar giro" : "Pausar giro"; b.setAttribute("aria-pressed", B3D.pausa ? "true" : "false"); });
       bt("+", "Aproximar", () => { zoom = Math.max(ZMIN, zoom * 0.78); posCam(); }, "q");
       bt("−", "Afastar", () => { zoom = Math.min(ZMAX, zoom / 0.78); posCam(); }, "q");
-      bt("Centralizar", "Voltar à vista inicial", () => { if (B3D.banheiro && B3D.verBanheiro) B3D.verBanheiro(false, true); if (B3D.banco && B3D.verBanco) B3D.verBanco(false, true); if (B3D.crist && B3D.verCrist) B3D.verCrist(false, true); foco.copy(FOCO0); zoom = 1; incl = 0; posCam(); });
+      bt("Centralizar", "Voltar à vista inicial", () => { if (B3D.banheiro && B3D.verBanheiro) B3D.verBanheiro(false, true); if (B3D.banco && B3D.verBanco) B3D.verBanco(false, true); if (B3D.crist && B3D.verCrist) B3D.verCrist(false, true); if (B3D.itemVer && B3D.verItem) B3D.verItem(null, true); foco.copy(FOCO0); zoom = 1; incl = 0; posCam(); });
       // ---- Ver banheiro: o assento do nicho do console (virado para a proa) levanta e some, e a câmera vai de frente para o compartimento ----
       let nivelBan = 0, tw = null, salvo = null;
       const lerp = (a, b, k) => a + (b - a) * k, suave = (k) => k * k * (3 - 2 * k);
       const aplicaNivel = (n) => { const g = gR.cadeira; if (!g) return; g.rotation.z = 2.27 * n; /* a porta pivota em torno da dobradiça (alto do encosto) e fica levantada */ const gv = gR.vaso; if (gv) { const f = Math.min(1, Math.max(0, (n - 0.45) / 0.45)); (matR.vasoMats || []).forEach((m) => { m.opacity = f; const tr = f < 0.999; if (m.transparent !== tr) { m.transparent = tr; m.needsUpdate = true; } }); gv.visible = f > 0.01; } };
       B3D.verBanheiro = (on, instante) => {
-        on = !!on; if (!B3D.realOk || !gR.cadeira) return; if (on && B3D.banco && B3D.verBanco) B3D.verBanco(false, true); if (on && B3D.crist && B3D.verCrist) B3D.verCrist(false, true); if (on === !!B3D.banheiro && !tw) return;
+        on = !!on; if (!B3D.realOk || !gR.cadeira) return; if (on && B3D.banco && B3D.verBanco) B3D.verBanco(false, true); if (on && B3D.crist && B3D.verCrist) B3D.verCrist(false, true); if (on && B3D.itemVer && B3D.verItem) B3D.verItem(null, true); if (on === !!B3D.banheiro && !tw) return;
         const de = { ang, incl, zoom, foco: foco.clone(), n: nivelBan }; let para;
         if (on) {
           if (!B3D.banheiro) salvo = { ang, incl, zoom, foco: foco.clone(), pausa: !!B3D.pausa };
@@ -6120,13 +6119,13 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
       const aplicaBanco = (n) => { if (gR.banco) gR.banco.rotation.z = -1.5708 * fase(n, 0, 0.45); if (gR.tampaCozi) gR.tampaCozi.rotation.z = -1.75 * fase(n, 0.62, 0.92); if (gR.torneira) gR.torneira.rotation.x = -1.5708 * (1 - fase(n, 0.9, 0.98)); };
       B3D.verBanco = (on, instante) => {
         on = !!on; if (!B3D.realOk || !gR.banco) return; if (on === !!B3D.banco && !tw2) return;
-        if (on && B3D.banheiro && B3D.verBanheiro) B3D.verBanheiro(false, true); if (on && B3D.crist && B3D.verCrist) B3D.verCrist(false, true);
+        if (on && B3D.banheiro && B3D.verBanheiro) B3D.verBanheiro(false, true); if (on && B3D.crist && B3D.verCrist) B3D.verCrist(false, true); if (on && B3D.itemVer && B3D.itemVer !== "pia" && B3D.verItem) B3D.verItem(null, true);
         const de = { ang, incl, zoom, foco: foco.clone(), n: nivelBc }; let para;
         if (on) {
           if (!B3D.banco) salvo2 = { ang, incl, zoom, foco: foco.clone(), pausa: !!B3D.pausa };
           giro.updateMatrixWorld(true); para = { ang: 1.25 + 6.2832 * Math.round((ang - 1.25) / 6.2832), incl: 0.32, zoom: 0.14, foco: giro.worldToLocal(real.localToWorld(new T.Vector3(3.2, 1.35, 0))), n: 1 }; B3D.pausa = true;
         } else { para = salvo2 ? { ang: salvo2.ang + 6.2832 * Math.round((ang - salvo2.ang) / 6.2832), incl: salvo2.incl, zoom: salvo2.zoom, foco: salvo2.foco, n: 0 } : { ang, incl, zoom, foco: foco.clone(), n: 0 }; if (salvo2) B3D.pausa = salvo2.pausa; }
-        B3D._aplicaBanco = aplicaBanco; B3D.banco = on; if (B3D.btBanco) { B3D.btBanco.textContent = on ? "Fechar o banco" : "Ver pia e fogão"; B3D.btBanco.setAttribute("aria-pressed", String(on)); }
+        B3D._aplicaBanco = aplicaBanco; B3D.banco = on; B3D.itemVer = on ? "pia" : (B3D.itemVer === "pia" ? null : B3D.itemVer); if (B3D.aoMudarItem) B3D.aoMudarItem(); if (B3D.btBanco) { B3D.btBanco.textContent = on ? "Fechar o banco" : "Ver pia e fogão"; B3D.btBanco.setAttribute("aria-pressed", String(on)); }
         reap(); tw2 = { t0: performance.now() - (instante ? 5000 : 0), dur: 3400, de, para }; ultimo = performance.now(); B3D.tweenBanco();
       };
       B3D.tweenBanco = () => { if (!tw2) return; const k = Math.min(1, (performance.now() - tw2.t0) / tw2.dur), e = suave(k); ang = lerp(tw2.de.ang, tw2.para.ang, e); incl = lerp(tw2.de.incl, tw2.para.incl, e); zoom = lerp(tw2.de.zoom, tw2.para.zoom, e); foco.lerpVectors(tw2.de.foco, tw2.para.foco, e); nivelBc = lerp(tw2.de.n, tw2.para.n, k); aplicaBanco(nivelBc); posCam(); if (k >= 1) tw2 = null; };
@@ -6156,6 +6155,22 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
         posCam(); if (k >= 1) twc = null; };
       { const b = document.createElement("button"); b.type = "button"; b.textContent = "Fechar a mesa de popa"; b.setAttribute("aria-label", "Fechar ou abrir a mesa de popa"); b.title = "Fecha ou abre a mesa de popa, atrás do banco do piloto. Quando abre, a luz azul da cristaleira acende"; b.hidden = true;
         b.addEventListener("click", (e) => { e.stopPropagation(); B3D.mesa(!B3D.mesaFechada); }); bar.appendChild(b); B3D.btMesa = b; }
+      // ---- Ver no barco: leva a câmera para a área de cada opcional com desenho (pia e fogão, churrasqueira, guincho, capota de proa, GPS) ----
+      B3D.itemVer = null; let twi = null, salvoI = null;
+      const ITENS_VER = { ch: ["churr", -0.95, -0.12, 1.0], gu: ["guincho", -0.95, -0.2, 1.0], cp: ["capProa", -0.8, -0.22, 0.85], gps: ["gps", 1.05, -0.12, 0.7] };   // grupo, ângulo, inclinação, folga
+      const fechaItem = (instante) => { if (!B3D.itemVer) return; const pa = salvoI || { ang, incl, zoom, foco: foco.clone(), pausa: !!B3D.pausa }; B3D.itemVer = null; B3D.pausa = pa.pausa; twi = { t0: performance.now() - (instante ? 9000 : 0), dur: 1300, de: { ang, incl, zoom, foco: foco.clone() }, para: { ang: pa.ang + 6.2832 * Math.round((ang - pa.ang) / 6.2832), incl: pa.incl, zoom: pa.zoom, foco: pa.foco } }; ultimo = performance.now(); B3D.tweenItem(); if (B3D.aoMudarItem) B3D.aoMudarItem(); };
+      B3D.verItem = (k, instante) => {
+        if (!B3D.realOk) return;
+        if (k == null) { if (B3D.itemVer === "pia") { if (B3D.banco && B3D.verBanco) B3D.verBanco(false, instante); } else fechaItem(instante); return; }
+        if (k === "pia") { if (B3D.itemVer && B3D.itemVer !== "pia") fechaItem(true); if (B3D.verBanco && !B3D.banco) B3D.verBanco(true, instante); return; }
+        const d = ITENS_VER[k]; if (!d || !gR[d[0]]) return;
+        if (B3D.banco && B3D.verBanco) B3D.verBanco(false, true); if (B3D.banheiro && B3D.verBanheiro) B3D.verBanheiro(false, true);
+        reap(); real.updateMatrixWorld(true); const bb = new T.Box3().setFromObject(gR[d[0]]); let c, tam = 0.6; if (!bb.isEmpty()) { c = real.worldToLocal(bb.getCenter(new T.Vector3())); const sz = bb.getSize(new T.Vector3()); tam = Math.max(sz.x, sz.y, sz.z); } else c = new T.Vector3(4.0, 1.4, 0);
+        const rr = Math.max(1.0, tam * 2.2 * d[3]), zm = Math.max(0.1, rr / (Math.hypot(6.9, 10.9) * kAsp)); B3D._itemInfo = { c: [c.x, c.y, c.z].map((v) => +v.toFixed(2)), tam: +tam.toFixed(2), zoom: +zm.toFixed(2) };
+        if (!B3D.itemVer) salvoI = { ang, incl, zoom, foco: foco.clone(), pausa: !!B3D.pausa }; giro.updateMatrixWorld(true);
+        B3D.pausa = true; B3D.itemVer = k; twi = { t0: performance.now() - (instante ? 9000 : 0), dur: 1600, de: { ang, incl, zoom, foco: foco.clone() }, para: { ang: d[1] + 6.2832 * Math.round((ang - d[1]) / 6.2832), incl: d[2], zoom: zm, foco: giro.worldToLocal(real.localToWorld(c.clone())) } }; ultimo = performance.now(); B3D.tweenItem(); if (B3D.aoMudarItem) B3D.aoMudarItem();
+      };
+      B3D.tweenItem = () => { if (!twi) return; const k = Math.min(1, (performance.now() - twi.t0) / twi.dur), e = suave(k); ang = lerp(twi.de.ang, twi.para.ang, e); incl = lerp(twi.de.incl, twi.para.incl, e); zoom = lerp(twi.de.zoom, twi.para.zoom, e); foco.lerpVectors(twi.de.foco, twi.para.foco, e); posCam(); if (k >= 1) twi = null; };
       
       { const pb = document.getElementById("at-3d-proa"); if (pb) bar.appendChild(pb); }   // no Atendimento, o botão de mesa ou solário fica junto dos controles da vista
       host.appendChild(bar);
@@ -6196,7 +6211,8 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
       const halton = (i, b) => { let f = 1, r = 0; while (i > 0) { f /= b; r += f * (i % b); i = Math.floor(i / b); } return r; };
       // o: { w, h, ang, incl, zoom, mira, ss, tema ("dark" ou "light"), amostras (0 = decide pela velocidade do aparelho), aoProgresso(fração) }; devolve um <canvas>
       B3D.foto = async (o) => {
-        o = Object.assign({ w: 1600, h: 1000, ang: -0.62, incl: -0.2, zoom: 0.84, mira: 0.22, ss: 1.25, tema: "dark", amostras: 0, aoProgresso: null }, o || {}); if (B3D.banheiro && B3D.verBanheiro) B3D.verBanheiro(false, true); if (B3D.banco && B3D.verBanco) B3D.verBanco(false, true); if (B3D.crist && B3D.verCrist) B3D.verCrist(false, true);   // a imagem final sempre mostra o barco fechado
+        o = Object.assign({ w: 1600, h: 1000, ang: -0.62, incl: -0.2, zoom: 0.84, mira: 0.22, ss: 1.25, tema: "dark", amostras: 0, aoProgresso: null }, o || {}); if (B3D.banheiro && B3D.verBanheiro) B3D.verBanheiro(false, true); if (B3D.banco && B3D.verBanco) B3D.verBanco(false, true); if (B3D.crist && B3D.verCrist) B3D.verCrist(false, true); if (B3D.itemVer && B3D.verItem) B3D.verItem(null, true);   if (B3D.mesaFechada && B3D.mesa) B3D.mesa(false, true);   // a imagem final sempre sai com a mesa de popa aberta
+      // a imagem final sempre mostra o barco fechado
         const es = montaEstudio(), escuro = o.tema !== "light", hemi = cena.children.find((x) => x.isHemisphereLight), lin = (hex) => new T.Color(hex).convertSRGBToLinear();
         const ant = { fov: cam.fov, pr: ren.getPixelRatio(), ang, incl, zoom, kAsp, asp: cam.aspect, env: cena.environment, fundo: cena.background, exp: ren.toneMappingExposure, mapa: sol.shadow.mapSize.x, foco: foco.clone(), hemi: hemi ? hemi.intensity : 0, pulso,
           solP: sol.position.clone(), solI: sol.intensity, solR: sol.shadow.radius, rimI: rim.intensity, chaoO: chao.material.opacity, chaoV: chao.visible, pausa: B3D.pausa };
@@ -6247,7 +6263,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
       if (!arr && !B3D.pausa && t - ultimo > 2500) ang += 0.003;
       if (B3D.tweenBanheiro) B3D.tweenBanheiro();
       if (B3D.tweenBanco) B3D.tweenBanco();
-      if (B3D.tweenMesa) B3D.tweenMesa(); if (B3D.tweenCrist) B3D.tweenCrist();
+      if (B3D.tweenMesa) B3D.tweenMesa(); if (B3D.tweenItem) B3D.tweenItem(); if (B3D.tweenCrist) B3D.tweenCrist();
       posCam();
       if ((B3D._corteOn || B3D._cristOn) && B3D.atualizaCorte) B3D.atualizaCorte();
       if (pulso > 0) { pulso = Math.max(0, pulso - 0.04); const s = 1 + Math.sin(pulso * Math.PI) * 0.03; barco.scale.set(s, s, s); real.scale.set(s, s, s); }
