@@ -371,6 +371,7 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
     { k: "gu", nome: "Kit Fundeio", desc: "Guincho elétrico, corrente inox de 6 mm, trava de corrente e cabo de âncora de 10 m.", itens: [] },
     { k: "extras", nome: "Extras", desc: "Capota de proa e carreta de encalhe.", itens: [["cp", "Capota de proa"], ["ca", "Carreta de encalhe"]] }];
   const VER_ITEM = { pia: "pia", ch: "ch", cp: "cp" };   // itens com desenho no 3D ganham o botão "Ver no barco"; caixa térmica e carreta não têm
+  const RECARGA = (() => { try { const nv = performance.getEntriesByType("navigation")[0]; return !!nv && (nv.type === "reload" || nv.type === "back_forward"); } catch (e) { return false; } })();
   const OPC_CHAVES = ["cp", "ch", "gu", "pia", "cx", "ca", "kc", "gps"];
   const kitTodos = (kit) => (kit.itens.length ? kit.itens.every(([k]) => E[k]) : !!E[kit.k]), kitAlgum = (kit) => (kit.itens.length ? kit.itens.some(([k]) => E[k]) : !!E[kit.k]);
   const atualizaVerBt = () => document.querySelectorAll(".ver-bt").forEach((b) => { const ativo = typeof B3D !== "undefined" && B3D.itemVer === b.dataset.ver; b.textContent = ativo ? "Voltar" : "Ver no barco"; b.setAttribute("aria-pressed", ativo ? "true" : "false"); });
@@ -448,7 +449,7 @@ a.bt.forte, a.bt.forte:visited { color: #fff; }
     if (ok(h.get("m"), ["mercury", "yamaha"])) E.motor = h.get("m");
     { const hv = +h.get("hp"); if (MOTORES_PUB.some((m) => m.marca.toLowerCase() === E.motor && m.hp === hv)) E.hp = hv; E.vv = h.get("vv") === "1" && MOTORES_PUB.some((m) => m.marca.toLowerCase() === E.motor && m.hp === E.hp && m.vv); }
     if (ok(h.get("v"), VISTAS.map((v) => v[0]))) E.vista = h.get("v");
-    if (h.has("o")) { const o = h.get("o").split("."); OPC_CHAVES.forEach((k) => { E[k] = o.includes(k); }); }
+    if (h.has("o") && !RECARGA) { const o = h.get("o").split("."); OPC_CHAVES.forEach((k) => { E[k] = o.includes(k); }); }   // ao recarregar a mesma aba, os opcionais voltam desmarcados (padrão); um link aberto do zero traz as escolhas
     if (E.vv) E.gps = true;                                              // o VesselView já traz o GPS
     E.nb = nomeLimpo(h.get("nb"));
   };
@@ -1210,7 +1211,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
         const titulo = (txt, nota) => { const h = document.createElement("div"); h.className = "b3d-tc-t"; h.textContent = txt; const out = [h]; if (nota) { const nn = document.createElement("div"); nn.className = "b3d-tc-n"; nn.textContent = nota; out.push(nn); } return out; };
         const cSerie = document.createElement("div"), cPers = document.createElement("div"), cOpc = document.createElement("div");
         cSerie.append(...titulo("De série"));
-        cSerie.appendChild(grade([["mesa", "Mesa de popa aberta"], ["capPopa", "Capota de popa"], ["banheiro", "Banheiro (porta aberta)"]])); cSerie.append(...titulo("Proa (troca entre mesa e solário)")); cSerie.appendChild(grade([["proaMesa", "Proa: mesa"], ["proaSol", "Proa: solário"]]));
+        cSerie.appendChild(grade([["mesa", "Mesa de popa aberta"], ["capPopa", "Capota de popa"], ["banheiro", "Banheiro (porta aberta)"], ["proaMesa", "Proa: mesa"], ["proaSol", "Proa: solário"]]));   /* a proa (mesa ou solário) é item de série: fica no mesmo grupo, e os dois botões marcados em exclusão mostram que é uma troca */
         if (comPagina) cPers.append(...titulo("Personalização", "Muda o seu barco."));
         cOpc.append(...titulo("Opcionais"));
         if (!comPagina) cOpc.appendChild(grade([["ch", "Churrasqueira"], ["pia", "Pia e fogão"], ["gu", "Guincho e corrente"], ["cp", "Capota de proa"], ["gps", "GPS"]]));

@@ -6201,7 +6201,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
         const titulo = (txt, nota) => { const h = document.createElement("div"); h.className = "b3d-tc-t"; h.textContent = txt; const out = [h]; if (nota) { const nn = document.createElement("div"); nn.className = "b3d-tc-n"; nn.textContent = nota; out.push(nn); } return out; };
         const cSerie = document.createElement("div"), cPers = document.createElement("div"), cOpc = document.createElement("div");
         cSerie.append(...titulo("De série"));
-        cSerie.appendChild(grade([["mesa", "Mesa de popa aberta"], ["capPopa", "Capota de popa"], ["banheiro", "Banheiro (porta aberta)"]])); cSerie.append(...titulo("Proa (troca entre mesa e solário)")); cSerie.appendChild(grade([["proaMesa", "Proa: mesa"], ["proaSol", "Proa: solário"]]));
+        cSerie.appendChild(grade([["mesa", "Mesa de popa aberta"], ["capPopa", "Capota de popa"], ["banheiro", "Banheiro (porta aberta)"], ["proaMesa", "Proa: mesa"], ["proaSol", "Proa: solário"]]));   /* a proa (mesa ou solário) é item de série: fica no mesmo grupo, e os dois botões marcados em exclusão mostram que é uma troca */
         if (comPagina) cPers.append(...titulo("Personalização", "Muda o seu barco."));
         cOpc.append(...titulo("Opcionais"));
         if (!comPagina) cOpc.appendChild(grade([["ch", "Churrasqueira"], ["pia", "Pia e fogão"], ["gu", "Guincho e corrente"], ["cp", "Capota de proa"], ["gps", "GPS"]]));
