@@ -5853,7 +5853,7 @@ body.gated { overflow: hidden; }
       Object.keys(de).forEach((k) => {
   if (k === "est" || !pt[k]) return;
   if (k === "logo") return;   /* a logo do encosto de popa vem cortada no modelo ("euronav" sem o v): é redesenhada inteira mais adiante */
-  const D = pt[k], P = D.pos, Ix = D.idx, resto = [], mesa = [], cris = [], lid = [], degrau = [];
+  const D = pt[k], P = D.pos, Ix = D.idx, resto = [], mesa = [], cris = [], lid = [], degrau = [], portas = [];
   let cobre = null; const CEL = 0.01, GX0 = 1.5, GZ0 = -1.4, GNX = 400, GNZ = 280;
   if (k === "fibra" && pt.piso) { cobre = new Uint8Array(GNX * GNZ); const PP = pt.piso.pos, II = pt.piso.idx;
     for (let t = 0; t < II.length; t += 3) { const a1 = II[t] * 3, b1 = II[t + 1] * 3, c1 = II[t + 2] * 3, yy = (PP[a1 + 1] + PP[b1 + 1] + PP[c1 + 1]) / 3; if (yy < 0.54 || yy > 0.6) continue;
@@ -5863,11 +5863,13 @@ body.gated { overflow: hidden; }
   for (let t = 0; t < Ix.length; t += 3) { const a = Ix[t] * 3, b = Ix[t + 1] * 3, c = Ix[t + 2] * 3, cx = (P[a] + P[b] + P[c]) / 3, cy = (P[a + 1] + P[b + 1] + P[c + 1]) / 3, cz = (P[a + 2] + P[b + 2] + P[c + 2]) / 3;
     if (k !== "fibra" && FUROS_RED.some(([hx, hy, hz, nx, ny, nz, rr]) => { const dx = cx - hx, dy = cy - hy, dz = cz - hz; return Math.hypot(dx, dy, dz) < rr * 1.2 + 0.03 && (dx * nx + dy * ny + dz * nz) / Math.hypot(nx, ny, nz) > -0.012; })) continue;   /* anéis e tampas que ficam à frente dos furos redondos, retirados */
     let up = false; if (k === "fibra") { const ux = P[b] - P[a], uy = P[b + 1] - P[a + 1], uz = P[b + 2] - P[a + 2], vx = P[c] - P[a], vy = P[c + 1] - P[a + 1], vz = P[c + 2] - P[a + 2], n2y = uz * vx - ux * vz, A2 = Math.hypot(uy * vz - uz * vy, n2y, ux * vy - uy * vx); up = A2 > 1e-12 && n2y / A2 > 0.8; }
+    if (k === "preto" && cx > 3.0 && cx < 3.32 && Math.abs(cz) > 0.39 && Math.abs(cz) < 0.47 && cy > 0.56 && cy < 1.04) { portas.push(Ix[t], Ix[t + 1], Ix[t + 2]); continue; }   /* portinhas laterais do console (uma de cada lado): vêm pretas no modelo e são pintadas de branco, na cor da fibra */
     if (k === "preto" && cx > 3.96 && cx < 4.22 && Math.abs(cz) > 0.05 && Math.abs(cz) < 0.32 && cy > 1.57 && cy < 1.74) { if (cy < 1.62) lid.push(Ix[t], Ix[t + 1], Ix[t + 2]); continue; }   /* porta-objetos do console: o rebaixo fica, a aba levantada (tampa entreaberta do modelo) sai */
     if (up && cobre && cy > 0.54 && cy < 0.6 && cx > 2.3 && cx < 5.2 && Math.abs(cz) < 1 && !cobre[Math.floor((cz - GZ0) / CEL) * GNX + Math.floor((cx - GX0) / CEL)]) degrau.push(Ix[t], Ix[t + 1], Ix[t + 2]);   /* piso de fibra que ficou sem EVA: ganha EVA */
     if (up && ((cy > 0.6 && cy < 0.64 && cx > 3.7 && cx < 4.75 && Math.abs(cz) < 0.55) || (cy >= 0.64 && cy < 0.9 && cx > 3.7 && cx < 3.98 && Math.abs(cz) < 0.55))) degrau.push(Ix[t], Ix[t + 1], Ix[t + 2]);   /* apoio do pé do piloto (rampa inclinada e degrau na base do console): ganha EVA */
     const dest = (regMesa && regMesa(cx, cy, cz)) ? mesa : (k === "fibra" && [a, b, c].some((v) => P[v] > 2.8 && P[v] < 3.15 && P[v + 1] > 0.66 && P[v + 1] < 1.07 && Math.abs(P[v + 2]) < 0.24)) ? cris : resto; dest.push(Ix[t], Ix[t + 1], Ix[t + 2]); }
   malha({ pos: P, nor: D.nor, idx: new Ix.constructor(resto) }, de[k]);
+  if (portas.length) malha({ pos: P, nor: D.nor, idx: new Ix.constructor(portas) }, matR.fibra);
   if (degrau.length) {   // EVA onde o piso do cockpit ficou sem forro (faixa na frente do console): mesma cor do piso e mesmas listras (a cada 5,83 cm, 8 mm, no sentido do comprimento)
     const partido = [], parte = (tr) => { const d = (p, q) => Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]), L = [d(tr[0], tr[1]), d(tr[1], tr[2]), d(tr[2], tr[0])], m = L.indexOf(Math.max(...L)); if (L[m] < 0.04) { partido.push(tr); return; } const p = tr[m], q = tr[(m + 1) % 3], r2 = tr[(m + 2) % 3], mid = [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2, (p[2] + q[2]) / 2]; parte([p, mid, r2]); parte([mid, q, r2]); };
     for (let t = 0; t < degrau.length; t += 3) { const a1 = degrau[t] * 3, b1 = degrau[t + 1] * 3, c1 = degrau[t + 2] * 3; parte([[P[a1], P[a1 + 1], P[a1 + 2]], [P[b1], P[b1 + 1], P[b1 + 2]], [P[c1], P[c1 + 1], P[c1 + 2]]]); }
