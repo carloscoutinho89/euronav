@@ -6178,7 +6178,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
     if (window.ResizeObserver) new ResizeObserver(tamanho).observe(host); tamanho();
     { // controles da vista: capotas, giro, zoom e foco
       if (!document.getElementById("b3d-css")) { const st3 = document.createElement("style"); st3.id = "b3d-css";
-        st3.textContent = ".b3d-bar{position:absolute;left:8px;bottom:8px;display:flex;flex-wrap:wrap;gap:6px;z-index:3;max-width:calc(100% - 16px)}.b3d-bar button{appearance:none;border:1px solid rgba(120,125,135,.45);background:rgba(20,22,26,.72);color:#eef0f3;font:inherit;font-size:.74rem;line-height:1;padding:7px 10px;border-radius:999px;cursor:pointer;white-space:nowrap}.b3d-bar button:hover{background:rgba(20,22,26,.92)}.b3d-bar button[aria-pressed=true]{background:rgba(140,146,156,.5);color:#fff;border-color:rgba(190,196,206,.55)}.b3d-bar .q{min-width:32px;font-size:.95rem;padding:5px 9px}";
+        st3.textContent = ".b3d-bar{position:absolute;left:8px;bottom:8px;display:flex;flex-wrap:wrap;gap:6px;z-index:3;max-width:calc(100% - 16px)}.b3d-bar button{appearance:none;border:1px solid rgba(120,125,135,.45);background:rgba(20,22,26,.72);color:#eef0f3;font:inherit;font-size:.74rem;line-height:1;padding:7px 10px;border-radius:999px;cursor:pointer;white-space:nowrap}.b3d-bar button:hover{background:rgba(20,22,26,.92)}.b3d-bar button[aria-pressed=true]{background:rgba(140,146,156,.5);color:#fff;border-color:rgba(190,196,206,.55)}.b3d-bar .q{min-width:32px;font-size:.95rem;padding:5px 9px}.b3d-topo{position:absolute;top:8px;right:8px;z-index:3;appearance:none;border:1px solid rgba(120,125,135,.45);background:rgba(20,22,26,.72);color:#eef0f3;font:inherit;font-size:.74rem;line-height:1;padding:7px 10px;border-radius:999px;cursor:pointer;white-space:nowrap}.b3d-topo:hover{background:rgba(20,22,26,.92)}.b3d-tc .b3d-topo{display:none!important}";
         document.head.appendChild(st3); }
       if (getComputedStyle(host).position === "static") host.style.position = "relative";
       const bar = document.createElement("div"); bar.className = "b3d-bar";
@@ -6255,7 +6255,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
         document.addEventListener("fullscreenchange", () => { if (!document.fullscreenElement && cheia && nativo) { nativo = false; sai(); } });
         document.addEventListener("keydown", (e) => { if (e.key === "Escape" && cheia) sai(); });
         B3D.telaCheia = (on) => (on === false ? sai() : entra()); B3D.emTelaCheia = () => cheia;
-        btTC = bt("Tela cheia", "Ver só o 3D em tela cheia", () => entra()); }
+        btTC = bt("Tela cheia", "Ver só o 3D em tela cheia", () => entra()); btTC.classList.add("b3d-topo"); host.appendChild(btTC); }   /* sozinho, no canto superior direito do 3D (fora da barra de baixo) */
 
       // ---- Ver banheiro: o assento do nicho do console (virado para a proa) levanta e some, e a câmera vai de frente para o compartimento ----
       let nivelBan = 0, tw = null, salvo = null;
