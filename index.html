@@ -96,12 +96,17 @@ ol.rot li { display: grid; grid-template-columns: 2rem minmax(0, 1fr) auto; gap:
 .lead b { font-family: var(--font-display); font-weight: 600; font-size: 1.2rem; font-variant-numeric: tabular-nums; }
 .lead .n-alert { color: var(--alert); }
 
-.summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--line-strong); border-radius: var(--radius-m); background: var(--surface); overflow: hidden; }
+.summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid var(--line-strong); border-radius: var(--radius-m); background: var(--surface); overflow: hidden; }
+@media (max-width: 980px) { .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); } .sum:nth-child(3) { border-left: 0; } .sum:nth-child(n+3) { border-top: 1px solid var(--line); } }
 @media (max-width: 720px) { .summary { grid-template-columns: 1fr; } }
 .sum { appearance: none; border: 0; background: transparent; color: inherit; font: inherit; text-align: left; padding: 16px 18px 14px; cursor: pointer; display: flex; flex-direction: column; gap: 8px; }
 .sum + .sum { border-left: 1px solid var(--line); }
 @media (max-width: 720px) { .sum + .sum { border-left: 0; border-top: 1px solid var(--line); } }
 .sum:hover { background: var(--blue-soft); }
+.f-crit { appearance: none; -webkit-appearance: none; font: inherit; font-size: .8rem; font-weight: 700; letter-spacing: .02em; border: 1px solid var(--line-strong); border-radius: var(--radius); padding: 3px 10px; cursor: pointer; background: transparent; color: var(--muted); }
+.f-crit.on { color: #fff; background: var(--alert); border-color: var(--alert); }
+.f-crit:disabled { cursor: default; opacity: .7; }
+.row.crit:not(.closed) { box-shadow: inset 3px 0 0 var(--alert); }
 .sum-name { font-weight: 600; }
 .sum-figs { display: flex; align-items: baseline; gap: 8px; }
 .sum-big { font-family: var(--font-display); font-size: 2.6rem; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; }
@@ -869,7 +874,7 @@ body.gated { overflow: hidden; }
   <section id="view-pendencias" class="view">
   <div class="titlebar">
     <h1>Reunião diária: pendências</h1>
-    <p class="sub">Atualizado em 19/11. O evento de lançamento passou; agora são os testes com clientes, combustível, capota e Marinha. Nova subida do barco na segunda (23/11) e Carneiros em 28/11.</p>
+    <p class="sub">Atualizado em 23/11. O evento de lançamento passou; agora são os testes com clientes, combustível, capota, Marinha e o início da fabricação (plano do Robson, de 23 a 27/11). Nova subida do barco hoje (23/11) e Carneiros em 28/11.</p>
   </div>
 
   <p class="banner" id="banner" hidden></p>
@@ -913,6 +918,13 @@ body.gated { overflow: hidden; }
       <span class="bar" id="bar-producao" role="img" aria-label="Pendências por status"></span>
       <span class="sum-line"><span class="alert" id="sum-producao-nodono">–</span> sem dono, <span id="sum-producao-done">–</span> resolvidas de <span id="sum-producao-total">–</span></span>
     </button>
+    <button class="sum" type="button" data-target="sec-fabricacao">
+      <span class="sum-name">Início da fabricação</span>
+      <span class="sum-figs"><span class="sum-big" id="sum-fabricacao-open">–</span><span class="sum-big-label">em aberto</span></span>
+      <span class="bar" id="bar-fabricacao" role="img" aria-label="Pendências por status"></span>
+      <span class="sum-line"><span class="alert" id="sum-fabricacao-nodono">–</span> sem dono, <span id="sum-fabricacao-done">–</span> resolvidas de <span id="sum-fabricacao-total">–</span></span>
+      <span class="sum-line"><span class="alert" id="sum-fabricacao-crit">–</span> críticos em aberto, <span class="alert" id="sum-fabricacao-semprazo">–</span> sem prazo</span>
+    </button>
     <button class="sum" type="button" data-target="sec-comercial">
       <span class="sum-name">Comercial do evento</span>
       <span class="sum-figs"><span class="sum-big" id="sum-comercial-open">–</span><span class="sum-big-label">em aberto</span></span>
@@ -949,6 +961,18 @@ body.gated { overflow: hidden; }
     </div>
     <div class="list" id="list-producao"></div>
     <p class="list-msg" id="msg-producao">Carregando pendências…</p>
+  </section>
+
+  <section class="sec" id="sec-fabricacao" aria-labelledby="h-fabricacao">
+    <div class="sec-head">
+      <div>
+        <h2 id="h-fabricacao">Início da fabricação<span class="count" id="count-fabricacao"></span></h2>
+        <p class="sec-desc">Plano de ação do Robson para preparar a planta e começar a fabricar (semana de 23 a 27/11): materiais, ferramentas, contratação, moldes e infraestrutura do galpão. Os itens críticos aparecem com o selo vermelho.</p>
+      </div>
+      <button class="add" type="button" data-frente="Início da fabricação" disabled>+ Adicionar item</button>
+    </div>
+    <div class="list" id="list-fabricacao"></div>
+    <p class="list-msg" id="msg-fabricacao">Carregando pendências…</p>
   </section>
 
   <section class="sec" id="sec-comercial" aria-labelledby="h-comercial">
@@ -1840,6 +1864,7 @@ body.gated { overflow: hidden; }
   const FRENTES = [
     { key: "Lançamento", id: "lancamento" },
     { key: "Produção", id: "producao" },
+    { key: "Início da fabricação", id: "fabricacao" },
     { key: "Comercial do evento", id: "comercial" }
   ];
   const STATUS = ["Aberta", "Em andamento", "Resolvida", "Adiada"];
@@ -1977,7 +2002,10 @@ body.gated { overflow: hidden; }
     const st = document.createElement("select");
     st.className = "f-status"; st.setAttribute("aria-label", "Status");
     STATUS.forEach((s) => st.appendChild(new Option(s, s)));
-    meta.append(field("Dono", dono), field("Prazo", prazo), st);
+    const crit = document.createElement("button");
+    crit.type = "button"; crit.className = "f-crit"; crit.textContent = "Crítico"; crit.setAttribute("aria-pressed", "false");
+    crit.title = "Marcar ou desmarcar como item crítico";
+    meta.append(field("Dono", dono), field("Prazo", prazo), st, crit);
     main.append(item, sit, meta);
 
     const del = document.createElement("button");
@@ -1996,10 +2024,11 @@ body.gated { overflow: hidden; }
     item.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); sit.focus(); } });
     prazo.addEventListener("change", () => { if (!prazo.value || prazo.validity.valid) save(id, { prazo: prazo.value || "" }); });
     st.addEventListener("change", () => save(id, { status: st.value }));
+    crit.addEventListener("click", () => { const cur = state.docs.get(id); save(id, { critico: !(cur && cur.critico === true) }); });
     chk.addEventListener("change", () => save(id, { status: chk.checked ? "Resolvida" : "Aberta" }));
     del.addEventListener("click", () => removeItem(id));
 
-    row._f = { chk, item, sit, dono, prazo, st };
+    row._f = { chk, item, sit, dono, prazo, st, crit };
     return row;
   }
 
@@ -2015,17 +2044,21 @@ body.gated { overflow: hidden; }
     if (f.st !== active) f.st.value = status;
     f.st.className = "f-status " + STATUS_CLASS[status];
     f.chk.checked = status === "Resolvida";
+    const critico = d.critico === true;
+    f.crit.classList.toggle("on", critico); f.crit.setAttribute("aria-pressed", critico ? "true" : "false"); row.classList.toggle("crit", critico);
     const closed = isClosed(status);
     row.classList.toggle("closed", closed);
     f.dono.classList.toggle("sem-dono", semDono(d) && !closed);
     f.prazo.classList.toggle("late", !!d.prazo && d.prazo < todayStr() && !closed);
-    [f.chk, f.item, f.sit, f.dono, f.prazo, f.st].forEach((el) => { el.disabled = !state.canWrite; });
+    [f.chk, f.item, f.sit, f.dono, f.prazo, f.st, f.crit].forEach((el) => { el.disabled = !state.canWrite; });
     if (row.isConnected) autosize(f.sit);
   }
 
   function sortKey(a, b) {
     const ga = isClosed(a.d.status) ? 1 : 0, gb = isClosed(b.d.status) ? 1 : 0;
     if (ga !== gb) return ga - gb;
+    const ca = a.d.critico === true ? 0 : 1, cb = b.d.critico === true ? 0 : 1;
+    if (ca !== cb) return ca - cb;
     const pa = a.d.prazo || "9999-12-31", pb = b.d.prazo || "9999-12-31";
     if (pa !== pb) return pa < pb ? -1 : 1;
     return (Number(a.d.ordem) || 0) - (Number(b.d.ordem) || 0);
@@ -2129,6 +2162,11 @@ body.gated { overflow: hidden; }
       $("sum-" + f.id + "-nodono").classList.toggle("alert", ndf > 0);
       setText("sum-" + f.id + "-done", String(c.done));
       setText("sum-" + f.id + "-total", String(ds.length));
+      if (f.id === "fabricacao") {
+        const abertos = ds.filter((d) => !isClosed(d.status)), crit = abertos.filter((d) => d.critico === true).length, sp = abertos.filter((d) => !d.prazo).length;
+        setText("sum-fabricacao-crit", String(crit)); $("sum-fabricacao-crit").classList.toggle("alert", crit > 0);
+        setText("sum-fabricacao-semprazo", String(sp)); $("sum-fabricacao-semprazo").classList.toggle("alert", sp > 0);
+      }
       setBar("bar-" + f.id, c, ds.length);
     });
   }
