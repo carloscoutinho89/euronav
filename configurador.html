@@ -40,6 +40,7 @@ button { font: inherit; color: inherit; }
 .vis.foto .titulo h1, .vis.foto .titulo p { color: #fff; text-shadow: 0 1px 8px rgba(0,0,0,.35); }
 .vis.foto #at-3d { visibility: hidden; }
 .selo { position: absolute; right: 16px; top: 16px; z-index: 3; font-size: .74rem; color: var(--muted); background: color-mix(in srgb, var(--bg) 70%, transparent); border: 1px solid var(--line); padding: 5px 10px; border-radius: 999px; }
+.vis:not(.foto) .selo { right: 96px; }   /* deixa o canto livre para o botão Tela cheia */
 .carregando { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 4; font-size: .8rem; color: var(--muted); display: none; }
 .vis.calc .carregando { display: block; }
 .barra { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--line); background: var(--bg); }
@@ -269,7 +270,7 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
 </head>
 <body>
 <header class="top">
-  <div class="marca"><svg class="logo" viewBox="169.87 251.16 502.02 92.63" role="img" aria-label="Euronav"><path class="w" d="M 185.03 327.74 L 229.56 327.74 C 232.53 327.74 234.85 327.06 236.49 325.70 C 237.94 324.19 238.76 322.36 238.96 320.21 L 240.79 300.62 L 190.23 300.62 C 186.73 300.62 183.42 301.40 180.30 302.97 C 176.35 304.96 174.01 307.65 173.27 311.04 L 170.86 336.83 C 172.16 340.80 176.08 342.79 182.61 342.79 L 238.66 342.71 L 239.22 335.89 L 190.15 335.89 C 186.78 335.58 184.93 334.45 184.59 332.52 Z M 194.44 306.81 L 227.98 306.81 L 227.08 316.53 C 226.94 318 226.35 319.30 225.30 320.45 C 224.19 321.18 222.37 321.55 219.87 321.55 L 185.61 321.55 L 186.42 312.92 C 186.60 311.04 187.52 309.53 189.19 308.38 C 190.70 307.33 192.45 306.81 194.44 306.81 Z M 300.33 300.62 L 296.98 336.60 L 263.74 336.60 C 261.70 336.60 260.05 336.10 258.78 335.11 C 257.32 333.96 256.69 332.42 256.87 330.48 L 259.66 300.62 L 245.55 300.62 L 242.62 331.97 C 242.66 335.42 244.62 338.19 248.50 340.28 C 251.64 341.95 254.93 342.79 258.38 342.79 L 310.58 342.79 L 314.52 300.62 Z M 358.94 300.62 L 319.28 300.62 L 315.34 342.79 L 329.68 342.79 L 333.05 306.81 L 353.58 306.81 C 355.62 306.81 357.30 307.31 358.62 308.30 C 360.07 309.45 360.71 310.99 360.53 312.92 L 360.13 317.24 L 374.40 317.24 L 374.95 311.28 C 374.86 307.83 372.84 305.08 368.90 303.05 C 365.76 301.43 362.44 300.62 358.94 300.62 Z M 433.07 300.62 L 380.71 300.62 L 377.78 331.97 C 377.82 335.42 379.78 338.19 383.66 340.28 C 386.80 341.95 390.09 342.79 393.54 342.79 L 445.74 342.79 L 448.69 311.28 C 448.59 307.83 446.65 305.08 442.87 303.05 C 439.83 301.43 436.57 300.62 433.07 300.62 Z M 431.98 336.60 L 398.90 336.60 C 396.86 336.60 395.21 336.10 393.94 335.11 C 392.48 333.96 391.84 332.42 392.02 330.48 L 394.24 306.81 L 427.63 306.81 C 429.66 306.81 431.26 307.31 432.42 308.30 C 433.78 309.45 434.37 310.99 434.19 312.92 Z M 506.80 300.62 L 454.44 300.62 L 450.50 342.79 L 465.08 342.79 L 468.44 306.81 L 501.36 306.81 C 503.40 306.81 505.11 307.33 506.50 308.38 C 507.89 309.42 508.50 310.94 508.31 312.92 L 505.52 342.79 L 519.87 342.79 L 522.81 311.28 C 522.71 307.83 520.70 305.08 516.76 303.05 C 513.62 301.43 510.30 300.62 506.80 300.62 Z M 580.37 300.62 L 528.56 300.62 L 527.98 306.81 L 574.93 306.81 C 576.97 306.81 578.71 307.36 580.15 308.46 C 581.59 309.55 582.22 311.07 582.04 313.00 L 581.82 315.35 L 537.92 315.35 C 531.29 315.35 527.48 317.78 526.50 322.64 L 525.35 334.95 C 526.07 340.17 530.26 342.79 537.95 342.79 L 593.28 342.79 L 596.21 311.44 C 596.11 308.04 594.12 305.30 590.24 303.21 C 587.01 301.48 583.72 300.62 580.37 300.62 Z M 545.42 335.81 C 542.16 335.50 540.35 334.37 540.01 332.44 L 540.67 325.39 C 540.84 323.56 541.63 322.41 543.03 321.94 C 543.79 321.68 545.39 321.55 547.85 321.55 L 581.24 321.55 L 579.91 335.81 Z M 656.61 300.62 L 653.25 336.60 L 634.67 336.60 L 614.06 321.55 L 616.01 300.62 L 601.98 300.62 L 600.03 321.55 L 629.47 342.79 L 666.94 342.79 L 670.88 300.62 Z M 656.61 300.62 "/><path class="a" d="M 487.59 252.16 L 471.12 274.21 L 454.65 296.25 L 483.80 287.72 L 487.59 282.64 L 491.38 287.72 L 520.53 296.25 L 504.06 274.21 Z M 487.59 252.16 "/></svg><span><span class="es-logo" role="img" aria-label="Euro Sette"></span> · Configurador</span></div>
+  <div class="marca"><svg class="logo" viewBox="169.87 251.16 502.02 92.63" role="img" aria-label="Euronav"><path class="w" d="M 185.03 327.74 L 229.56 327.74 C 232.53 327.74 234.85 327.06 236.49 325.70 C 237.94 324.19 238.76 322.36 238.96 320.21 L 240.79 300.62 L 190.23 300.62 C 186.73 300.62 183.42 301.40 180.30 302.97 C 176.35 304.96 174.01 307.65 173.27 311.04 L 170.86 336.83 C 172.16 340.80 176.08 342.79 182.61 342.79 L 238.66 342.71 L 239.22 335.89 L 190.15 335.89 C 186.78 335.58 184.93 334.45 184.59 332.52 Z M 194.44 306.81 L 227.98 306.81 L 227.08 316.53 C 226.94 318 226.35 319.30 225.30 320.45 C 224.19 321.18 222.37 321.55 219.87 321.55 L 185.61 321.55 L 186.42 312.92 C 186.60 311.04 187.52 309.53 189.19 308.38 C 190.70 307.33 192.45 306.81 194.44 306.81 Z M 300.33 300.62 L 296.98 336.60 L 263.74 336.60 C 261.70 336.60 260.05 336.10 258.78 335.11 C 257.32 333.96 256.69 332.42 256.87 330.48 L 259.66 300.62 L 245.55 300.62 L 242.62 331.97 C 242.66 335.42 244.62 338.19 248.50 340.28 C 251.64 341.95 254.93 342.79 258.38 342.79 L 310.58 342.79 L 314.52 300.62 Z M 358.94 300.62 L 319.28 300.62 L 315.34 342.79 L 329.68 342.79 L 333.05 306.81 L 353.58 306.81 C 355.62 306.81 357.30 307.31 358.62 308.30 C 360.07 309.45 360.71 310.99 360.53 312.92 L 360.13 317.24 L 374.40 317.24 L 374.95 311.28 C 374.86 307.83 372.84 305.08 368.90 303.05 C 365.76 301.43 362.44 300.62 358.94 300.62 Z M 433.07 300.62 L 380.71 300.62 L 377.78 331.97 C 377.82 335.42 379.78 338.19 383.66 340.28 C 386.80 341.95 390.09 342.79 393.54 342.79 L 445.74 342.79 L 448.69 311.28 C 448.59 307.83 446.65 305.08 442.87 303.05 C 439.83 301.43 436.57 300.62 433.07 300.62 Z M 431.98 336.60 L 398.90 336.60 C 396.86 336.60 395.21 336.10 393.94 335.11 C 392.48 333.96 391.84 332.42 392.02 330.48 L 394.24 306.81 L 427.63 306.81 C 429.66 306.81 431.26 307.31 432.42 308.30 C 433.78 309.45 434.37 310.99 434.19 312.92 Z M 506.80 300.62 L 454.44 300.62 L 450.50 342.79 L 465.08 342.79 L 468.44 306.81 L 501.36 306.81 C 503.40 306.81 505.11 307.33 506.50 308.38 C 507.89 309.42 508.50 310.94 508.31 312.92 L 505.52 342.79 L 519.87 342.79 L 522.81 311.28 C 522.71 307.83 520.70 305.08 516.76 303.05 C 513.62 301.43 510.30 300.62 506.80 300.62 Z M 580.37 300.62 L 528.56 300.62 L 527.98 306.81 L 574.93 306.81 C 576.97 306.81 578.71 307.36 580.15 308.46 C 581.59 309.55 582.22 311.07 582.04 313.00 L 581.82 315.35 L 537.92 315.35 C 531.29 315.35 527.48 317.78 526.50 322.64 L 525.35 334.95 C 526.07 340.17 530.26 342.79 537.95 342.79 L 593.28 342.79 L 596.21 311.44 C 596.11 308.04 594.12 305.30 590.24 303.21 C 587.01 301.48 583.72 300.62 580.37 300.62 Z M 545.42 335.81 C 542.16 335.50 540.35 334.37 540.01 332.44 L 540.67 325.39 C 540.84 323.56 541.63 322.41 543.03 321.94 C 543.79 321.68 545.39 321.55 547.85 321.55 L 581.24 321.55 L 579.91 335.81 Z M 656.61 300.62 L 653.25 336.60 L 634.67 336.60 L 614.06 321.55 L 616.01 300.62 L 601.98 300.62 L 600.03 321.55 L 629.47 342.79 L 666.94 342.79 L 670.88 300.62 Z M 656.61 300.62 "/><path class="a" d="M 487.59 252.16 L 471.12 274.21 L 454.65 296.25 L 483.80 287.72 L 487.59 282.64 L 491.38 287.72 L 520.53 296.25 L 504.06 274.21 Z M 487.59 252.16 "/></svg><span>· Configurador</span></div>
   <div class="acoes">
     <button class="bt" type="button" id="b-share">Compartilhar</button>
     <a class="bt" id="b-cat" href="catalogo-euro-sette.pdf" target="_blank" rel="noopener" hidden>Catálogo técnico</a>
@@ -494,6 +495,26 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
   const gravarHash = () => { try { history.replaceState(null, "", hashAtual()); } catch (e) { /* ignora */ } };
   // ---------- 3D ----------
   const B3D = { estado: "off" };
+  // Resolução dinâmica do 3D: se o aparelho não sustenta a taxa de quadros da tela, o barco passa a ser desenhado com um pouco menos de pixels (o giro fica fluido);
+  // quando sobra folga, a resolução sobe de novo. Em telas de alta densidade e janelas grandes isso evita as "mini travadas".
+  function b3dCtrlRes(prMax0, prMin) {
+    const c = { pr: prMax0, max: prMax0, ema: 0, ult: 0, tAdj: 0, n: 0, teto: 99, tTeto: 0 };
+    c.limite = (m) => { c.max = m; if (c.pr > m) { c.pr = m; return true; } return false; };   // limite pelo tamanho da tela de desenho
+    c.quadro = (t) => {   // chamar a cada quadro desenhado; devolve o novo pixel ratio quando precisa mudar, senão null
+      const dt = c.ult ? t - c.ult : 0; c.ult = t;
+      if (dt > 0 && dt < 100) { c.ema = c.ema ? c.ema * 0.9 + dt * 0.1 : dt; c.n++; }
+      else if (dt >= 100) c.n = Math.max(0, c.n - 3);   // pausas longas (aba em segundo plano, carregamento) não contam
+      if (c.n < 60 || t - c.tAdj < 1500) return null;
+      let novo = null;
+      if (c.ema > 21 && c.pr > prMin + 0.02) { c.teto = c.pr; c.tTeto = t; novo = Math.max(prMin, c.pr * 0.85); }   // abaixo de ~47 quadros por segundo: reduz
+      else if (c.ema < 18.2 && c.pr < c.max - 0.02 && t - c.tAdj > 10000 && (c.pr * 1.12 < c.teto || t - c.tTeto > 90000)) novo = Math.min(c.max, c.pr * 1.12);   // com folga: tenta subir de novo
+      if (novo == null) return null;
+      novo = Math.round(novo * 20) / 20; if (Math.abs(novo - c.pr) < 0.04) return null;
+      c.pr = novo; c.tAdj = t; c.ema = 0; c.ult = 0; c.n = 30; return novo;
+    };
+    return c;
+  }
+  const b3dPrCap = (w, h, disp) => Math.max(0.75, Math.min(disp, Math.floor(Math.sqrt(4.2e6 / Math.max(1, w * h)) * 20) / 20));   // limite de pixels: janelas enormes não passam de ~4 megapixels
   const B3D_EST = { Branco: 0xF1EFEA, Bege: 0xB5835A, Cinza: 0x8C9197 };
   const B3D_PISO = { Branco: ["#E8E6E0", "#B8B5AD"], Bege: ["#B07E55", "#E4D3BD"], Cinza: ["#8D8E8B", "#E2E1DC"] };
   const b3dVisivel = () => E.vista === "360" && !document.hidden;
@@ -533,7 +554,7 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
     if (!T || !host) { B3D.estado = "erro"; return; }
     let ren;
     try { ren = new T.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" }); } catch (e) { B3D.estado = "erro"; const c = $("at-3d"); if (c) c.hidden = true; return; }
-    ren.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+    const PR_DISP = Math.min(2, window.devicePixelRatio || 1), ctrl = b3dCtrlRes(PR_DISP, Math.min(1, PR_DISP)); B3D.ctrlRes = ctrl; ren.setPixelRatio(ctrl.pr);
     ren.outputEncoding = T.sRGBEncoding; ren.toneMapping = T.ACESFilmicToneMapping; ren.toneMappingExposure = 0.84;
     ren.shadowMap.enabled = true; ren.shadowMap.type = T.PCFSoftShadowMap;
     host.appendChild(ren.domElement);
@@ -1216,7 +1237,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
     const solta = (e) => { dedos.delete(e.pointerId); if (dedos.size < 2) pinca = null; if (!dedos.size) { arr = null; host.classList.remove("arrastando"); } };
     host.addEventListener("pointerup", solta); host.addEventListener("pointercancel", solta);
     host.addEventListener("wheel", (e) => { if (e.target.closest && e.target.closest(".b3d-tc-painel")) return; if (!(($("at-3d") && $("at-3d").classList.contains("grande")) || host.classList.contains("b3d-tc"))) return; e.preventDefault(); zoom = Math.min(ZMAX, Math.max(ZMIN, zoom * (1 + e.deltaY * 0.0012))); ultimo = performance.now(); posCam(); }, { passive: false });
-    const tamanho = () => { if (B3D.fotografando) return; const w = host.clientWidth || 300, h = host.clientHeight || 260; ren.setSize(w, h, false); ren.domElement.style.width = "100%"; ren.domElement.style.height = "100%"; cam.aspect = w / h; kAsp = Math.max(1, 1.62 / cam.aspect); if (B3D._tcOffset) cam.setViewOffset(w, h, 0, B3D._tcOffset, w, h); else cam.clearViewOffset(); posCam(); cam.updateProjectionMatrix(); };
+    const tamanho = () => { if (B3D.fotografando) return; const w = host.clientWidth || 300, h = host.clientHeight || 260; if (ctrl.limite(b3dPrCap(w, h, PR_DISP))) ren.setPixelRatio(ctrl.pr); ren.setSize(w, h, false); ren.domElement.style.width = "100%"; ren.domElement.style.height = "100%"; cam.aspect = w / h; kAsp = Math.max(1, 1.62 / cam.aspect); if (B3D._tcOffset) cam.setViewOffset(w, h, 0, B3D._tcOffset, w, h); else cam.clearViewOffset(); posCam(); cam.updateProjectionMatrix(); };
     if (window.ResizeObserver) new ResizeObserver(tamanho).observe(host); tamanho();
     { // controles da vista: capotas, giro, zoom e foco
       if (!document.getElementById("b3d-css")) { const st3 = document.createElement("style"); st3.id = "b3d-css";
@@ -1478,6 +1499,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
     const loop = (t) => {
       requestAnimationFrame(loop);
       if (B3D.fotografando || !b3dVisivel() || document.hidden) return;
+      { const np = ctrl.quadro(t); if (np) ren.setPixelRatio(np); }   // resolução dinâmica
       if (!arr && !B3D.pausa && t - ultimo > 2500) ang += 0.003;
       if (B3D.tweenBanheiro) B3D.tweenBanheiro();
       if (B3D.tweenBanco) B3D.tweenBanco();
@@ -1639,7 +1661,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
   const orcMotorTxt = (m) => (m[2] ? m[2] + ". Garantia do fabricante." : "Garantia do fabricante");
   function orcMontar() {
     document.body.classList.add("com-precos");
-    document.title = "Euro Sette · Orçamento"; document.querySelector(".marca span").innerHTML = '<span class="es-logo" role="img" aria-label="Euro Sette"></span> · Orçamento';
+    document.title = "Euro Sette · Orçamento"; document.querySelector(".marca span").innerHTML = '· Orçamento';
     document.querySelector(".titulo p").textContent = ORC.n ? "Orçamento para " + ORC.n : "Orçamento";
     document.querySelector(".contato .ct-p").textContent = "Confirme seu nome e telefone. O atendente da Euronav recebe a sua escolha e o valor, e entra em contato para fechar os detalhes.";
     const hk = $("orc-kits"); [0, 1, 2, 3, 4, 6].forEach((j) => { const tj = ORC.t[j]; if (!tj) return;
@@ -1939,6 +1961,20 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
   })();
   window.addEventListener("hashchange", () => { lerHash(); render(); });
 })();
+</script>
+<script>
+/* marcador de versão e diagnóstico: só aparece quando o endereço tem ?v=NN (o mesmo que a equipe usa para furar o cache); o cliente não vê */
+(function () { try {
+  if (!/[?&]v=/.test(location.search)) return;
+  var e = document.createElement("div"); e.id = "versao-cfg"; e.textContent = "Configurador v88 · 26/11";
+  e.style.cssText = "position:fixed;left:8px;bottom:6px;z-index:60;font:11px/1 system-ui,sans-serif;letter-spacing:.04em;color:#c9ccd2;background:rgba(0,0,0,.55);padding:4px 8px;border-radius:999px;pointer-events:none";
+  document.body.appendChild(e);
+  var n = 0, lentos = 0, ult = 0, t0 = performance.now(), cv = null;
+  (function tick(t) { n++; if (ult && t - ult > 25) lentos++; ult = t;
+    if (t - t0 >= 1000) { cv = cv || document.querySelector("#at-3d-v canvas"); var pr = cv && cv.clientWidth ? cv.width / cv.clientWidth : 0;
+      e.textContent = "Configurador v88 · 26/11 · " + Math.round(n * 1000 / (t - t0)) + " fps · res " + (pr ? pr.toFixed(2) + "x" : "-") + " · " + lentos + " quadros lentos/s"; n = 0; lentos = 0; t0 = t; }
+    requestAnimationFrame(tick); })(performance.now());
+} catch (x) { /* sem marcador */ } })();
 </script>
 </body>
 </html>
