@@ -273,6 +273,7 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
 .cod-bt:hover { border-color: var(--line); color: inherit; }
 .orc-ola { margin: 0 0 14px; padding: 12px 14px; border: 1px solid var(--line); border-left: 3px solid #3B5999; border-radius: 10px; }
 .orc-ola b { display: block; font-size: 1.05rem; }
+.orc-ola.vencida { border-left-color: #c9822b; }
 .orc-atual { margin-top: 14px; }
 .orc-atual .bt { width: 100%; letter-spacing: .04em; padding-left: 6px; padding-right: 6px; white-space: normal; }
 .orc-atual .dica { margin: 8px 0 0; text-align: center; }
@@ -1739,6 +1740,8 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
   }
   function orcSync() { const m = ORC.m[ORCS.mi]; E.motor = /yamaha/i.test(m[1]) ? "yamaha" : "mercury"; E.hp = motorHp(m[1]) || E.hp; E.vv = !!m[4] || /vessel/i.test(m[1]); E.cp = !!((ORCS.mk >> 3) & 1); E.ch = !!((ORCS.mk >> 1) & 1); E.gu = !!((ORCS.mk >> 2) & 1); E.pia = !!((ORCS.mk >> 1) & 1); E.cx = E.pia; E.kc = !!(ORCS.mk & 1); E.ca = !!((ORCS.mk >> 4) & 1); E.gps = !!m[4] || !!((ORCS.mk >> 6) & 1); }
   const orcMotorTxt = (m) => (m[2] ? m[2] + ". Garantia do fabricante." : "Garantia do fabricante");
+  const hojeLocal = () => { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };   // a data de hoje no relógio do cliente (não em UTC, que vira o dia às 21h em Recife)
+  const orcVencido = () => !!(ORC && ORC.val && hojeLocal() > ORC.val), orcDataBR = (iso) => String(iso || "").split("-").reverse().join("/");
   const orcSig = () => { const p = new URLSearchParams(hashAtual(false).slice(1)); p.delete("v"); return p.toString(); };   // a configuração sem a vista (girar o 3D não é mudança)
   function orcOla() {
     const nm = String((ORC && ORC.n) || "").trim().split(/\s+/)[0], prim = nm ? nm.charAt(0).toUpperCase() + nm.slice(1).toLowerCase() : "";
@@ -1746,12 +1749,13 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
     const h = document.createElement("div"), b = document.createElement("b"), p = document.createElement("span"); h.className = "orc-ola";
     b.textContent = (volta ? "Bem-vindo de volta" : "Olá") + (prim ? ", " + prim : "") + "!";
     p.textContent = volta ? "Aqui está o seu Euro Sette. Ajuste o que quiser e, quando terminar, toque em “Enviar minha configuração atualizada”." : "Preparamos este orçamento para você. Mexa nas opções à vontade para ver como o valor muda e, quando terminar, toque em “Enviar minha configuração atualizada”.";
+    if (orcVencido()) { p.textContent = "Esta proposta venceu em " + orcDataBR(ORC.val) + ". Você pode continuar vendo a sua configuração, mas os valores precisam ser confirmados. Toque em “Solicitar novo orçamento” e o atendente da Euronav atualiza para você."; h.classList.add("vencida"); }
     h.append(b, p); const as = document.querySelector("aside"); if (as) as.insertBefore(h, as.firstChild);   /* no topo da coluna de opções: nunca por cima do 3D */
   }
   function orcRevAtual() {
-    const b = $("b-atual"), b2 = $("b-atual2"); if (!b || !ORC || !ORCCOD) return; const agora = orcSig(), mudou = agora !== ORCHASH0, enviado = !!ORCENV && agora === ORCENV;
-    [b, b2].forEach((x) => { if (!x) return; x.disabled = !mudou || enviado; x.textContent = enviado ? "Atualização enviada ✓" : "Enviar minha configuração atualizada"; x.title = mudou ? "" : "Mude alguma opção para poder enviar uma atualização."; });
-    const dd = $("orc-atual-d"); if (dd) dd.textContent = enviado ? "O atendente da Euronav já recebeu esta versão. Se mudar mais alguma coisa, é só enviar de novo." : mudou ? "Quando terminar de ajustar, envie para o atendente da Euronav conferir." : "Mude alguma opção acima (cores, motor, kits...) para poder enviar a sua atualização.";
+    const b = $("b-atual"), b2 = $("b-atual2"); if (!b || !ORC || !ORCCOD) return; const agora = orcSig(), mudou = agora !== ORCHASH0, enviado = !!ORCENV && agora === ORCENV, venc = orcVencido();
+    [b, b2].forEach((x) => { if (!x) return; x.disabled = enviado || (!venc && !mudou); x.textContent = venc ? (enviado ? "Pedido enviado ✓" : "Solicitar novo orçamento") : (enviado ? "Atualização enviada ✓" : "Enviar minha configuração atualizada"); x.title = venc || mudou ? "" : "Mude alguma opção para poder enviar uma atualização."; });
+    const dd = $("orc-atual-d"); if (dd) dd.textContent = venc ? (enviado ? "O atendente da Euronav recebeu o seu pedido e vai atualizar o orçamento." : "A proposta venceu em " + orcDataBR(ORC.val) + ". Toque para pedir ao atendente um novo orçamento com a sua configuração.") : enviado ? "O atendente da Euronav já recebeu esta versão. Se mudar mais alguma coisa, é só enviar de novo." : mudou ? "Quando terminar de ajustar, envie para o atendente da Euronav conferir." : "Mude alguma opção acima (cores, motor, kits...) para poder enviar a sua atualização.";
   }
   async function enviarAtualizacao() {   // envio direto: o atendimento já existe e o código identifica o cliente, então não pede nome nem telefone
     if (!ORC || !ORCCOD) { aviso("Para enviar a atualização, abra o orçamento pelo seu código."); return; }
@@ -1760,11 +1764,11 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
     let tel = telOk(c.tel) ? c.tel : "", email = emailOk(c.email) ? c.email : "";
     if (!tel && !email) tel = "(00) 00000-0000";   // a planilha exige telefone ou e-mail para aceitar o registro; o contato verdadeiro já está no atendimento do código
     const ini = /Valor total (R\$\s?[\d.]+)/.exec(ORCRESUMO0 || ""), atual = $("resumo").textContent, tot = /Valor total (R\$\s?[\d.]+)/.exec(atual), resto = atual.replace(/^Valor total R\$\s?[\d.]+ \(impostos incluídos\)\.\s*/, "");
-    const resumo = "Atualização de orçamento · código " + ORCCOD + ". Valor total " + (tot ? tot[1] : "") + (ini ? " (antes " + ini[1] + ")" : "") + ". " + resto;   // o código vai no começo do texto: o campo canal da planilha corta em 20 letras
+    const venc = orcVencido(), resumo = "Atualização de orçamento · código " + ORCCOD + ". " + (venc ? "PROPOSTA VENCIDA em " + orcDataBR(ORC.val) + ": o cliente pede novo orçamento. " : "") + "Valor total " + (tot ? tot[1] : "") + (ini ? " (antes " + ini[1] + ")" : "") + ". " + resto;   // o código vai no começo do texto: o campo canal da planilha corta em 20 letras
     const corpo = JSON.stringify({ acao: "lead", id: "on-rev" + ORCCOD.toLowerCase() + "euronav2026", nome, tel, email, canal: "Atualização", site: "", link: linkCfg(), resumo });
     [$("b-atual"), $("b-atual2")].forEach((x) => { if (x) { x.disabled = true; x.textContent = "Enviando…"; } });
     let ok = false; try { const r = await fetch(API_LEAD, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: corpo, redirect: "follow" }); const j = await r.json(); ok = !!(j && j.ok); } catch (e) { ok = false; }
-    if (ok) { ORCENV = orcSig(); orcRevAtual(); aviso("Atualização enviada! O atendente da Euronav recebeu a sua nova configuração e entra em contato."); }
+    if (ok) { ORCENV = orcSig(); orcRevAtual(); aviso(venc ? "Pedido enviado! O atendente da Euronav recebeu a sua configuração e vai atualizar o orçamento para você." : "Atualização enviada! O atendente da Euronav recebeu a sua nova configuração e entra em contato."); }
     else { orcRevAtual(); aviso("Não foi possível enviar agora. Tente de novo em instantes ou fale com o atendente pelo WhatsApp."); }
   }
   function orcMontar() {
@@ -1797,7 +1801,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
     const cond = ORC.d && ORC.cs ? S - (ORC.cs + somaOut) : 0;   /* condição especial já aplicada nos preços: aparece como linha própria */
     lin("Casco Euro Sette com kit básico", reais(cond < -0.5 ? ORC.cs : S - somaOut)); linhas.forEach(([, n, v]) => lin(n, v ? reais(v) : "Incluso")); if (cond < -0.5) lin("Condição especial", "− " + reais(-cond));
     lin("Subtotal", reais(S), "sub"); lin("IPI (" + String(ORC.ip).replace(".", ",") + "%)", reais(ipi)); lin("Valor total", reais(total), "tot");
-    const hoje = new Date().toISOString().slice(0, 10), val = ORC.val.split("-").reverse().join("/");
+    const hoje = hojeLocal(), val = ORC.val.split("-").reverse().join("/");
     $("orc-nota").innerHTML = ""; const nt = document.createElement("span"); nt.textContent = "Valores em reais, com impostos incluídos, válidos até " + val + ". Proposta sujeita à confirmação por escrito. " + (ORC.d ? "A condição especial desta proposta já está aplicada e acompanha o que você escolher. O pagamento fica com o atendente." : "A condição especial e o pagamento ficam com o atendente."); $("orc-nota").appendChild(nt);
     if (hoje > ORC.val) { const ex = document.createElement("b"); ex.textContent = " Este orçamento venceu em " + val + ": peça ao atendente a atualização dos valores."; $("orc-nota").appendChild(ex); }
     // texto que acompanha o contato: valor, motor, kits e cores
@@ -2077,7 +2081,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
 /* marcador de versão e diagnóstico: só aparece quando o endereço tem ?v=NN (o mesmo que a equipe usa para furar o cache); o cliente não vê */
 (function () { try {
   if (!/[?&]v=/.test(location.search)) return;
-  var e = document.createElement("div"); e.id = "versao-cfg"; e.textContent = "Configurador v102 · 26/11";
+  var e = document.createElement("div"); e.id = "versao-cfg"; e.textContent = "Configurador v103 · 26/11";
   e.style.cssText = "position:fixed;left:8px;bottom:6px;z-index:60;max-width:92vw;font:11px/1.35 system-ui,sans-serif;letter-spacing:.03em;color:#c9ccd2;background:rgba(0,0,0,.6);padding:5px 9px;border-radius:12px;pointer-events:none";
   document.body.appendChild(e);
   var nav = (function () { try { var b = (navigator.userAgentData && navigator.userAgentData.brands) || [], nomes = b.map(function (x) { return x.brand; }).join(" "); if (/Edge/i.test(nomes) || /Edg\//.test(navigator.userAgent)) return "Edge"; if (/Chrome/i.test(nomes) || /Chrome\//.test(navigator.userAgent)) return "Chrome"; if (/Safari/.test(navigator.userAgent)) return "Safari"; if (/Firefox/.test(navigator.userAgent)) return "Firefox"; } catch (x) {} return "navegador?"; })();
@@ -2085,7 +2089,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
   var n = 0, lentos = 0, ult = 0, t0 = performance.now(), cv = null;
   (function tick(t) { n++; if (ult && t - ult > 25) lentos++; ult = t;
     if (t - t0 >= 1000) { cv = cv || document.querySelector("#at-3d-v canvas"); var pr = cv && cv.clientWidth ? cv.width / cv.clientWidth : 0;
-      e.innerHTML = "Configurador v102 · 26/11 · " + Math.round(n * 1000 / (t - t0)) + " fps · res " + (pr ? pr.toFixed(2) + "x" : "-") + (window.__b3dOrc ? " (orçamento " + (window.__b3dOrc / 1e6).toFixed(2) + " MP" + (window.__b3dSw ? ", por software" : "") + ")" : "") + " · " + lentos + " quadros lentos/s<br>" + nav + " · " + gpuTxt() + " · tela " + (window.devicePixelRatio || 1) + "x"; n = 0; lentos = 0; t0 = t; }
+      e.innerHTML = "Configurador v103 · 26/11 · " + Math.round(n * 1000 / (t - t0)) + " fps · res " + (pr ? pr.toFixed(2) + "x" : "-") + (window.__b3dOrc ? " (orçamento " + (window.__b3dOrc / 1e6).toFixed(2) + " MP" + (window.__b3dSw ? ", por software" : "") + ")" : "") + " · " + lentos + " quadros lentos/s<br>" + nav + " · " + gpuTxt() + " · tela " + (window.devicePixelRatio || 1) + "x"; n = 0; lentos = 0; t0 = t; }
     requestAnimationFrame(tick); })(performance.now());
 } catch (x) { /* sem marcador */ } })();
 </script>

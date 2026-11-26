@@ -1388,7 +1388,7 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
           <div class="at-acesso" id="at-acesso">
             <p class="c-hint"><b>Código de acesso ao orçamento.</b> O cliente digita este código no botão "Tenho um código", no topo do configurador (ao lado de "Compartilhar"), e vê a configuração dele com os preços, sem precisar de link.</p>
             <p class="at-acesso-l"><code class="at-cod" id="at-cod">------</code> <button class="c-link" type="button" id="at-cod-gerar">Gerar / atualizar preços do código</button> · <button class="c-link" type="button" id="at-cod-copiar">Copiar código</button></p>
-            <p class="at-acesso-l"><button class="c-link" type="button" id="at-cod-zap">Enviar mensagem pelo WhatsApp</button> · <button class="c-link" type="button" id="at-cod-so">Enviar só o código (fácil de copiar)</button> · <button class="c-link" type="button" id="at-cod-msg">Copiar a mensagem</button></p>
+            <p class="at-acesso-l"><button class="c-link" type="button" id="at-cod-zap">1º passo: enviar a mensagem pelo WhatsApp</button> · <button class="c-link" type="button" id="at-cod-so">2º passo: enviar o código sozinho (para copiar fácil)</button> · <button class="c-link" type="button" id="at-cod-msg">Copiar a mensagem</button></p>
             <p class="c-hint" id="at-cod-st" role="status"></p>
           </div>
           </div>
@@ -4844,7 +4844,7 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
     y += 2;
 
     // ---- condições ----
-    const cond = [["Validade", "Proposta válida por " + d.validade + " dias, até " + dd(d.val) + "."], ["Entrega", d.entrega + " Valor para retirada no estaleiro da Euronav, em Recife/PE."], ["Pagamento", d.pagamento], ["Garantia", "Casco e tubulões: 2 anos contra defeitos de fabricação estrutural (1 ano em uso profissional ou comercial). Demais itens: 12 meses contra vícios de fabricação. Motor: garantia do fabricante."]];
+    const cond = [["Validade", (d.validade ? "Proposta válida por " + d.validade + " dias, até " + dd(d.val) + "." : "Proposta válida até " + dd(d.val) + ".")], ["Entrega", d.entrega + " Valor para retirada no estaleiro da Euronav, em Recife/PE."], ["Pagamento", d.pagamento], ["Garantia", "Casco e tubulões: 2 anos contra defeitos de fabricação estrutural (1 ano em uso profissional ou comercial). Demais itens: 12 meses contra vícios de fabricação. Motor: garantia do fabricante."]];
     const cw2 = (CW - 10) / 2, cf = CP > 1 ? 7.8 : CP ? 8.4 : 9, cl = CP > 1 ? 3.2 : CP ? 3.55 : 3.9, cp0 = CP > 1 ? 5 : CP ? 6 : 6.5;   // com CP, o bloco das condições fica um pouco mais compacto
     font(false, cf); const c0 = cp0 + Math.max(doc.splitTextToSize(cond[0][1], cw2 - 6).length, doc.splitTextToSize(cond[1][1], cw2 - 6).length) * cl;
     const c1 = cp0 + Math.max(doc.splitTextToSize(cond[2][1], cw2 - 6).length, doc.splitTextToSize(cond[3][1], cw2 - 6).length) * cl;
@@ -4973,12 +4973,12 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
     font(false, 8); color(PALE); doc.text(ENDERECO, W - M - 8, cy + 1.6, { align: "right" });
     if (cpp.length) { font(true, 8); color(WHITE); doc.text(cpp.join("   |   "), M + 8, cy + 6.4); }
     if (d.codigo) {   // código de acesso ao orçamento, com botão clicável no PDF
-      const ry = y + ch - rh, url = ACESSO_PUB + "configurador.html?c=" + d.codigo, bw = 62, bx = W - M - 8 - bw;
+      const ry = y + ch - rh, url = ACESSO_OFICIAL + "/?c=" + d.codigo, bw = 62, bx = W - M - 8 - bw;
       stroke([60, 60, 60], 0.2); doc.line(M + 8, ry + 0.4, W - M - 8, ry + 0.4);
       font(false, 7); color(PALE); doc.text("Seu código de acesso", M + 8, ry + 5.6);
       font(true, 12.5); color(WHITE); doc.text(d.codigo.split("").join(" "), M + 40, ry + 6);
       fill(BLUE); doc.roundedRect(bx, ry + 2.2, bw, 7.4, 1.2, 1.2, "F"); font(true, 7.4); color(WHITE); doc.text("Clique aqui e atualize sua configuração", bx + bw / 2, ry + 6.9, { align: "center" }); doc.link(bx, ry + 2.2, bw, 7.4, { url });
-      font(false, 6.5); color(PALE); doc.text(doc.splitTextToSize("No configurador, toque em “Tenho um código” e digite o código." + (nd ? " Os valores do configurador já trazem a condição especial desta proposta, ajustada à sua configuração." : ""), bx - M - 12), M + 8, ry + 11.4, { lineHeightFactor: 1.2 });
+      font(false, 6.5); color(PALE); doc.text(doc.splitTextToSize("Acesse euronav.com.br, toque em “Tenho um código” e digite o código." + (nd ? " Os valores do configurador já trazem a condição especial desta proposta, ajustada à sua configuração." : ""), bx - M - 12), M + 8, ry + 11.4, { lineHeightFactor: 1.2 });
     }
     y += ch + (CP ? 4 : 6);
 
@@ -5001,9 +5001,10 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
     if (!window.jspdf || !window.jspdf.jsPDF) { msg.textContent = "O gerador de PDF não carregou. Verifique a conexão e recarregue a página."; return; }
     btn.disabled = true; msg.textContent = "Gerando a proposta…";
     try {
+      const vp = propValidadeProposta();   // a validade da proposta original é mantida enquanto não vencer
       let codigo = "";   // código de acesso ao orçamento: garante que existe e que os preços guardados são os de hoje, os mesmos da proposta
       try { if (st.canWrite && st.acol) { msg.textContent = "Preparando o código de acesso ao orçamento…"; const at2 = await acessoAtualizar((t) => { msg.textContent = t; }); codigo = (at2 && at2.codigo) || ""; } if (!codigo && cur.codigo && cur.orc && cur.orc.hash) codigo = cur.codigo; } catch (e) { codigo = (cur.codigo && cur.orc && cur.orc.hash) ? cur.codigo : ""; }
-      const d = propData(q, cur); d.codigo = /^[2-9A-HJKMNP-Z]{4}$/.test(codigo) ? codigo : "";
+      const d = propData(q, cur); d.codigo = /^[2-9A-HJKMNP-Z]{4}$/.test(codigo) ? codigo : ""; d.val = new Date(vp.val + "T12:00:00"); d.validade = vp.nova ? vp.dias : 0;
       msg.textContent = "Gerando as imagens 3D de proa e popa…"; d.imgs = {};
       for (const k of ["proa", "popa"]) {   // as mesmas imagens finais do botão "Imagem final" (ficam em cache se já foram geradas)
         try {
@@ -5019,7 +5020,7 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
       let dl = null; try { dl = window.claude && window.claude.use ? await window.claude.use("downloads") : null; } catch (e) { dl = null; }
       if (!dl) { msg.textContent = "Não foi possível salvar o arquivo. Tente de novo."; return; }
       await dl.save({ filename: "Proposta Euro Sette - " + String(d.cliente).replace(/[^\p{L}\p{N} ]/gu, "").slice(0, 60) + ".pdf", data: blob });
-      msg.textContent = "Proposta " + d.numero + " salva." + (d.imgs.proa || d.imgs.popa ? "" : " Sem as imagens 3D: não foi possível gerá-las neste aparelho.") + " Modelo v97 (26/11), " + d.paginas + " páginas.";
+      msg.textContent = "Proposta " + d.numero + " salva." + (d.imgs.proa || d.imgs.popa ? "" : " Sem as imagens 3D: não foi possível gerá-las neste aparelho.") + " Modelo v98 (26/11), " + d.paginas + " páginas.";
       const id = st.atId, at = st.ats.get(id);
       if (id && at && st.acol && st.canWrite) {
         const patch = { ultimaProposta: { numero: d.numero, em: nowIso(), total: Math.round(q.total) }, atualizadoEm: nowIso() };
@@ -6899,7 +6900,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
       idCap ? ["capota", "Capota de proa", ["Capota de proa"], tlin[3], dt[3]] : null, idCar ? ["carreta", "Carreta de encalhe", ["Carreta de encalhe"], tlin[4], dt[4]] : null,
       ["hyp", "Tubos em Hypalon", [], tlin[5], dt[5]], ["gps", "GPS", ["Navegação no console"], tlin[6], dt[6]]];
     atMemo = null;
-    const q0 = atPrice(A(r0, 0)), dias = Math.max(1, Math.round(num(st.v.propValidade) || 15)), val = new Date(Date.now() + dias * 86400000).toISOString().slice(0, 10);
+    const q0 = atPrice(A(r0, 0)), dias = Math.max(1, Math.round(num(st.v.propValidade) || 15)), val = isoOk(opts.val) ? opts.val : new Date(Date.now() + dias * 86400000).toISOString().slice(0, 10);
     const nome = String(((st.ats.get(st.atId) || {}).nome) || "").slice(0, 60);
     const obj = { v: 1, n: nome, val, ip: Math.round(q0.ipi * 1000) / 10, u, s0: S0, ri: r0, m: ms.map(([id, it], i) => [id, String(it.item || ""), String(it.spec || ""), mlin[i], it.incluiGps ? 1 : 0, dm[i], it.destaque ? 1 : 0]), t, r: res };
     if (mg0 != null) { obj.d = 1; obj.cs = linha(q0, "casco"); }   // d: preços já com a condição especial; cs: casco de tabela (a linha "Condição especial" é a diferença)
@@ -6919,7 +6920,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
     return pr;
   }
   // ---------- código de acesso ao orçamento: o cliente digita no configurador e vê a configuração dele, com os preços, sem link ----------
-  const ACESSO_PUB = "https://carloscoutinho89.github.io/euronav/", COD_ALFA = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";   // sem 0, O, 1, I, L: não se confundem ao digitar
+  const ACESSO_PUB = "https://carloscoutinho89.github.io/euronav/", ACESSO_OFICIAL = "https://euronav.com.br", COD_ALFA = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";   // sem 0, O, 1, I, L: não se confundem ao digitar
   function codNovo() { const u = new Uint32Array(4); crypto.getRandomValues(u); let t = ""; for (let i = 0; i < 4; i++) t += COD_ALFA[u[i] % COD_ALFA.length]; return t; }   // 4 letras e números (31 símbolos, 923 mil combinações)
   function codUnico() { const usados = new Set(Array.from(st.ats.values()).map((d) => String((d && d.codigo) || "").replace(/-/g, ""))); let c, n = 0; do { c = codNovo(); n++; } while (usados.has(c) && n < 60); return c; }
   function acessoRender() {
@@ -6928,43 +6929,63 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
     const dv = (d) => String(d || "").split("-").reverse().join("/");
     setText("at-cod-st", !at ? "Abra um atendimento para gerar o código." : !at.codigo ? "Este atendimento ainda não tem código. Toque em \"Gerar / atualizar preços do código\"." : at.orc && at.orc.hash ? "Código ativo. O cliente vê os valores guardados em " + dataBR(at.orc.em) + ", válidos até " + dv(at.orc.val) + ". Mudou algo no atendimento? Toque em \"Gerar / atualizar preços do código\"." : "Código criado, mas os preços ainda não foram guardados. Toque em \"Gerar / atualizar preços do código\"."); revRender();
   }
+  const hojeIso = () => { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
+  const isoOk = (v) => /^\d{4}-\d{2}-\d{2}$/.test(String(v || ""));
+  const isoMais = (dias) => { const d = new Date(Date.now() + dias * 86400000); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
+  // Validade: a da proposta original continua valendo enquanto não vencer (nem o código nem o PDF a renovam). Vencida, quem renova é o atendente, ao gerar de novo.
+  const validadeCodigo = (at) => (at && isoOk(at.propVal) && at.propVal >= hojeIso() ? at.propVal : isoMais(Math.max(1, Math.round(num(st.v.propValidade) || 15))));
+  function propValidadeProposta() {
+    const at = st.atId ? st.ats.get(st.atId) : null, dias = Math.max(1, Math.round(num(st.v.propValidade) || 15));
+    if (at && isoOk(at.propVal) && at.propVal >= hojeIso() && at.propDe === "proposta") return { val: at.propVal, nova: false, dias };
+    const val = isoMais(dias);
+    if (at && st.canWrite && st.acol) { const id = st.atId, patch = { propVal: val, propDe: "proposta", atualizadoEm: nowIso() }; Object.assign(at, patch); atWrite(id, () => st.acol.doc(id).update(patch)); }
+    return { val, nova: true, dias };
+  }
   async function acessoAtualizar(dizer) {   // monta a tabela de preços de hoje (a mesma do link com preços) e guarda no atendimento, junto do código
     const id = st.atId, at = id ? st.ats.get(id) : null;
     if (!at) { dizer("Abra ou crie um atendimento primeiro."); return null; }
     if (!st.acol || !st.canWrite) { dizer("Sem permissão para salvar neste atendimento."); return null; }
     if (!/^[2-9A-HJKMNP-Z]{4}$/.test(String(at.codigo || ""))) { const patch = { codigo: codUnico(), atualizadoEm: nowIso() };   /* código ausente ou do formato antigo (8 caracteres): gera o de 4 */ Object.assign(at, patch); atWrite(id, () => st.acol.doc(id).update(patch)); }
     dizer("Montando o orçamento com os preços de hoje… leva alguns segundos.");
-    const p = await orcPayload({ progresso: (i, n) => dizer("Montando o orçamento… " + Math.round(100 * i / n) + "%") });
+    const p = await orcPayload({ val: validadeCodigo(at), progresso: (i, n) => dizer("Montando o orçamento… " + Math.round(100 * i / n) + "%") });
     if (!p) { dizer("Os dados ainda estão carregando. Tente de novo em instantes."); return null; }
-    const pr = orcParams(); pr.set("q", p.q); const orc = { hash: pr.toString(), val: p.obj.val, em: nowIso() }, patch2 = { orc, atualizadoEm: nowIso() };
+    const pr = orcParams(); pr.set("q", p.q); const orc = { hash: pr.toString(), val: p.obj.val, em: nowIso() }, patch2 = { orc, propVal: p.obj.val, propDe: at.propDe || "codigo", atualizadoEm: nowIso() };
     Object.assign(at, patch2); atWrite(id, () => st.acol.doc(id).update(patch2)); acessoRender(); return at;
   }
   function acessoMensagem(at) {
-    const nome = String(at.nome || "").trim().split(/\s+/)[0] || "", atend = String(at.atendente || "").trim(), dv = at.orc && at.orc.val ? at.orc.val.split("-").reverse().join("/") : "", cod = at.codigo, url = ACESSO_PUB + "configurador.html";
-    return ["Olá" + (nome ? ", " + nome : "") + "! Aqui é " + (atend ? atend + ", " : "") + "da Euronav.", "", "Segue o código para você ver a configuração do seu Euro Sette, já com os preços, no nosso simulador:", "", "*Código:*", "```" + cod + "```", "(toque e segure o código para copiar)", "", "Como acessar:", "1. Abra " + url, "2. Toque em \"Tenho um código\", no topo da página, ao lado de \"Compartilhar\"", "3. Digite o código e toque em \"Abrir meu orçamento\"", "", "Se preferir, toque direto neste link, que já abre com o código: " + url + "?c=" + cod, "", "Foto de onde digitar o código: " + ACESSO_PUB + "como-acessar-orcamento.png", "", dv ? "Os valores valem até " + dv + "." : "", "Qualquer dúvida, é só chamar!"].filter((l, i, a) => l !== "" || (i > 0 && a[i - 1] !== "")).join("\n");
+    const nome = String(at.nome || "").trim().split(/\s+/)[0] || "", atend = String(at.atendente || "").trim(), dv = at.orc && at.orc.val ? at.orc.val.split("-").reverse().join("/") : "", cod = at.codigo;
+    return ["Olá" + (nome ? ", " + nome : "") + "! Aqui é " + (atend ? atend + ", " : "") + "da Euronav.", "", "Segue o código para você ver a configuração do seu Euro Sette, já com os preços, no nosso simulador:", "", "*Código:*", "```" + cod + "```", "", "Como acessar:", "1. Abra " + ACESSO_OFICIAL, "2. Toque em \"Tenho um código\", no topo da página, ao lado de \"Compartilhar\"", "3. Digite o código e toque em \"Abrir meu orçamento\"", "", (dv ? "Os valores valem até " + dv + ". " : "") + "Qualquer dúvida, é só chamar!"].filter((l, i, a) => l !== "" || (i > 0 && a[i - 1] !== "")).join("\n");
   }
   function acessoTelWa(at) { let d = String(at.tel || (at.comprador && at.comprador.tel) || "").replace(/\D/g, ""); if (d.length === 10 || d.length === 11) d = "55" + d; return d.length >= 12 ? d : ""; }
   async function acessoCopiar(texto, ok) { try { await navigator.clipboard.writeText(texto); setText("at-cod-st", ok); } catch (e) { window.prompt("Copie:", texto); } }
   async function acessoAcao(tipo) {
     const dizer = (t) => setText("at-cod-st", t), botoes = ["at-cod-gerar", "at-cod-copiar", "at-cod-zap", "at-cod-so", "at-cod-msg"].map((i) => $(i)); botoes.forEach((b) => { if (b) b.disabled = true; });
+    const atual = st.atId ? st.ats.get(st.atId) : null, recente = !!(atual && atual.codigo && atual.orc && atual.orc.hash && atual.orc.em && (Date.now() - new Date(atual.orc.em).getTime()) < 120000);
+    // O WhatsApp tem que abrir no toque. Se for preciso gerar os preços antes (leva alguns segundos), o iPhone bloquearia a abertura depois da espera:
+    // por isso a janela já é aberta agora, no toque, e só depois recebe o endereço do WhatsApp.
+    let wj = null; if (tipo === "zap" && !recente) { try { wj = window.open("", "_blank"); if (wj && wj.document) wj.document.write("<!doctype html><meta name=viewport content='width=device-width,initial-scale=1'><body style='font:18px -apple-system,Helvetica,sans-serif;padding:32px;color:#333'>Preparando o WhatsApp…</body>"); } catch (e) { wj = null; } }
+    const abrirWa = (url) => { if (wj && !wj.closed) { wj.location.href = url; wj = null; return; } const w2 = window.open(url, "_blank"); if (!w2) location.href = url; };
     try {
-      const atual = st.atId ? st.ats.get(st.atId) : null;
       if (tipo === "copiar" && atual && atual.codigo && atual.orc && atual.orc.hash) { await acessoCopiar(atual.codigo, "Código " + atual.codigo + " copiado."); return; }
-      const at = await acessoAtualizar(dizer); if (!at) return;
+      if (tipo === "zapcod" && atual && /^[2-9A-HJKMNP-Z]{4}$/.test(String(atual.codigo || ""))) {   // o código sozinho não depende dos preços: abre na hora
+        const tel = acessoTelWa(atual); abrirWa("https://wa.me/" + tel + "?text=" + encodeURIComponent(atual.codigo));
+        dizer(tel ? "WhatsApp aberto só com o código " + atual.codigo + ". Envie: o cliente toca e segura a mensagem para copiar." : "O atendimento não tem telefone válido: o WhatsApp abriu para você escolher o contato."); return;
+      }
+      const at = (tipo !== "gerar" && recente) ? atual : await acessoAtualizar(dizer); if (!at) return;
       if (tipo === "gerar") { dizer("Pronto. Código " + at.codigo + " ativo, com os valores de hoje, válidos até " + at.orc.val.split("-").reverse().join("/") + "."); return; }
       if (tipo === "copiar") { await acessoCopiar(at.codigo, "Código " + at.codigo + " copiado."); return; }
-      if (tipo === "zapcod") { const tel = acessoTelWa(at); window.open("https://wa.me/" + tel + "?text=" + encodeURIComponent(at.codigo), "_blank"); dizer(tel ? "WhatsApp aberto só com o código " + at.codigo + ". Envie logo depois da mensagem completa: o cliente toca e segura para copiar." : "O atendimento não tem telefone válido: o WhatsApp abriu para você escolher o contato."); return; }
+      if (tipo === "zapcod") { const tel = acessoTelWa(at); abrirWa("https://wa.me/" + tel + "?text=" + encodeURIComponent(at.codigo)); dizer(tel ? "WhatsApp aberto só com o código " + at.codigo + ". Envie: o cliente toca e segura a mensagem para copiar." : "O atendimento não tem telefone válido: o WhatsApp abriu para você escolher o contato."); return; }
       const msg = acessoMensagem(at);
       if (tipo === "msg") { await acessoCopiar(msg, "Mensagem copiada. É só colar no WhatsApp do cliente."); return; }
-      if (tipo === "zap") { const tel = acessoTelWa(at); window.open("https://wa.me/" + tel + "?text=" + encodeURIComponent(msg), "_blank"); dizer(tel ? "WhatsApp aberto com a mensagem para o cliente. Revise e envie." : "O atendimento não tem telefone válido: o WhatsApp abriu para você escolher o contato."); }
-    } finally { botoes.forEach((b) => { if (b) b.disabled = false; }); }
+      if (tipo === "zap") { const tel = acessoTelWa(at); abrirWa("https://wa.me/" + tel + "?text=" + encodeURIComponent(msg)); dizer(tel ? "WhatsApp aberto com a mensagem para o cliente. Revise e envie. Depois toque em \"2º passo\" para mandar o código sozinho, que o cliente copia com um toque." : "O atendimento não tem telefone válido: o WhatsApp abriu para você escolher o contato."); }
+    } finally { if (wj && !wj.closed) wj.close(); botoes.forEach((b) => { if (b) b.disabled = false; }); }
   }
   async function copiarLinkOrcamento() {
     const msg = (t) => setText("at-cfg-msg", t);
     if (!st.atId || !st.at) { msg("Abra ou crie um atendimento primeiro."); return; }
     const b = $("at-cfg-precos"); b.disabled = true; msg("Gerando o link com preços… leva alguns segundos.");
     try {
-      const p = await orcPayload({ progresso: (i, n) => msg("Gerando o link com preços… " + Math.round(100 * i / n) + "%") });
+      const p = await orcPayload({ val: validadeCodigo(st.atId ? st.ats.get(st.atId) : null), progresso: (i, n) => msg("Gerando o link com preços… " + Math.round(100 * i / n) + "%") });
       if (!p) { msg("Os dados ainda estão carregando. Tente de novo em instantes."); return; }
       const pr = orcParams(); pr.set("q", p.q);
       const url = new URL(CONFIG_URL + "#" + pr.toString(), location.href).href;
