@@ -269,7 +269,10 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
 
 <style id="css-codigo">
 /* ---- acesso ao orçamento por código (discreto: só faz sentido para quem recebeu um código do atendente) ---- */
-.cod-link { padding: 10px 2px 0; text-align: right; }
+.cod-bt { border-color: transparent; color: var(--muted); }
+.cod-bt:hover { border-color: var(--line); color: inherit; }
+@media (max-width: 600px) { .acoes { flex-wrap: nowrap; gap: 4px; } .acoes .bt { padding: 7px 6px; letter-spacing: .03em; font-size: .66rem; } }   /* celular: os dois botões do topo cabem numa linha só */
+.cod-link { display: none; }
 .cod-link button { appearance: none; border: 0; background: none; color: var(--muted); font: inherit; font-size: .74rem; letter-spacing: .03em; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; padding: 4px 0; }
 .cod-link button:hover { color: var(--accent); }
 body.com-precos .cod-link { display: none; }
@@ -292,9 +295,10 @@ body.com-precos .cod-link { display: none; }
 <header class="top">
   <div class="marca"><svg class="logo" viewBox="169.87 251.16 502.02 92.63" role="img" aria-label="Euronav"><path class="w" d="M 185.03 327.74 L 229.56 327.74 C 232.53 327.74 234.85 327.06 236.49 325.70 C 237.94 324.19 238.76 322.36 238.96 320.21 L 240.79 300.62 L 190.23 300.62 C 186.73 300.62 183.42 301.40 180.30 302.97 C 176.35 304.96 174.01 307.65 173.27 311.04 L 170.86 336.83 C 172.16 340.80 176.08 342.79 182.61 342.79 L 238.66 342.71 L 239.22 335.89 L 190.15 335.89 C 186.78 335.58 184.93 334.45 184.59 332.52 Z M 194.44 306.81 L 227.98 306.81 L 227.08 316.53 C 226.94 318 226.35 319.30 225.30 320.45 C 224.19 321.18 222.37 321.55 219.87 321.55 L 185.61 321.55 L 186.42 312.92 C 186.60 311.04 187.52 309.53 189.19 308.38 C 190.70 307.33 192.45 306.81 194.44 306.81 Z M 300.33 300.62 L 296.98 336.60 L 263.74 336.60 C 261.70 336.60 260.05 336.10 258.78 335.11 C 257.32 333.96 256.69 332.42 256.87 330.48 L 259.66 300.62 L 245.55 300.62 L 242.62 331.97 C 242.66 335.42 244.62 338.19 248.50 340.28 C 251.64 341.95 254.93 342.79 258.38 342.79 L 310.58 342.79 L 314.52 300.62 Z M 358.94 300.62 L 319.28 300.62 L 315.34 342.79 L 329.68 342.79 L 333.05 306.81 L 353.58 306.81 C 355.62 306.81 357.30 307.31 358.62 308.30 C 360.07 309.45 360.71 310.99 360.53 312.92 L 360.13 317.24 L 374.40 317.24 L 374.95 311.28 C 374.86 307.83 372.84 305.08 368.90 303.05 C 365.76 301.43 362.44 300.62 358.94 300.62 Z M 433.07 300.62 L 380.71 300.62 L 377.78 331.97 C 377.82 335.42 379.78 338.19 383.66 340.28 C 386.80 341.95 390.09 342.79 393.54 342.79 L 445.74 342.79 L 448.69 311.28 C 448.59 307.83 446.65 305.08 442.87 303.05 C 439.83 301.43 436.57 300.62 433.07 300.62 Z M 431.98 336.60 L 398.90 336.60 C 396.86 336.60 395.21 336.10 393.94 335.11 C 392.48 333.96 391.84 332.42 392.02 330.48 L 394.24 306.81 L 427.63 306.81 C 429.66 306.81 431.26 307.31 432.42 308.30 C 433.78 309.45 434.37 310.99 434.19 312.92 Z M 506.80 300.62 L 454.44 300.62 L 450.50 342.79 L 465.08 342.79 L 468.44 306.81 L 501.36 306.81 C 503.40 306.81 505.11 307.33 506.50 308.38 C 507.89 309.42 508.50 310.94 508.31 312.92 L 505.52 342.79 L 519.87 342.79 L 522.81 311.28 C 522.71 307.83 520.70 305.08 516.76 303.05 C 513.62 301.43 510.30 300.62 506.80 300.62 Z M 580.37 300.62 L 528.56 300.62 L 527.98 306.81 L 574.93 306.81 C 576.97 306.81 578.71 307.36 580.15 308.46 C 581.59 309.55 582.22 311.07 582.04 313.00 L 581.82 315.35 L 537.92 315.35 C 531.29 315.35 527.48 317.78 526.50 322.64 L 525.35 334.95 C 526.07 340.17 530.26 342.79 537.95 342.79 L 593.28 342.79 L 596.21 311.44 C 596.11 308.04 594.12 305.30 590.24 303.21 C 587.01 301.48 583.72 300.62 580.37 300.62 Z M 545.42 335.81 C 542.16 335.50 540.35 334.37 540.01 332.44 L 540.67 325.39 C 540.84 323.56 541.63 322.41 543.03 321.94 C 543.79 321.68 545.39 321.55 547.85 321.55 L 581.24 321.55 L 579.91 335.81 Z M 656.61 300.62 L 653.25 336.60 L 634.67 336.60 L 614.06 321.55 L 616.01 300.62 L 601.98 300.62 L 600.03 321.55 L 629.47 342.79 L 666.94 342.79 L 670.88 300.62 Z M 656.61 300.62 "/><path class="a" d="M 487.59 252.16 L 471.12 274.21 L 454.65 296.25 L 483.80 287.72 L 487.59 282.64 L 491.38 287.72 L 520.53 296.25 L 504.06 274.21 Z M 487.59 252.16 "/></svg><span>· Configurador</span></div>
   <div class="acoes">
+    <button class="bt cod-bt" type="button" id="b-codigo">Tenho um código</button>
     <button class="bt" type="button" id="b-share">Compartilhar</button>
     <a class="bt" id="b-cat" href="catalogo-euro-sette.pdf" target="_blank" rel="noopener" hidden>Catálogo técnico</a>
-    <button class="bt" type="button" id="b-vitrine">Modo vitrine</button>
+    <button class="bt" type="button" id="b-vitrine" hidden style="display:none">Modo vitrine</button>
   </div>
 </header>
 <p class="orc-erro" id="orc-erro" hidden>Este link de orçamento está incompleto. Peça um novo link ao seu atendente.</p>
@@ -319,7 +323,6 @@ body.com-precos .cod-link { display: none; }
     <div class="orc-barra" id="orc-barra"><span>Valor total · impostos incluídos</span><b id="orc-total">–</b></div>
   </section>
   <aside class="painel" aria-label="Personalização">
-    <div class="cod-link" id="cod-link"><button type="button" id="b-codigo">Tenho um código de orçamento</button></div>
     <div class="sec nb" id="sec-nb"><button class="opt nb-bt" type="button" id="nb-bt" aria-pressed="false"><span>Dar o nome ao seu barco<small>Opcional. Batize o seu Euro Sette. O nome aparece nos tubulões, na proa.</small></span><i class="sw"></i></button><div class="nb-campo" id="nb-campo" hidden><input id="nb-in" type="text" maxlength="20" placeholder="Nome do seu barco" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Nome do seu barco"><p class="dica">Até 20 letras.</p></div></div>
     <div class="sec"><h2>Combinações</h2><div class="combos" id="combos"></div></div>
     <div class="sec pers"><h2 class="pers-t">Personalize do seu jeito</h2></div>
@@ -362,7 +365,7 @@ body.com-precos .cod-link { display: none; }
     <button class="cod-x" type="button" id="cod-x" aria-label="Fechar">×</button>
     <h2>Abrir meu orçamento</h2>
     <p class="cod-p">Digite o código que o atendente da Euronav enviou para você. Ele abre a configuração do seu Euro Sette com os preços.</p>
-    <input id="cod-in" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="9" placeholder="XXXX-XXXX" aria-label="Código do orçamento">
+    <input id="cod-in" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="4" placeholder="XXXX" aria-label="Código do orçamento">
     <button class="bt forte" type="button" id="cod-ok">Abrir meu orçamento</button>
     <p class="cod-msg" id="cod-msg" role="status"></p>
     <p class="cod-dica">Não recebeu um código? Peça ao seu atendente da Euronav.</p>
@@ -960,9 +963,10 @@ body.com-precos .cod-link { display: none; }
       add3(gK, new T.TorusGeometry(0.0085, 0.0032, 8, 18), vermelho, 0.004, -0.057, 0.032);
       // cordão vermelho espiral: da argola da chave até a base da alavanca
       const p0 = K0.clone().addScaledVector(EZ, 0.004).addScaledVector(EUP, -0.066).addScaledVector(EN, 0.034), p1 = OH.clone().addScaledVector(XH, -A - 0.025).addScaledVector(EUP, -0.014).addScaledVector(EZ, DEP / 2 + 0.003);
-      const d = p1.clone().sub(p0), comp = d.length(), dn = d.clone().normalize(), pa = new T.Vector3(0, 0, 1).cross(dn).normalize(), qa = dn.clone().cross(pa).normalize(), pts = [], N = 260, voltas = 15;
-      for (let i = 0; i <= N; i++) { const t = i / N, a = voltas * 2 * Math.PI * t; pts.push(p0.clone().addScaledVector(dn, comp * t).addScaledVector(pa, 0.0085 * Math.cos(a)).addScaledVector(qa, 0.0085 * Math.sin(a))); }
-      add3(gM, new T.TubeGeometry(new T.CatmullRomCurve3(pts), 420, 0.0031, 6, false), vermelho, 0, 0, 0);
+      const pm = OH.clone().addScaledVector(XH, -A * 0.55).addScaledVector(EUP, BH + 0.015).addScaledVector(EZ, DEP / 2 + 0.012);   // o cordão passa por cima do arco, fora da carcaça
+      const eixo = new T.CatmullRomCurve3([p0, pm, p1]), pts = [], N = 300, voltas = 17;
+      for (let i = 0; i <= N; i++) { const t = i / N, a = voltas * 2 * Math.PI * t, c = eixo.getPointAt(t), tg = eixo.getTangentAt(t), ref = Math.abs(tg.z) > 0.9 ? new T.Vector3(0, 1, 0) : new T.Vector3(0, 0, 1), pa = tg.clone().cross(ref).normalize(), qa = tg.clone().cross(pa).normalize(); pts.push(c.clone().addScaledVector(pa, 0.0085 * Math.cos(a)).addScaledVector(qa, 0.0085 * Math.sin(a))); }
+      add3(gM, new T.TubeGeometry(new T.CatmullRomCurve3(pts), 500, 0.0031, 6, false), vermelho, 0, 0, 0);
       B3D._manete = gM; return gM;
     };
     const montarReal = (pt) => {
@@ -2023,7 +2027,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
 /* marcador de versão e diagnóstico: só aparece quando o endereço tem ?v=NN (o mesmo que a equipe usa para furar o cache); o cliente não vê */
 (function () { try {
   if (!/[?&]v=/.test(location.search)) return;
-  var e = document.createElement("div"); e.id = "versao-cfg"; e.textContent = "Configurador v91 · 26/11";
+  var e = document.createElement("div"); e.id = "versao-cfg"; e.textContent = "Configurador v92 · 26/11";
   e.style.cssText = "position:fixed;left:8px;bottom:6px;z-index:60;max-width:92vw;font:11px/1.35 system-ui,sans-serif;letter-spacing:.03em;color:#c9ccd2;background:rgba(0,0,0,.6);padding:5px 9px;border-radius:12px;pointer-events:none";
   document.body.appendChild(e);
   var nav = (function () { try { var b = (navigator.userAgentData && navigator.userAgentData.brands) || [], nomes = b.map(function (x) { return x.brand; }).join(" "); if (/Edge/i.test(nomes) || /Edg\//.test(navigator.userAgent)) return "Edge"; if (/Chrome/i.test(nomes) || /Chrome\//.test(navigator.userAgent)) return "Chrome"; if (/Safari/.test(navigator.userAgent)) return "Safari"; if (/Firefox/.test(navigator.userAgent)) return "Firefox"; } catch (x) {} return "navegador?"; })();
@@ -2031,7 +2035,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
   var n = 0, lentos = 0, ult = 0, t0 = performance.now(), cv = null;
   (function tick(t) { n++; if (ult && t - ult > 25) lentos++; ult = t;
     if (t - t0 >= 1000) { cv = cv || document.querySelector("#at-3d-v canvas"); var pr = cv && cv.clientWidth ? cv.width / cv.clientWidth : 0;
-      e.innerHTML = "Configurador v91 · 26/11 · " + Math.round(n * 1000 / (t - t0)) + " fps · res " + (pr ? pr.toFixed(2) + "x" : "-") + (window.__b3dOrc ? " (orçamento " + (window.__b3dOrc / 1e6).toFixed(2) + " MP" + (window.__b3dSw ? ", por software" : "") + ")" : "") + " · " + lentos + " quadros lentos/s<br>" + nav + " · " + gpuTxt() + " · tela " + (window.devicePixelRatio || 1) + "x"; n = 0; lentos = 0; t0 = t; }
+      e.innerHTML = "Configurador v92 · 26/11 · " + Math.round(n * 1000 / (t - t0)) + " fps · res " + (pr ? pr.toFixed(2) + "x" : "-") + (window.__b3dOrc ? " (orçamento " + (window.__b3dOrc / 1e6).toFixed(2) + " MP" + (window.__b3dSw ? ", por software" : "") + ")" : "") + " · " + lentos + " quadros lentos/s<br>" + nav + " · " + gpuTxt() + " · tela " + (window.devicePixelRatio || 1) + "x"; n = 0; lentos = 0; t0 = t; }
     requestAnimationFrame(tick); })(performance.now());
 } catch (x) { /* sem marcador */ } })();
 </script>
@@ -2042,14 +2046,14 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
   var box = document.getElementById("cod"), inp = document.getElementById("cod-in"), ok = document.getElementById("cod-ok"), msg = document.getElementById("cod-msg"), abre = document.getElementById("b-codigo");
   if (!box || !inp || !ok || !abre) return;
   var falhas = 0, bloqueioAte = 0;
-  var fmt = function (v) { v = String(v || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8); return v.length > 4 ? v.slice(0, 4) + "-" + v.slice(4) : v; };
+  var fmt = function (v) { return String(v || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 4); };
   var dizer = function (t, erro) { msg.textContent = t || ""; msg.className = "cod-msg" + (erro ? " erro" : ""); };
   var abrir = function (c) { box.hidden = false; dizer(""); if (c) inp.value = fmt(c); setTimeout(function () { try { inp.focus(); } catch (e) {} }, 60); };
   var fechar = function () { box.hidden = true; };
   var enviar = function () {
     var cod = fmt(inp.value).replace("-", "");
     if (Date.now() < bloqueioAte) { dizer("Muitas tentativas. Aguarde alguns segundos e tente de novo.", true); return; }
-    if (cod.length < 8) { dizer("O código tem 8 letras e números (por exemplo, K7M4-9QPX).", true); return; }
+    if (cod.length < 4) { dizer("O código tem 4 letras e números (por exemplo, K7M4).", true); return; }
     ok.disabled = true; dizer("Verificando o código…");
     var ctl = window.AbortController ? new AbortController() : null, tm = setTimeout(function () { if (ctl) ctl.abort(); }, 15000);
     fetch(API + (API.indexOf("?") < 0 ? "?" : "&") + "acao=codigo&c=" + encodeURIComponent(cod), ctl ? { signal: ctl.signal } : {})
@@ -2073,7 +2077,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
   inp.addEventListener("input", function () { var p = fmt(inp.value); if (inp.value !== p) inp.value = p; });
   inp.addEventListener("keydown", function (e) { if (e.key === "Enter") enviar(); });
   ok.addEventListener("click", enviar);
-  var m = /[?&]c=([A-Za-z0-9-]{8,9})(?:&|$)/.exec(location.search);   // link direto com o código (?c=...): abre a janela já preenchida e confirma
+  var m = /[?&]c=([A-Za-z0-9]{4})(?:&|$)/.exec(location.search);   // link direto com o código (?c=...): abre a janela já preenchida e confirma
   if (m) { abrir(m[1]); setTimeout(enviar, 400); }
 } catch (x) { /* sem acesso por código */ } })();
 </script>

@@ -1386,9 +1386,9 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
             <p class="at-3d-cfgp"><a class="at-3d-cfg" id="at-3d-cfg" href="#" target="_blank" rel="noopener">Página pública ↗</a> · <button class="c-link" type="button" id="at-cfg-copiar">Copiar link para o cliente</button> · <button class="c-link" type="button" id="at-cfg-precos">Link com preços para o cliente</button> · <button class="c-link" type="button" id="at-cfg-importar">Importar link do cliente</button></p>
             <p class="c-hint" id="at-cfg-msg" role="status"></p>
           <div class="at-acesso" id="at-acesso">
-            <p class="c-hint"><b>Código de acesso ao orçamento.</b> O cliente digita este código no botão "Tenho um código de orçamento" do configurador e vê a configuração dele com os preços, sem precisar de link.</p>
+            <p class="c-hint"><b>Código de acesso ao orçamento.</b> O cliente digita este código no botão "Tenho um código", no topo do configurador (ao lado de "Compartilhar"), e vê a configuração dele com os preços, sem precisar de link.</p>
             <p class="at-acesso-l"><code class="at-cod" id="at-cod">------</code> <button class="c-link" type="button" id="at-cod-gerar">Gerar / atualizar preços do código</button> · <button class="c-link" type="button" id="at-cod-copiar">Copiar código</button></p>
-            <p class="at-acesso-l"><button class="c-link" type="button" id="at-cod-zap">Enviar pelo WhatsApp do cliente</button> · <button class="c-link" type="button" id="at-cod-msg">Copiar a mensagem</button></p>
+            <p class="at-acesso-l"><button class="c-link" type="button" id="at-cod-zap">Enviar mensagem pelo WhatsApp</button> · <button class="c-link" type="button" id="at-cod-so">Enviar só o código (fácil de copiar)</button> · <button class="c-link" type="button" id="at-cod-msg">Copiar a mensagem</button></p>
             <p class="c-hint" id="at-cod-st" role="status"></p>
           </div>
           </div>
@@ -4973,7 +4973,7 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
       let dl = null; try { dl = window.claude && window.claude.use ? await window.claude.use("downloads") : null; } catch (e) { dl = null; }
       if (!dl) { msg.textContent = "Não foi possível salvar o arquivo. Tente de novo."; return; }
       await dl.save({ filename: "Proposta Euro Sette - " + String(d.cliente).replace(/[^\p{L}\p{N} ]/gu, "").slice(0, 60) + ".pdf", data: blob });
-      msg.textContent = "Proposta " + d.numero + " salva." + (d.imgs.proa || d.imgs.popa ? "" : " Sem as imagens 3D: não foi possível gerá-las neste aparelho.") + " Modelo v90 (26/11), " + d.paginas + " páginas.";
+      msg.textContent = "Proposta " + d.numero + " salva." + (d.imgs.proa || d.imgs.popa ? "" : " Sem as imagens 3D: não foi possível gerá-las neste aparelho.") + " Modelo v91 (26/11), " + d.paginas + " páginas.";
       const id = st.atId, at = st.ats.get(id);
       if (id && at && st.acol && st.canWrite) {
         const patch = { ultimaProposta: { numero: d.numero, em: nowIso(), total: Math.round(q.total) }, atualizadoEm: nowIso() };
@@ -6011,9 +6011,10 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
       add3(gK, new T.TorusGeometry(0.0085, 0.0032, 8, 18), vermelho, 0.004, -0.057, 0.032);
       // cordão vermelho espiral: da argola da chave até a base da alavanca
       const p0 = K0.clone().addScaledVector(EZ, 0.004).addScaledVector(EUP, -0.066).addScaledVector(EN, 0.034), p1 = OH.clone().addScaledVector(XH, -A - 0.025).addScaledVector(EUP, -0.014).addScaledVector(EZ, DEP / 2 + 0.003);
-      const d = p1.clone().sub(p0), comp = d.length(), dn = d.clone().normalize(), pa = new T.Vector3(0, 0, 1).cross(dn).normalize(), qa = dn.clone().cross(pa).normalize(), pts = [], N = 260, voltas = 15;
-      for (let i = 0; i <= N; i++) { const t = i / N, a = voltas * 2 * Math.PI * t; pts.push(p0.clone().addScaledVector(dn, comp * t).addScaledVector(pa, 0.0085 * Math.cos(a)).addScaledVector(qa, 0.0085 * Math.sin(a))); }
-      add3(gM, new T.TubeGeometry(new T.CatmullRomCurve3(pts), 420, 0.0031, 6, false), vermelho, 0, 0, 0);
+      const pm = OH.clone().addScaledVector(XH, -A * 0.55).addScaledVector(EUP, BH + 0.015).addScaledVector(EZ, DEP / 2 + 0.012);   // o cordão passa por cima do arco, fora da carcaça
+      const eixo = new T.CatmullRomCurve3([p0, pm, p1]), pts = [], N = 300, voltas = 17;
+      for (let i = 0; i <= N; i++) { const t = i / N, a = voltas * 2 * Math.PI * t, c = eixo.getPointAt(t), tg = eixo.getTangentAt(t), ref = Math.abs(tg.z) > 0.9 ? new T.Vector3(0, 1, 0) : new T.Vector3(0, 0, 1), pa = tg.clone().cross(ref).normalize(), qa = tg.clone().cross(pa).normalize(); pts.push(c.clone().addScaledVector(pa, 0.0085 * Math.cos(a)).addScaledVector(qa, 0.0085 * Math.sin(a))); }
+      add3(gM, new T.TubeGeometry(new T.CatmullRomCurve3(pts), 500, 0.0031, 6, false), vermelho, 0, 0, 0);
       B3D._manete = gM; return gM;
     };
     const montarReal = (pt) => {
@@ -6853,8 +6854,8 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
   }
   // ---------- código de acesso ao orçamento: o cliente digita no configurador e vê a configuração dele, com os preços, sem link ----------
   const ACESSO_PUB = "https://carloscoutinho89.github.io/euronav/", COD_ALFA = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";   // sem 0, O, 1, I, L: não se confundem ao digitar
-  function codNovo() { const u = new Uint32Array(8); crypto.getRandomValues(u); let t = ""; for (let i = 0; i < 8; i++) t += COD_ALFA[u[i] % COD_ALFA.length]; return t.slice(0, 4) + "-" + t.slice(4); }
-  function codUnico() { const usados = new Set(Array.from(st.ats.values()).map((d) => String((d && d.codigo) || "").replace(/-/g, ""))); let c, n = 0; do { c = codNovo(); n++; } while (usados.has(c.replace("-", "")) && n < 30); return c; }
+  function codNovo() { const u = new Uint32Array(4); crypto.getRandomValues(u); let t = ""; for (let i = 0; i < 4; i++) t += COD_ALFA[u[i] % COD_ALFA.length]; return t; }   // 4 letras e números (31 símbolos, 923 mil combinações)
+  function codUnico() { const usados = new Set(Array.from(st.ats.values()).map((d) => String((d && d.codigo) || "").replace(/-/g, ""))); let c, n = 0; do { c = codNovo(); n++; } while (usados.has(c) && n < 60); return c; }
   function acessoRender() {
     const at = st.atId ? st.ats.get(st.atId) : null, e = $("at-cod"); if (!e) return;
     e.textContent = at && at.codigo ? at.codigo : "------";
@@ -6865,7 +6866,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
     const id = st.atId, at = id ? st.ats.get(id) : null;
     if (!at) { dizer("Abra ou crie um atendimento primeiro."); return null; }
     if (!st.acol || !st.canWrite) { dizer("Sem permissão para salvar neste atendimento."); return null; }
-    if (!at.codigo) { const patch = { codigo: codUnico(), atualizadoEm: nowIso() }; Object.assign(at, patch); atWrite(id, () => st.acol.doc(id).update(patch)); }
+    if (!/^[2-9A-HJKMNP-Z]{4}$/.test(String(at.codigo || ""))) { const patch = { codigo: codUnico(), atualizadoEm: nowIso() };   /* código ausente ou do formato antigo (8 caracteres): gera o de 4 */ Object.assign(at, patch); atWrite(id, () => st.acol.doc(id).update(patch)); }
     dizer("Montando o orçamento com os preços de hoje… leva alguns segundos.");
     const p = await orcPayload({ progresso: (i, n) => dizer("Montando o orçamento… " + Math.round(100 * i / n) + "%") });
     if (!p) { dizer("Os dados ainda estão carregando. Tente de novo em instantes."); return null; }
@@ -6874,18 +6875,19 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
   }
   function acessoMensagem(at) {
     const nome = String(at.nome || "").trim().split(/\s+/)[0] || "", atend = String(at.atendente || "").trim(), dv = at.orc && at.orc.val ? at.orc.val.split("-").reverse().join("/") : "", cod = at.codigo, url = ACESSO_PUB + "configurador.html";
-    return ["Olá" + (nome ? ", " + nome : "") + "! Aqui é " + (atend ? atend + ", " : "") + "da Euronav.", "", "Segue o seu código para ver a configuração do seu Euro Sette, já com os preços, no nosso simulador:", "", "Código: " + cod, "", "Como acessar:", "1. Abra " + url, "2. Toque em \"Tenho um código de orçamento\"", "3. Digite o código e toque em \"Abrir meu orçamento\"", "", "Se preferir, toque direto neste link, que já abre com o código: " + url + "?c=" + cod.replace("-", ""), "", "Foto de onde digitar o código: " + ACESSO_PUB + "como-acessar-orcamento.png", "", dv ? "Os valores valem até " + dv + "." : "", "Qualquer dúvida, é só chamar!"].filter((l, i, a) => l !== "" || (i > 0 && a[i - 1] !== "")).join("\n");
+    return ["Olá" + (nome ? ", " + nome : "") + "! Aqui é " + (atend ? atend + ", " : "") + "da Euronav.", "", "Segue o código para você ver a configuração do seu Euro Sette, já com os preços, no nosso simulador:", "", "*Código:*", "```" + cod + "```", "(toque e segure o código para copiar)", "", "Como acessar:", "1. Abra " + url, "2. Toque em \"Tenho um código\", no topo da página, ao lado de \"Compartilhar\"", "3. Digite o código e toque em \"Abrir meu orçamento\"", "", "Se preferir, toque direto neste link, que já abre com o código: " + url + "?c=" + cod, "", "Foto de onde digitar o código: " + ACESSO_PUB + "como-acessar-orcamento.png", "", dv ? "Os valores valem até " + dv + "." : "", "Qualquer dúvida, é só chamar!"].filter((l, i, a) => l !== "" || (i > 0 && a[i - 1] !== "")).join("\n");
   }
   function acessoTelWa(at) { let d = String(at.tel || (at.comprador && at.comprador.tel) || "").replace(/\D/g, ""); if (d.length === 10 || d.length === 11) d = "55" + d; return d.length >= 12 ? d : ""; }
   async function acessoCopiar(texto, ok) { try { await navigator.clipboard.writeText(texto); setText("at-cod-st", ok); } catch (e) { window.prompt("Copie:", texto); } }
   async function acessoAcao(tipo) {
-    const dizer = (t) => setText("at-cod-st", t), botoes = ["at-cod-gerar", "at-cod-copiar", "at-cod-zap", "at-cod-msg"].map((i) => $(i)); botoes.forEach((b) => { if (b) b.disabled = true; });
+    const dizer = (t) => setText("at-cod-st", t), botoes = ["at-cod-gerar", "at-cod-copiar", "at-cod-zap", "at-cod-so", "at-cod-msg"].map((i) => $(i)); botoes.forEach((b) => { if (b) b.disabled = true; });
     try {
       const atual = st.atId ? st.ats.get(st.atId) : null;
       if (tipo === "copiar" && atual && atual.codigo && atual.orc && atual.orc.hash) { await acessoCopiar(atual.codigo, "Código " + atual.codigo + " copiado."); return; }
       const at = await acessoAtualizar(dizer); if (!at) return;
       if (tipo === "gerar") { dizer("Pronto. Código " + at.codigo + " ativo, com os valores de hoje, válidos até " + at.orc.val.split("-").reverse().join("/") + "."); return; }
       if (tipo === "copiar") { await acessoCopiar(at.codigo, "Código " + at.codigo + " copiado."); return; }
+      if (tipo === "zapcod") { const tel = acessoTelWa(at); window.open("https://wa.me/" + tel + "?text=" + encodeURIComponent(at.codigo), "_blank"); dizer(tel ? "WhatsApp aberto só com o código " + at.codigo + ". Envie logo depois da mensagem completa: o cliente toca e segura para copiar." : "O atendimento não tem telefone válido: o WhatsApp abriu para você escolher o contato."); return; }
       const msg = acessoMensagem(at);
       if (tipo === "msg") { await acessoCopiar(msg, "Mensagem copiada. É só colar no WhatsApp do cliente."); return; }
       if (tipo === "zap") { const tel = acessoTelWa(at); window.open("https://wa.me/" + tel + "?text=" + encodeURIComponent(msg), "_blank"); dizer(tel ? "WhatsApp aberto com a mensagem para o cliente. Revise e envie." : "O atendimento não tem telefone válido: o WhatsApp abriu para você escolher o contato."); }
@@ -7094,7 +7096,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && cfx.aberto && !$("at-3d").classList.contains("grande")) cfxFechar(); });
   $("at-cfg-copiar").addEventListener("click", () => copiarLinkCliente("at-cfg-msg")); $("cfx-copiar").addEventListener("click", () => copiarLinkCliente("cfx-resumo"));
   $("at-cfg-importar").addEventListener("click", importarLink); $("at-cfg-precos").addEventListener("click", copiarLinkOrcamento);
-  $("at-cod-gerar").addEventListener("click", () => acessoAcao("gerar")); $("at-cod-copiar").addEventListener("click", () => acessoAcao("copiar")); $("at-cod-zap").addEventListener("click", () => acessoAcao("zap")); $("at-cod-msg").addEventListener("click", () => acessoAcao("msg"));
+  $("at-cod-gerar").addEventListener("click", () => acessoAcao("gerar")); $("at-cod-copiar").addEventListener("click", () => acessoAcao("copiar")); $("at-cod-zap").addEventListener("click", () => acessoAcao("zap")); $("at-cod-so").addEventListener("click", () => acessoAcao("zapcod")); $("at-cod-msg").addEventListener("click", () => acessoAcao("msg"));
   buildFotos();
   // ---------- Precificação: estudar um atendimento e senha própria no modo vendas ----------
   const pvHash = async (sal, senha) => { const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(sal + "|" + senha)); return Array.from(new Uint8Array(b)).map((x) => x.toString(16).padStart(2, "0")).join(""); };
