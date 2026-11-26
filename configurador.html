@@ -935,35 +935,42 @@ body.com-precos .cod-link { display: none; }
       const painelX = (y) => 0.4995 * y + 3.0568;   // o painel é o plano x = 0,4995 y + 3,0568 (medido no modelo)
       const OH = new T.Vector3(painelX(1.36), 1.36, 0.235).addScaledVector(EN, -0.01);   // origem do "D": meio da borda reta, 1 cm embutida no painel
       const grupo = (o, bx, by, bz) => { const g = new T.Group(); g.matrixAutoUpdate = false; g.matrix.makeBasis(bx, by, bz); g.matrix.setPosition(o); g.matrixWorldNeedsUpdate = true; gM.add(g); return g; };
-      const gH = grupo(OH, XH, EUP, EZ);   // x do grupo = para fora do painel (o arco do "D" fica em x negativo, a borda reta em x = 0); y = para cima; z = boreste (a face branca)
-      const A = 0.15, BH = 0.088, DEP = 0.075;   // largura do "D", meia altura e espessura da carcaça
+      // manete real (fotos do Carlos): carcaça em "D" fina, aro de inox e face branca; a alavanca sai do arco para o piloto por um braço fino e termina num rolo preto DEITADO (paralelo ao painel), na frente do arco
+      const gH = grupo(OH, XH, EUP, EZ);   // x = para dentro do painel (o arco do "D" fica em x negativo, para o piloto); y = para cima pelo painel; z = boreste (a face branca)
+      const A = 0.145, BH = 0.088, DEP = 0.036;   // largura do "D", meia altura e espessura da carcaça (mais fina que antes)
       const dForma = (ins) => { const s = new T.Shape(), xb = -ins, xa = -A + ins, rx = xb - xa, b = BH - ins, N = 32; s.moveTo(xb, -b); s.lineTo(xb, b);
         for (let i = 1; i <= N; i++) { const t = Math.PI / 2 + Math.PI * i / N; s.lineTo(xb + rx * Math.cos(t), b * Math.sin(t)); } s.closePath(); return s; };
-      const preto = MR(0x0E0F11, { roughness: 0.36, envMapIntensity: 0.4 }), face = MR(0xFBFBFA, { roughness: 0.3, emissive: C(0xF2F2F0), emissiveIntensity: 0.3, envMapIntensity: 0.3 }), vermelho = MR(0xC8101A, { roughness: 0.42 });
+      const preto = MR(0x0E0F11, { roughness: 0.34, envMapIntensity: 0.45 }), cromo = MR(0x8C939B, { metalness: 1, roughness: 0.12, envMapIntensity: 1.25 }), pretoFosco = MR(0x141517, { roughness: 0.78, envMapIntensity: 0.12 }), face = MR(0xFBFBFA, { roughness: 0.3, emissive: C(0xF2F2F0), emissiveIntensity: 0.3, envMapIntensity: 0.3 }), vermelho = MR(0xC8101A, { roughness: 0.42 });
       const add3 = (g, geo, mat, x, y, z, rot) => { const m = new T.Mesh(geo, mat); m.position.set(x || 0, y || 0, z || 0); if (rot) m.rotation.set(rot[0], rot[1], rot[2]); m.castShadow = true; m.receiveShadow = true; g.add(m); return m; };
-      add3(gH, new T.ExtrudeGeometry(dForma(0), { depth: DEP, bevelEnabled: true, bevelThickness: 0.006, bevelSize: 0.006, bevelSegments: 2, curveSegments: 1 }), preto, 0, 0, 0);   // carcaça
-      const anel = dForma(0.011); anel.holes.push(new T.Path(dForma(0.028).getPoints()));
-      add3(gH, new T.ExtrudeGeometry(anel, { depth: 0.008, bevelEnabled: true, bevelThickness: 0.003, bevelSize: 0.003, bevelSegments: 2, curveSegments: 1 }), matR.inox, 0, 0, DEP + 0.006);   // aro cromado
-      add3(gH, new T.ExtrudeGeometry(dForma(0.028), { depth: 0.004, bevelEnabled: false, curveSegments: 1 }), face, 0, 0, DEP + 0.0065);   // face branca
+      const anelInox = (ins, furo, prof) => { const a = dForma(ins); a.holes.push(new T.Path(dForma(furo).getPoints())); return new T.ExtrudeGeometry(a, { depth: prof, bevelEnabled: true, bevelThickness: 0.003, bevelSize: 0.003, bevelSegments: 2, curveSegments: 1 }); };
+      add3(gH, new T.ExtrudeGeometry(dForma(0), { depth: DEP, bevelEnabled: true, bevelThickness: 0.006, bevelSize: 0.006, bevelSegments: 2, curveSegments: 1 }), preto, 0, 0, 0);   // carcaça preta (só aparece uma faixa fina)
+      add3(gH, anelInox(0.004, 0.022, 0.008), cromo, 0, 0, DEP + 0.006);   // aro de inox da face
+      add3(gH, anelInox(0.004, 0.022, 0.008), cromo, 0, 0, -0.016);   // aro de inox do verso (o que o piloto vê)
+      add3(gH, new T.ExtrudeGeometry(dForma(0.022), { depth: 0.004, bevelEnabled: false, curveSegments: 1 }), face, 0, 0, DEP + 0.0065);   // face branca
       const logoTex = tela(256, 640, (g, W, H) => { g.clearRect(0, 0, W, H); g.save(); g.translate(W / 2, H / 2); g.rotate(-Math.PI / 2); g.fillStyle = "#2b2e33"; g.font = "600 150px 'Saira', Arial, sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText("euronav", 0, 22);
         const wt = g.measureText("euronav").width, we = g.measureText("euro").width, wn = g.measureText("n").width, cx = -wt / 2 + we + wn / 2;
         g.fillStyle = "#3B5999"; g.beginPath(); g.moveTo(cx, -112); g.lineTo(cx - 30, -62); g.lineTo(cx + 30, -62); g.closePath(); g.fill(); g.restore(); });
       logoTex.desenhar(); try { if (document.fonts && document.fonts.load) document.fonts.load("600 150px Saira").then(() => logoTex.desenhar()).catch(() => {}); } catch (e) { /* mantém a fonte padrão */ }
-      const lg = new T.Mesh(new T.PlaneGeometry(0.046, 0.12), new T.MeshStandardMaterial({ map: logoTex, transparent: true, depthWrite: false, roughness: 0.3, polygonOffset: true, polygonOffsetFactor: -2 })); lg.position.set(-0.06, 0, DEP + 0.0115); gH.add(lg);
-      // alavanca: pescoço e punho grosso de pontas arredondadas, saindo do arco em direção ao piloto
-      add3(gH, new T.BoxGeometry(0.05, 0.03, 0.034), preto, -A - 0.022, 0.008, DEP / 2);
-      add3(gH, new T.CylinderGeometry(0.026, 0.026, 0.075, 20), preto, -A - 0.0775, 0.012, DEP / 2, [0, 0, Math.PI / 2]);
-      [-A - 0.04, -A - 0.115].forEach((x) => add3(gH, new T.SphereGeometry(0.026, 20, 14), preto, x, 0.012, DEP / 2));
+      const lg = new T.Mesh(new T.PlaneGeometry(0.046, 0.118), new T.MeshStandardMaterial({ map: logoTex, transparent: true, depthWrite: false, roughness: 0.3, polygonOffset: true, polygonOffsetFactor: -2 })); lg.position.set(-0.058, 0, DEP + 0.0115); gH.add(lg);
+      // alavanca: pino de inox no verso, braço fino indo para o piloto (por fora, do lado do verso) e rolo preto fosco deitado ao longo do painel, cruzando na frente do arco
+      const XR = -A - 0.05, ZE = -0.03, ZP = 0.07, ZI = -0.028, RR = 0.02;   // x do rolo (na frente do arco), z do braço, z da ponta (boreste), z da outra ponta, raio do rolo
+      add3(gH, new T.CylinderGeometry(0.013, 0.013, 0.034, 20), cromo, -A * 0.5, 0, -0.017, [Math.PI / 2, 0, 0]);   // pino de inox (eixo da alavanca)
+      add3(gH, new T.CylinderGeometry(0.0155, 0.0155, -XR - A * 0.5, 20), pretoFosco, (XR - A * 0.5) / 2, 0, ZE, [0, 0, Math.PI / 2]);   // braço
+      add3(gH, new T.TorusGeometry(0.0175, 0.003, 8, 24), cromo, XR + 0.032, 0, ZE, [0, Math.PI / 2, 0]);   // colar de inox no braço
+      add3(gH, new T.CylinderGeometry(RR, RR, ZP - ZI, 28), pretoFosco, XR, 0, (ZP + ZI) / 2, [Math.PI / 2, 0, 0]);   // rolo
+      add3(gH, new T.SphereGeometry(RR, 24, 14), pretoFosco, XR, 0, ZP);
+      add3(gH, new T.SphereGeometry(RR, 24, 14), pretoFosco, XR, 0, ZI);
+      add3(gH, new T.TorusGeometry(RR + 0.0008, 0.0024, 8, 28), cromo, XR, 0, ZE + 0.026);   // anel de inox no rolo, ao lado do braço
       // chave de ignição fixada no painel, acima da carcaça (comutador preto com a chave e a argola vermelha)
       const K0 = new T.Vector3(painelX(1.49), 1.49, 0.27).addScaledVector(EN, -0.008), gK = grupo(K0, EZ, EUP, EN);   // gK: x = boreste, y = para cima pelo painel, z = para fora do painel
       add3(gK, new T.CylinderGeometry(0.019, 0.019, 0.02, 24), preto, 0, 0, 0.008, [Math.PI / 2, 0, 0]);
-      add3(gK, new T.TorusGeometry(0.019, 0.0028, 8, 28), matR.inox, 0, 0, 0.018);
-      add3(gK, new T.CylinderGeometry(0.0095, 0.0095, 0.012, 20), matR.inox, 0, 0, 0.022, [Math.PI / 2, 0, 0]);
-      add3(gK, new T.BoxGeometry(0.009, 0.044, 0.003), matR.inox, 0, -0.024, 0.03);
+      add3(gK, new T.TorusGeometry(0.019, 0.0028, 8, 28), cromo, 0, 0, 0.018);
+      add3(gK, new T.CylinderGeometry(0.0095, 0.0095, 0.012, 20), cromo, 0, 0, 0.022, [Math.PI / 2, 0, 0]);
+      add3(gK, new T.BoxGeometry(0.009, 0.044, 0.003), cromo, 0, -0.024, 0.03);
       add3(gK, new T.TorusGeometry(0.0085, 0.0032, 8, 18), vermelho, 0.004, -0.057, 0.032);
       // cordão vermelho espiral: da argola da chave até a base da alavanca
-      const p0 = K0.clone().addScaledVector(EZ, 0.004).addScaledVector(EUP, -0.066).addScaledVector(EN, 0.034), p1 = OH.clone().addScaledVector(XH, -A - 0.025).addScaledVector(EUP, -0.014).addScaledVector(EZ, DEP / 2 + 0.003);
-      const pm = OH.clone().addScaledVector(XH, -A * 0.55).addScaledVector(EUP, BH + 0.015).addScaledVector(EZ, DEP / 2 + 0.012);   // o cordão passa por cima do arco, fora da carcaça
+      const p0 = K0.clone().addScaledVector(EZ, 0.004).addScaledVector(EUP, -0.066).addScaledVector(EN, 0.034), p1 = OH.clone().addScaledVector(XH, -A * 0.78).addScaledVector(EUP, -0.012).addScaledVector(EZ, ZE + 0.006);
+      const pm = OH.clone().addScaledVector(XH, -A - 0.022).addScaledVector(EUP, 0.05).addScaledVector(EZ, ZE - 0.004);   // o cordão desce da chave pelo lado do piloto, na frente do arco, até o braço da alavanca
       const eixo = new T.CatmullRomCurve3([p0, pm, p1]), pts = [], N = 300, voltas = 17;
       for (let i = 0; i <= N; i++) { const t = i / N, a = voltas * 2 * Math.PI * t, c = eixo.getPointAt(t), tg = eixo.getTangentAt(t), ref = Math.abs(tg.z) > 0.9 ? new T.Vector3(0, 1, 0) : new T.Vector3(0, 0, 1), pa = tg.clone().cross(ref).normalize(), qa = tg.clone().cross(pa).normalize(); pts.push(c.clone().addScaledVector(pa, 0.0085 * Math.cos(a)).addScaledVector(qa, 0.0085 * Math.sin(a))); }
       add3(gM, new T.TubeGeometry(new T.CatmullRomCurve3(pts), 500, 0.0031, 6, false), vermelho, 0, 0, 0);
@@ -2027,7 +2034,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
 /* marcador de versão e diagnóstico: só aparece quando o endereço tem ?v=NN (o mesmo que a equipe usa para furar o cache); o cliente não vê */
 (function () { try {
   if (!/[?&]v=/.test(location.search)) return;
-  var e = document.createElement("div"); e.id = "versao-cfg"; e.textContent = "Configurador v93 · 26/11";
+  var e = document.createElement("div"); e.id = "versao-cfg"; e.textContent = "Configurador v95 · 26/11";
   e.style.cssText = "position:fixed;left:8px;bottom:6px;z-index:60;max-width:92vw;font:11px/1.35 system-ui,sans-serif;letter-spacing:.03em;color:#c9ccd2;background:rgba(0,0,0,.6);padding:5px 9px;border-radius:12px;pointer-events:none";
   document.body.appendChild(e);
   var nav = (function () { try { var b = (navigator.userAgentData && navigator.userAgentData.brands) || [], nomes = b.map(function (x) { return x.brand; }).join(" "); if (/Edge/i.test(nomes) || /Edg\//.test(navigator.userAgent)) return "Edge"; if (/Chrome/i.test(nomes) || /Chrome\//.test(navigator.userAgent)) return "Chrome"; if (/Safari/.test(navigator.userAgent)) return "Safari"; if (/Firefox/.test(navigator.userAgent)) return "Firefox"; } catch (x) {} return "navegador?"; })();
@@ -2035,7 +2042,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
   var n = 0, lentos = 0, ult = 0, t0 = performance.now(), cv = null;
   (function tick(t) { n++; if (ult && t - ult > 25) lentos++; ult = t;
     if (t - t0 >= 1000) { cv = cv || document.querySelector("#at-3d-v canvas"); var pr = cv && cv.clientWidth ? cv.width / cv.clientWidth : 0;
-      e.innerHTML = "Configurador v93 · 26/11 · " + Math.round(n * 1000 / (t - t0)) + " fps · res " + (pr ? pr.toFixed(2) + "x" : "-") + (window.__b3dOrc ? " (orçamento " + (window.__b3dOrc / 1e6).toFixed(2) + " MP" + (window.__b3dSw ? ", por software" : "") + ")" : "") + " · " + lentos + " quadros lentos/s<br>" + nav + " · " + gpuTxt() + " · tela " + (window.devicePixelRatio || 1) + "x"; n = 0; lentos = 0; t0 = t; }
+      e.innerHTML = "Configurador v95 · 26/11 · " + Math.round(n * 1000 / (t - t0)) + " fps · res " + (pr ? pr.toFixed(2) + "x" : "-") + (window.__b3dOrc ? " (orçamento " + (window.__b3dOrc / 1e6).toFixed(2) + " MP" + (window.__b3dSw ? ", por software" : "") + ")" : "") + " · " + lentos + " quadros lentos/s<br>" + nav + " · " + gpuTxt() + " · tela " + (window.devicePixelRatio || 1) + "x"; n = 0; lentos = 0; t0 = t; }
     requestAnimationFrame(tick); })(performance.now());
 } catch (x) { /* sem marcador */ } })();
 </script>
@@ -2056,7 +2063,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
     if (cod.length < 4) { dizer("O código tem 4 letras e números (por exemplo, K7M4).", true); return; }
     ok.disabled = true; dizer("Verificando o código…");
     var ctl = window.AbortController ? new AbortController() : null, tm = setTimeout(function () { if (ctl) ctl.abort(); }, 15000);
-    fetch(API + (API.indexOf("?") < 0 ? "?" : "&") + "acao=codigo&c=" + encodeURIComponent(cod), ctl ? { signal: ctl.signal } : {})
+    fetch(API + (API.indexOf("?") < 0 ? "?" : "&") + "acao=codigo&cod=" + encodeURIComponent(cod), ctl ? { signal: ctl.signal } : {})
       .then(function (r) { return r.json(); })
       .then(function (j) {
         clearTimeout(tm);
