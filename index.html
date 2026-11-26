@@ -4087,6 +4087,34 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
   // Contato on-line: veio do configurador público e ainda não foi assumido por ninguém da equipe.
   // Fica numa fila própria; só entra na lista de atendimentos e nos números do CRM depois de "Atender".
   function ehLead(d) { return !!d && d.origem === "online" && d.onlinePend === true; }
+  // Atualização de orçamento: o cliente abriu o orçamento pelo código e mandou a configuração nova. O contato chega na fila com o código no texto; aqui ele é ligado ao atendimento do código.
+  const REV_RE = /Atualização de orçamento · código ([2-9A-HJKMNP-Z]{4})/;
+  const revCodigo = (d) => { const m = REV_RE.exec(String((d && d.obs) || "")); return m ? m[1] : ""; };
+  const revAlvo = (cod) => { for (const [id, a] of st.ats) if (a && a.codigo === cod && !ehLead(a)) return id; return ""; };
+  const revTexto = (d) => String((d && d.obs) || "").replace(/^Contato pelo configurador on-line(\s*\([^)]*\))?\.\s*/, "").replace(/\s*E-mail: \S+\.?$/, "");
+  function revAplicar(idLead) {
+    const d = st.ats.get(idLead), alvo = d ? revAlvo(revCodigo(d)) : ""; if (!d || !alvo || !st.canWrite) return false;
+    atOpen(alvo);
+    if (!st.at || !aplicarLink(d.linkCfg, true)) { setText("at-cfg-msg", "Não foi possível aplicar: o link do cliente veio sem configuração."); return false; }
+    atSave(); st.ats.delete(idLead); atWrite(idLead, () => st.acol.doc(idLead).delete());   // a atualização foi tratada: sai da fila
+    renderAtend(); renderLeads(); renderAtHist(); if (typeof renderCRM === "function") renderCRM(); location.hash = "#atendimento";
+    setText("at-cfg-msg", "Configuração do cliente aplicada. Confira o valor total; os preços do código estão sendo atualizados para o cliente ver o orçamento novo.");
+    acessoAtualizar((t) => setText("at-cod-st", t)).catch(() => {});
+    return true;
+  }
+  function revRender() {   // aviso dentro do atendimento do código
+    const ref = $("at-cod-st"); if (!ref) return; let box = $("at-rev"); if (!box) { box = el("div", "c-hint"); box.id = "at-rev"; ref.parentNode.insertBefore(box, ref.nextSibling); }
+    box.replaceChildren(); const at = st.atId ? st.ats.get(st.atId) : null;
+    const rv = at && at.codigo ? Array.from(st.ats.entries()).filter(([, d]) => ehLead(d) && revCodigo(d) === at.codigo) : []; box.hidden = !rv.length;
+    rv.forEach(([id, d]) => {
+      const quando = d.criadoEm || d.atualizadoEm ? new Date(d.atualizadoEm || d.criadoEm).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "";
+      box.append(el("b", "", "O cliente enviou uma nova configuração" + (quando ? " em " + quando : "") + ". "), el("span", "", revTexto(d) + " "));
+      const ap = el("button", "mv-bt forte", "Aplicar ao atendimento"), ds = el("button", "mv-bt", "Descartar"); ap.type = ds.type = "button"; ap.disabled = ds.disabled = !st.canWrite;
+      ap.addEventListener("click", () => revAplicar(id));
+      ds.addEventListener("click", () => { if (window.confirm("Descartar a atualização enviada pelo cliente?")) { st.ats.delete(id); atWrite(id, () => st.acol.doc(id).delete()); renderLeads(); revRender(); if (typeof renderCRM === "function") renderCRM(); } });
+      box.append(ap, " ", ds);
+    });
+  }
   function renderLeads() {
     const leads = Array.from(st.ats.entries()).filter(([, d]) => ehLead(d)).sort((x, y) => String(y[1].atualizadoEm || "").localeCompare(String(x[1].atualizadoEm || "")));
     const hb = $("at-hist-btn"); if (hb) hb.textContent = leads.length ? "Atendimentos · " + leads.length + " on-line a tratar" : "Atendimentos";
@@ -4097,23 +4125,24 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
       const h = el("div", "lead-h"); h.append(el("h2", "c-h3", "Contatos on-line a tratar"), el("span", "lead-n", String(leads.length))); host.appendChild(h);
       host.appendChild(el("p", "c-hint", leads.length ? "Vieram do configurador público. Ao atender, o contato vira um atendimento com a configuração que o cliente montou. Enquanto estão aqui, não entram nos números do CRM." : "Nenhum contato on-line aguardando."));
       leads.forEach(([id, d]) => {
-        const row = el("div", "lead-row"), info = el("div", "lead-info");
-        info.appendChild(el("b", "", d.nome || "Sem nome"));
+        const rc = revCodigo(d), ra = rc ? revAlvo(rc) : "", row = el("div", "lead-row"), info = el("div", "lead-info");
+        info.appendChild(el("b", "", (ra ? "Atualização de orçamento · código " + rc + " · " : "") + (d.nome || "Sem nome")));
         info.appendChild(el("p", "lead-ct", [d.tel, d.email].filter(Boolean).join(" · ") || "Sem telefone ou e-mail"));
         const quando = d.criadoEm ? new Date(d.criadoEm).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "";
         const resumo = String(d.obs || "").replace(/^Contato pelo configurador on-line(\s*\([^)]*\))?\.\s*/, "").replace(/\s*E-mail: \S+\.?$/, "");
         info.appendChild(el("p", "", (quando ? "Recebido em " + quando + ". " : "") + resumo));
         const ac = el("div", "lead-acoes"), sel = document.createElement("select"); sel.setAttribute("aria-label", "Atendente que vai assumir o contato de " + (d.nome || "cliente"));
         sel.appendChild(new Option("Sem atendente", "")); atendentes().forEach((n) => sel.appendChild(new Option(n, n)));
-        const ok = el("button", "mv-bt forte", "Atender"); ok.type = "button"; const no = el("button", "mv-bt", "Descartar"); no.type = "button";
+        const ok = el("button", "mv-bt forte", ra ? "Aplicar ao atendimento" : "Atender"); ok.type = "button"; const no = el("button", "mv-bt", "Descartar"); no.type = "button";
         ok.disabled = no.disabled = !st.canWrite;
         ok.addEventListener("click", () => {
+          if (ra) { revAplicar(id); return; }
           const quem = sel.value; d.atendente = quem; st.leadExtra = { atendente: quem }; atOpen(id); st.leadExtra = null;
           if (d.onlinePend) { d.onlinePend = false; atWrite(id, () => st.acol.doc(id).update({ atendente: quem, onlinePend: false })); }   // link sem configuração: assume mesmo assim
           renderLeads(); renderAtHist(); if (typeof renderCRM === "function") renderCRM(); location.hash = "#atendimento";
         });
         no.addEventListener("click", () => { if (window.confirm("Descartar o contato de " + (d.nome || "cliente") + "? Ele sai da fila e não vira atendimento.")) { atDelete(id); renderLeads(); if (typeof renderCRM === "function") renderCRM(); } });
-        ac.append(sel, ok, no); row.append(info, ac); host.appendChild(row);
+        if (ra) { const ver = el("button", "mv-bt", "Ver atendimento"); ver.type = "button"; ver.addEventListener("click", () => { atOpen(ra); location.hash = "#atendimento"; }); ac.append(ok, ver, no); } else ac.append(sel, ok, no); row.append(info, ac); host.appendChild(row);
       });
     });
   }
@@ -4923,10 +4952,11 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
     y -= 1;
     }
 
+    const nd = !!(q && q.desc > 0), rh = d.codigo ? (CP ? 12 : 13.5) + (nd ? 3 : 0) : 0;   // linha do código de acesso dentro do quadro preto
     // ---- quem faz e contato (quadro preto compacto) ----
     font(false, CP ? 7.4 : 7.9); const sob = doc.splitTextToSize(SOBRE_EURONAV, CW - 16);
     const cpp = contatoPartes();
-    const ch = (CP ? 16.5 : 18.5) + sob.length * (CP ? 3.3 : 3.5) + (cpp.length ? 5 : 0);
+    const ch = (CP ? 16.5 : 18.5) + sob.length * (CP ? 3.3 : 3.5) + (cpp.length ? 5 : 0) + rh;
     need(ch + 18); if (y > 30) y += 7.4;
     fill([0, 0, 0]); doc.rect(M, y, CW, ch, "F"); fill(BLUE); doc.rect(M, y, 2.4, ch, "F");
     font(true, 10); color(WHITE); doc.text("Quem faz a Euronav", M + 8, y + (CP ? 6.4 : 7));
@@ -4936,6 +4966,14 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
     font(true, 8.4); color(WHITE); doc.text(d.rep ? "Atendente: " + d.rep : "Estaleiro Euronav LTDA.", M + 8, cy + 1.6);
     font(false, 8); color(PALE); doc.text(ENDERECO, W - M - 8, cy + 1.6, { align: "right" });
     if (cpp.length) { font(true, 8); color(WHITE); doc.text(cpp.join("   |   "), M + 8, cy + 6.4); }
+    if (d.codigo) {   // código de acesso ao orçamento, com botão clicável no PDF
+      const ry = y + ch - rh, url = ACESSO_PUB + "configurador.html?c=" + d.codigo, bw = 62, bx = W - M - 8 - bw;
+      stroke([60, 60, 60], 0.2); doc.line(M + 8, ry + 0.4, W - M - 8, ry + 0.4);
+      font(false, 7); color(PALE); doc.text("Seu código de acesso", M + 8, ry + 5.6);
+      font(true, 12.5); color(WHITE); doc.text(d.codigo.split("").join(" "), M + 40, ry + 6);
+      fill(BLUE); doc.roundedRect(bx, ry + 2.2, bw, 7.4, 1.2, 1.2, "F"); font(true, 7.4); color(WHITE); doc.text("Clique aqui e atualize sua configuração", bx + bw / 2, ry + 6.9, { align: "center" }); doc.link(bx, ry + 2.2, bw, 7.4, { url });
+      font(false, 6.5); color(PALE); doc.text(doc.splitTextToSize("No configurador, toque em “Tenho um código” e digite o código." + (nd ? " Os valores do configurador são os de tabela, sem a condição especial desta proposta." : ""), bx - M - 12), M + 8, ry + 11.4, { lineHeightFactor: 1.2 });
+    }
     y += ch + (CP ? 4 : 6);
 
     // ---- rodapé ----
@@ -4957,7 +4995,9 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
     if (!window.jspdf || !window.jspdf.jsPDF) { msg.textContent = "O gerador de PDF não carregou. Verifique a conexão e recarregue a página."; return; }
     btn.disabled = true; msg.textContent = "Gerando a proposta…";
     try {
-      const d = propData(q, cur);
+      let codigo = "";   // código de acesso ao orçamento: garante que existe e que os preços guardados são os de hoje, os mesmos da proposta
+      try { if (st.canWrite && st.acol) { msg.textContent = "Preparando o código de acesso ao orçamento…"; const at2 = await acessoAtualizar((t) => { msg.textContent = t; }); codigo = (at2 && at2.codigo) || ""; } if (!codigo && cur.codigo && cur.orc && cur.orc.hash) codigo = cur.codigo; } catch (e) { codigo = (cur.codigo && cur.orc && cur.orc.hash) ? cur.codigo : ""; }
+      const d = propData(q, cur); d.codigo = /^[2-9A-HJKMNP-Z]{4}$/.test(codigo) ? codigo : "";
       msg.textContent = "Gerando as imagens 3D de proa e popa…"; d.imgs = {};
       for (const k of ["proa", "popa"]) {   // as mesmas imagens finais do botão "Imagem final" (ficam em cache se já foram geradas)
         try {
@@ -4973,7 +5013,7 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
       let dl = null; try { dl = window.claude && window.claude.use ? await window.claude.use("downloads") : null; } catch (e) { dl = null; }
       if (!dl) { msg.textContent = "Não foi possível salvar o arquivo. Tente de novo."; return; }
       await dl.save({ filename: "Proposta Euro Sette - " + String(d.cliente).replace(/[^\p{L}\p{N} ]/gu, "").slice(0, 60) + ".pdf", data: blob });
-      msg.textContent = "Proposta " + d.numero + " salva." + (d.imgs.proa || d.imgs.popa ? "" : " Sem as imagens 3D: não foi possível gerá-las neste aparelho.") + " Modelo v93 (26/11), " + d.paginas + " páginas.";
+      msg.textContent = "Proposta " + d.numero + " salva." + (d.imgs.proa || d.imgs.popa ? "" : " Sem as imagens 3D: não foi possível gerá-las neste aparelho.") + " Modelo v94 (26/11), " + d.paginas + " páginas.";
       const id = st.atId, at = st.ats.get(id);
       if (id && at && st.acol && st.canWrite) {
         const patch = { ultimaProposta: { numero: d.numero, em: nowIso(), total: Math.round(q.total) }, atualizadoEm: nowIso() };
@@ -6774,9 +6814,16 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
     atSave(); renderAtend(); setText("at-cfg-msg", "Configuração do cliente aplicada. Confira o orçamento abaixo.");
   }
   // Aplica ao atendimento aberto a configuração de um link do configurador (cores, tubulões, motor e opcionais).
-  function aplicarLink(txt) {
+  function aplicarLink(txt, subst) {
     const i = String(txt || "").indexOf("#"); if (i < 0 || !st.at) return false;
     const h = new URLSearchParams(txt.slice(i + 1));
+    if (subst) {   // atualização enviada pelo cliente: o que ele desmarcou sai também (só o que o configurador dele controla; o resto do atendimento fica como está)
+      const kt0 = (h.get("kt") || "").split("."), o0 = (h.get("o") || "").split(".").filter(Boolean);
+      ["conforto", "lazer", "fundeio"].forEach((k) => { if (!kt0.includes(k) && st.at.kits && st.at.kits[k]) st.at.kits = Object.assign({}, st.at.kits, { [k]: false }); });
+      [["cp", /capota de proa/i], ["ca", /carreta/i]].forEach(([k, re]) => { if (o0.includes(k)) return; st.items.forEach((it, id) => { if (it.grupo !== "acessorios" || !re.test(it.item || "")) return; const kit = kitOf(it); if (kit && kitSepara(kit) && st.at.kitItens && st.at.kitItens[kit]) st.at.kitItens = Object.assign({}, st.at.kitItens, { [kit]: st.at.kitItens[kit].filter((x) => x !== id) }); }); });
+      if (!h.has("nb")) st.at.nb = "";
+      st.at.gps = false; st.at.gpsAuto = false;   // o GPS volta se o motor ou a lista do cliente o incluírem
+    }
     if (h.get("e")) st.at.corEst = catEst(h.get("e"))[0];
     if (h.get("p")) st.at.corPiso = catPiso(h.get("p"))[0];
     st.at.corListra = catListra(st.at.corPiso, h.get("li") || st.at.corListra); if (h.get("k")) st.at.corCapota = catCap(h.get("k"))[0];
@@ -6867,7 +6914,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
     const at = st.atId ? st.ats.get(st.atId) : null, e = $("at-cod"); if (!e) return;
     e.textContent = at && at.codigo ? at.codigo : "------";
     const dv = (d) => String(d || "").split("-").reverse().join("/");
-    setText("at-cod-st", !at ? "Abra um atendimento para gerar o código." : !at.codigo ? "Este atendimento ainda não tem código. Toque em \"Gerar / atualizar preços do código\"." : at.orc && at.orc.hash ? "Código ativo. O cliente vê os valores guardados em " + dataBR(at.orc.em) + ", válidos até " + dv(at.orc.val) + ". Mudou algo no atendimento? Toque em \"Gerar / atualizar preços do código\"." : "Código criado, mas os preços ainda não foram guardados. Toque em \"Gerar / atualizar preços do código\".");
+    setText("at-cod-st", !at ? "Abra um atendimento para gerar o código." : !at.codigo ? "Este atendimento ainda não tem código. Toque em \"Gerar / atualizar preços do código\"." : at.orc && at.orc.hash ? "Código ativo. O cliente vê os valores guardados em " + dataBR(at.orc.em) + ", válidos até " + dv(at.orc.val) + ". Mudou algo no atendimento? Toque em \"Gerar / atualizar preços do código\"." : "Código criado, mas os preços ainda não foram guardados. Toque em \"Gerar / atualizar preços do código\"."); revRender();
   }
   async function acessoAtualizar(dizer) {   // monta a tabela de preços de hoje (a mesma do link com preços) e guarda no atendimento, junto do código
     const id = st.atId, at = id ? st.ats.get(id) : null;

@@ -271,6 +271,9 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
 /* ---- acesso ao orçamento por código (discreto: só faz sentido para quem recebeu um código do atendente) ---- */
 .cod-bt { border-color: transparent; color: var(--muted); }
 .cod-bt:hover { border-color: var(--line); color: inherit; }
+.orc-ola { margin: 12px 0 0; padding: 12px 14px; border: 1px solid var(--line); border-left: 3px solid #3B5999; border-radius: 10px; }
+.orc-ola b { display: block; font-size: 1.05rem; }
+.orc-ola span { display: block; margin-top: 4px; color: var(--muted); font-size: .88rem; line-height: 1.45; }
 body.com-precos #b-codigo { display: none; }   /* dentro do orçamento o botão não faz sentido */
 @media (max-width: 600px) { .acoes { flex-wrap: nowrap; gap: 4px; } .acoes .bt { padding: 7px 6px; letter-spacing: .03em; font-size: .66rem; } }   /* celular: os dois botões do topo cabem numa linha só */
 .cod-link { display: none; }
@@ -354,6 +357,7 @@ body.com-precos .cod-link { display: none; }
       <p class="ct-erro" id="ct-erro" aria-live="polite"></p>
     </div>
     <div class="cta">
+      <button class="bt forte" type="button" id="b-atual" hidden>Enviar minha configuração atualizada</button>
       <button class="bt forte" type="button" id="b-quero">Enviar pelo WhatsApp</button>
       <button class="bt" type="button" id="b-share2">Copiar link desta configuração</button>
       <a class="bt" id="b-insta" href="https://www.instagram.com/euronavbr/" target="_blank" rel="noopener">Instagram @euronavbr</a>
@@ -469,7 +473,7 @@ body.com-precos .cod-link { display: none; }
   const opcNomes = () => { const out = []; KITS_PUB.forEach((kit) => { if (kitTodos(kit)) out.push(kit.nome.toLowerCase().replace(/^kit /, "kit ")); else kit.itens.forEach(([k, t]) => { if (E[k]) out.push(t.toLowerCase()); }); }); if (E.gps) out.push("GPS"); return out; };
   const PADRAO = { est: "Cinza Arizona", piso: "Cinza", li: "Branco", cap: "Cinza", tubo: "pvc", ct: "cinza", cp: false, ch: false, gu: false, pia: false, cx: false, ca: false, kc: false, gps: false, motor: "mercury", hp: 150, vv: false, nb: "", vista: "360", proa: "mesa" };
   const E = Object.assign({}, PADRAO);
-  let ORC = null, ORCQ = "", ORCERRO = false; const ORCS = { mi: 0, mk: 0 };   // modo orçamento com preços (tabela vinda do link)
+  let ORCCOD = "", ORCHASH0 = "", ORCENV = "", ORCRESUMO0 = ""; let ORC = null, ORCQ = "", ORCERRO = false; const ORCS = { mi: 0, mk: 0 };   // modo orçamento com preços (tabela vinda do link)
   const nomeCor = (c) => c.toLowerCase();
   const nomeLimpo = (v) => String(v || "").replace(/[^\p{L}\p{N} .'&-]/gu, "").replace(/\s+/g, " ").trim().slice(0, 20);   // nome do barco (opcional)
   // ---------- motor em passos: fabricante, potência e, no Mercury 200, o VesselView ----------
@@ -522,13 +526,13 @@ body.com-precos .cod-link { display: none; }
     if (E.vv) E.gps = true;                                              // o VesselView já traz o GPS
     E.nb = nomeLimpo(h.get("nb"));
   };
-  const hashAtual = (comQ = true) => {
+  const hashAtual = (comQ = true, comCod = false) => {   /* comCod: só o endereço da própria página guarda o código; links compartilhados e o do contato não levam */
     const o = OPC_CHAVES.filter((k) => E[k] && !(ORC && k === "ca")); if (ORC && ((ORCS.mk >> 4) & 1)) o.push("ca");
     const p = new URLSearchParams({ e: E.est, p: E.piso, li: E.li, k: E.cap, t: E.tubo, c: E.ct, m: E.motor, hp: E.hp, v: E.vista }); if (E.vv) p.set("vv", "1"); if (E.nb) p.set("nb", E.nb); if (E.proa === "sol") p.set("pr", "sol"); if (o.length) p.set("o", o.join("."));
-    if (ORC) { p.set("mi", ORC.m[ORCS.mi][0]); const kt = ["conforto", "lazer", "fundeio"].filter((k, j) => (ORCS.mk >> j) & 1); if (kt.length) p.set("kt", kt.join(".")); if (comQ) p.set("q", ORCQ); }
+    if (ORC) { p.set("mi", ORC.m[ORCS.mi][0]); const kt = ["conforto", "lazer", "fundeio"].filter((k, j) => (ORCS.mk >> j) & 1); if (kt.length) p.set("kt", kt.join(".")); if (comQ) p.set("q", ORCQ); if (comCod && ORCCOD) p.set("cd", ORCCOD); }
     return "#" + p.toString();
   };
-  const gravarHash = () => { try { history.replaceState(null, "", hashAtual()); } catch (e) { /* ignora */ } };
+  const gravarHash = () => { try { history.replaceState(null, "", hashAtual(true, true)); } catch (e) { /* ignora */ } if (ORC) orcRevAtual(); };
   // ---------- 3D ----------
   const B3D = { estado: "off" };
   // Se o navegador desenha o 3D por software (aceleração de hardware desligada), a resolução é reduzida para o 3D continuar usável; nos demais casos o 3D usa a resolução cheia da tela.
@@ -1709,7 +1713,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
   // mais um pequeno ajuste de impostos guardado na tabela, então o total é exatamente o que o Atendimento calcula.
   const reais = (v) => "R$ " + Math.round(v).toLocaleString("pt-BR");
   async function orcCarregar() {
-    const qv = new URLSearchParams(location.hash.slice(1)).get("q"); if (!qv) return;
+    const P0 = new URLSearchParams(location.hash.slice(1)); ORCCOD = String(P0.get("cd") || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 4); const qv = P0.get("q"); if (!qv) return;
     try {
       const bin = atob(qv.replace(/-/g, "+").replace(/_/g, "/")), u8 = Uint8Array.from(bin, (c) => c.charCodeAt(0));
       const lido = new Response(new Blob([u8]).stream().pipeThrough(new DecompressionStream("deflate-raw"))).text();
@@ -1728,8 +1732,29 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
   }
   function orcSync() { const m = ORC.m[ORCS.mi]; E.motor = /yamaha/i.test(m[1]) ? "yamaha" : "mercury"; E.hp = motorHp(m[1]) || E.hp; E.vv = !!m[4] || /vessel/i.test(m[1]); E.cp = !!((ORCS.mk >> 3) & 1); E.ch = !!((ORCS.mk >> 1) & 1); E.gu = !!((ORCS.mk >> 2) & 1); E.pia = !!((ORCS.mk >> 1) & 1); E.cx = E.pia; E.kc = !!(ORCS.mk & 1); E.ca = !!((ORCS.mk >> 4) & 1); E.gps = !!m[4] || !!((ORCS.mk >> 6) & 1); }
   const orcMotorTxt = (m) => (m[2] ? m[2] + ". Garantia do fabricante." : "Garantia do fabricante");
+  const orcSig = () => { const p = new URLSearchParams(hashAtual(false).slice(1)); p.delete("v"); return p.toString(); };   // a configuração sem a vista (girar o 3D não é mudança)
+  function orcOla() {
+    const nm = String((ORC && ORC.n) || "").trim().split(/\s+/)[0], prim = nm ? nm.charAt(0).toUpperCase() + nm.slice(1).toLowerCase() : "";
+    let volta = false; try { volta = !!localStorage.getItem("euronav-orc-visto"); localStorage.setItem("euronav-orc-visto", String(Date.now())); } catch (e) { /* segue */ }
+    const h = document.createElement("div"), b = document.createElement("b"), p = document.createElement("span"); h.className = "orc-ola";
+    b.textContent = (volta ? "Bem-vindo de volta" : "Olá") + (prim ? ", " + prim : "") + "!";
+    p.textContent = volta ? "Aqui está o seu Euro Sette. Ajuste o que quiser e, quando terminar, toque em “Enviar minha configuração atualizada”." : "Preparamos este orçamento para você. Mexa nas opções à vontade para ver como o valor muda e, quando terminar, toque em “Enviar minha configuração atualizada”.";
+    h.append(b, p); const t = document.querySelector(".titulo"); if (t) t.appendChild(h);
+  }
+  function orcRevAtual() {
+    const b = $("b-atual"); if (!b || b.hidden || !ORC) return; const agora = orcSig(), mudou = agora !== ORCHASH0, enviado = !!ORCENV && agora === ORCENV;
+    b.disabled = !mudou || enviado; b.textContent = enviado ? "Atualização enviada ✓" : "Enviar minha configuração atualizada"; b.title = mudou ? "" : "Mude alguma opção acima para poder enviar uma atualização.";
+  }
+  function enviarAtualizacao() {
+    if (!ORC || !ORCCOD) { aviso("Para enviar a atualização, abra o orçamento pelo seu código."); return; }
+    if (!validarContato(false, "enviar a atualização")) return;
+    const ini = /Valor total (R\$\s?[\d.]+)/.exec(ORCRESUMO0 || "");
+    const ok = registrarContato("Atualização de orçamento · código " + ORCCOD, { id: "on-rev" + ORCCOD.toLowerCase() + "euronav2026", resumo: $("resumo").textContent + (ini ? " Valor que constava no orçamento: " + ini[1] + "." : "") });
+    if (ok) { ORCENV = orcSig(); orcRevAtual(); aviso("Atualização enviada! O atendente da Euronav recebeu a sua nova configuração e entra em contato."); }
+  }
   function orcMontar() {
     document.body.classList.add("com-precos");
+    orcOla(); { const ba = $("b-atual"); if (ORCCOD) { ba.hidden = false; ba.addEventListener("click", enviarAtualizacao); $("b-quero").classList.remove("forte"); } const cn = $("ct-nome"); if (cn && !cn.value && ORC.n) cn.value = String(ORC.n).trim().split(/\s+/).map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ").slice(0, 60); }
     document.title = "Euro Sette · Orçamento"; document.querySelector(".marca span").innerHTML = '· Orçamento';
     document.querySelector(".titulo p").textContent = ORC.n ? "Orçamento para " + ORC.n : "Orçamento";
     document.querySelector(".contato .ct-p").textContent = "Confirme seu nome e telefone. O atendente da Euronav recebe a sua escolha e o valor, e entra em contato para fechar os detalhes.";
@@ -1901,12 +1926,13 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
   const linkCfg = () => location.href.split("#")[0] + hashAtual(false);   // o link do contato não leva a tabela de preços
   // Registra o contato como atendimento on-line no CRM. Roda ao clicar em qualquer botão de contato, se os dados estiverem preenchidos.
   let ultimoLead = "";
-  function registrarContato(canal) {
+  function registrarContato(canal, extra) {
     const c = dadosContato(); if (c.nome.length < 2 || !(telOk(c.tel) || emailOk(c.email))) return false;
     try { localStorage.setItem("euronav-ct", JSON.stringify(c)); } catch (e) { /* segue */ }
     let id = ""; try { id = localStorage.getItem("euronav-lead") || ""; } catch (e) { /* segue */ }
     if (!/^on-[a-z0-9]{16,40}$/.test(id)) { id = "on-" + Array.from(crypto.getRandomValues(new Uint8Array(12))).map((x) => (x % 36).toString(36)).join("") + Date.now().toString(36); try { localStorage.setItem("euronav-lead", id); } catch (e) { /* segue */ } }
-    const corpo = JSON.stringify({ acao: "lead", id, nome: c.nome, tel: c.tel, email: c.email, canal, site: $("ct-site").value, link: linkCfg(), resumo: $("resumo").textContent.replace(/^Seu Euro Sette:\s*/, "") });
+    if (extra && extra.id) id = extra.id;   /* atualização de orçamento: um registro por código */
+    const corpo = JSON.stringify({ acao: "lead", id, nome: c.nome, tel: c.tel, email: c.email, canal, site: $("ct-site").value, link: linkCfg(), resumo: (extra && extra.resumo) || $("resumo").textContent.replace(/^Seu Euro Sette:\s*/, "") });
     if (corpo === ultimoLead) return true; ultimoLead = corpo;
     try { fetch(API_LEAD, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: corpo, keepalive: true, redirect: "follow" }).catch(() => { ultimoLead = ""; }); } catch (e) { ultimoLead = ""; }
     return true;
@@ -2026,7 +2052,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
     await orcCarregar(); lerHash();
     if (ORC) { orcInicial(); orcSync(); }
     if (ORCERRO) $("orc-erro").hidden = false;
-    montar(); if (ORC) orcMontar(); tema(t0); render(); carregar3D();
+    montar(); if (ORC) orcMontar(); tema(t0); render(); if (ORC) { ORCHASH0 = orcSig(); ORCRESUMO0 = $("resumo").textContent; orcRevAtual(); } carregar3D();
   })();
   window.addEventListener("hashchange", () => { lerHash(); render(); });
 })();
@@ -2035,7 +2061,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
 /* marcador de versão e diagnóstico: só aparece quando o endereço tem ?v=NN (o mesmo que a equipe usa para furar o cache); o cliente não vê */
 (function () { try {
   if (!/[?&]v=/.test(location.search)) return;
-  var e = document.createElement("div"); e.id = "versao-cfg"; e.textContent = "Configurador v96 · 26/11";
+  var e = document.createElement("div"); e.id = "versao-cfg"; e.textContent = "Configurador v97 · 26/11";
   e.style.cssText = "position:fixed;left:8px;bottom:6px;z-index:60;max-width:92vw;font:11px/1.35 system-ui,sans-serif;letter-spacing:.03em;color:#c9ccd2;background:rgba(0,0,0,.6);padding:5px 9px;border-radius:12px;pointer-events:none";
   document.body.appendChild(e);
   var nav = (function () { try { var b = (navigator.userAgentData && navigator.userAgentData.brands) || [], nomes = b.map(function (x) { return x.brand; }).join(" "); if (/Edge/i.test(nomes) || /Edg\//.test(navigator.userAgent)) return "Edge"; if (/Chrome/i.test(nomes) || /Chrome\//.test(navigator.userAgent)) return "Chrome"; if (/Safari/.test(navigator.userAgent)) return "Safari"; if (/Firefox/.test(navigator.userAgent)) return "Firefox"; } catch (x) {} return "navegador?"; })();
@@ -2043,7 +2069,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
   var n = 0, lentos = 0, ult = 0, t0 = performance.now(), cv = null;
   (function tick(t) { n++; if (ult && t - ult > 25) lentos++; ult = t;
     if (t - t0 >= 1000) { cv = cv || document.querySelector("#at-3d-v canvas"); var pr = cv && cv.clientWidth ? cv.width / cv.clientWidth : 0;
-      e.innerHTML = "Configurador v96 · 26/11 · " + Math.round(n * 1000 / (t - t0)) + " fps · res " + (pr ? pr.toFixed(2) + "x" : "-") + (window.__b3dOrc ? " (orçamento " + (window.__b3dOrc / 1e6).toFixed(2) + " MP" + (window.__b3dSw ? ", por software" : "") + ")" : "") + " · " + lentos + " quadros lentos/s<br>" + nav + " · " + gpuTxt() + " · tela " + (window.devicePixelRatio || 1) + "x"; n = 0; lentos = 0; t0 = t; }
+      e.innerHTML = "Configurador v97 · 26/11 · " + Math.round(n * 1000 / (t - t0)) + " fps · res " + (pr ? pr.toFixed(2) + "x" : "-") + (window.__b3dOrc ? " (orçamento " + (window.__b3dOrc / 1e6).toFixed(2) + " MP" + (window.__b3dSw ? ", por software" : "") + ")" : "") + " · " + lentos + " quadros lentos/s<br>" + nav + " · " + gpuTxt() + " · tela " + (window.devicePixelRatio || 1) + "x"; n = 0; lentos = 0; t0 = t; }
     requestAnimationFrame(tick); })(performance.now());
 } catch (x) { /* sem marcador */ } })();
 </script>
@@ -2068,7 +2094,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
       .then(function (r) { return r.json(); })
       .then(function (j) {
         clearTimeout(tm);
-        if (j && j.ok && j.hash) { dizer("Código confirmado. Abrindo o seu orçamento…"); try { location.href = location.pathname + "?x=" + Date.now() + "#" + j.hash; } catch (e) { location.hash = "#" + j.hash; setTimeout(function () { location.reload(); }, 120); } return; }   /* abre como página NOVA: só trocar o endereço fazia a página reescrevê-lo sem a tabela de preços */
+        if (j && j.ok && j.hash) { dizer("Código confirmado. Abrindo o seu orçamento…"); try { location.href = location.pathname + "?x=" + Date.now() + "#" + j.hash + "&cd=" + encodeURIComponent(cod); } catch (e) { location.hash = "#" + j.hash; setTimeout(function () { location.reload(); }, 120); } return; }   /* abre como página NOVA: só trocar o endereço fazia a página reescrevê-lo sem a tabela de preços */
         ok.disabled = false;
         if (j && j.ok && j.pendente) { dizer("Seu orçamento ainda está sendo preparado. Fale com o seu atendente da Euronav."); return; }
         if (j && j.expirado) { dizer("Este orçamento expirou. Peça ao seu atendente da Euronav uma atualização.", true); return; }
