@@ -271,7 +271,7 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
 /* ---- acesso ao orçamento por código (discreto: só faz sentido para quem recebeu um código do atendente) ---- */
 .cod-bt { border-color: transparent; color: var(--muted); }
 .cod-bt:hover { border-color: var(--line); color: inherit; }
-.orc-ola { margin: 12px 0 0; padding: 12px 14px; border: 1px solid var(--line); border-left: 3px solid #3B5999; border-radius: 10px; }
+.orc-ola { margin: 0 0 14px; padding: 12px 14px; border: 1px solid var(--line); border-left: 3px solid #3B5999; border-radius: 10px; }
 .orc-ola b { display: block; font-size: 1.05rem; }
 .orc-atual { margin-top: 14px; }
 .orc-atual .bt { width: 100%; letter-spacing: .04em; padding-left: 6px; padding-right: 6px; white-space: normal; }
@@ -1746,7 +1746,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
     const h = document.createElement("div"), b = document.createElement("b"), p = document.createElement("span"); h.className = "orc-ola";
     b.textContent = (volta ? "Bem-vindo de volta" : "Olá") + (prim ? ", " + prim : "") + "!";
     p.textContent = volta ? "Aqui está o seu Euro Sette. Ajuste o que quiser e, quando terminar, toque em “Enviar minha configuração atualizada”." : "Preparamos este orçamento para você. Mexa nas opções à vontade para ver como o valor muda e, quando terminar, toque em “Enviar minha configuração atualizada”.";
-    h.append(b, p); const t = document.querySelector(".titulo"); if (t) t.appendChild(h);
+    h.append(b, p); const as = document.querySelector("aside"); if (as) as.insertBefore(h, as.firstChild);   /* no topo da coluna de opções: nunca por cima do 3D */
   }
   function orcRevAtual() {
     const b = $("b-atual"), b2 = $("b-atual2"); if (!b || !ORC || !ORCCOD) return; const agora = orcSig(), mudou = agora !== ORCHASH0, enviado = !!ORCENV && agora === ORCENV;
@@ -2070,7 +2070,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
 /* marcador de versão e diagnóstico: só aparece quando o endereço tem ?v=NN (o mesmo que a equipe usa para furar o cache); o cliente não vê */
 (function () { try {
   if (!/[?&]v=/.test(location.search)) return;
-  var e = document.createElement("div"); e.id = "versao-cfg"; e.textContent = "Configurador v100 · 26/11";
+  var e = document.createElement("div"); e.id = "versao-cfg"; e.textContent = "Configurador v101 · 26/11";
   e.style.cssText = "position:fixed;left:8px;bottom:6px;z-index:60;max-width:92vw;font:11px/1.35 system-ui,sans-serif;letter-spacing:.03em;color:#c9ccd2;background:rgba(0,0,0,.6);padding:5px 9px;border-radius:12px;pointer-events:none";
   document.body.appendChild(e);
   var nav = (function () { try { var b = (navigator.userAgentData && navigator.userAgentData.brands) || [], nomes = b.map(function (x) { return x.brand; }).join(" "); if (/Edge/i.test(nomes) || /Edg\//.test(navigator.userAgent)) return "Edge"; if (/Chrome/i.test(nomes) || /Chrome\//.test(navigator.userAgent)) return "Chrome"; if (/Safari/.test(navigator.userAgent)) return "Safari"; if (/Firefox/.test(navigator.userAgent)) return "Firefox"; } catch (x) {} return "navegador?"; })();
@@ -2078,7 +2078,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
   var n = 0, lentos = 0, ult = 0, t0 = performance.now(), cv = null;
   (function tick(t) { n++; if (ult && t - ult > 25) lentos++; ult = t;
     if (t - t0 >= 1000) { cv = cv || document.querySelector("#at-3d-v canvas"); var pr = cv && cv.clientWidth ? cv.width / cv.clientWidth : 0;
-      e.innerHTML = "Configurador v100 · 26/11 · " + Math.round(n * 1000 / (t - t0)) + " fps · res " + (pr ? pr.toFixed(2) + "x" : "-") + (window.__b3dOrc ? " (orçamento " + (window.__b3dOrc / 1e6).toFixed(2) + " MP" + (window.__b3dSw ? ", por software" : "") + ")" : "") + " · " + lentos + " quadros lentos/s<br>" + nav + " · " + gpuTxt() + " · tela " + (window.devicePixelRatio || 1) + "x"; n = 0; lentos = 0; t0 = t; }
+      e.innerHTML = "Configurador v101 · 26/11 · " + Math.round(n * 1000 / (t - t0)) + " fps · res " + (pr ? pr.toFixed(2) + "x" : "-") + (window.__b3dOrc ? " (orçamento " + (window.__b3dOrc / 1e6).toFixed(2) + " MP" + (window.__b3dSw ? ", por software" : "") + ")" : "") + " · " + lentos + " quadros lentos/s<br>" + nav + " · " + gpuTxt() + " · tela " + (window.devicePixelRatio || 1) + "x"; n = 0; lentos = 0; t0 = t; }
     requestAnimationFrame(tick); })(performance.now());
 } catch (x) { /* sem marcador */ } })();
 </script>
