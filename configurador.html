@@ -1753,12 +1753,19 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
     [b, b2].forEach((x) => { if (!x) return; x.disabled = !mudou || enviado; x.textContent = enviado ? "Atualização enviada ✓" : "Enviar minha configuração atualizada"; x.title = mudou ? "" : "Mude alguma opção para poder enviar uma atualização."; });
     const dd = $("orc-atual-d"); if (dd) dd.textContent = enviado ? "O atendente da Euronav já recebeu esta versão. Se mudar mais alguma coisa, é só enviar de novo." : mudou ? "Quando terminar de ajustar, envie para o atendente da Euronav conferir." : "Mude alguma opção acima (cores, motor, kits...) para poder enviar a sua atualização.";
   }
-  function enviarAtualizacao() {
+  async function enviarAtualizacao() {   // envio direto: o atendimento já existe e o código identifica o cliente, então não pede nome nem telefone
     if (!ORC || !ORCCOD) { aviso("Para enviar a atualização, abra o orçamento pelo seu código."); return; }
-    if (!validarContato(false, "enviar a atualização")) return;
-    const ini = /Valor total (R\$\s?[\d.]+)/.exec(ORCRESUMO0 || "");
-    const ok = registrarContato("Atualização de orçamento · código " + ORCCOD, { id: "on-rev" + ORCCOD.toLowerCase() + "euronav2026", resumo: $("resumo").textContent + (ini ? " Valor que constava no orçamento: " + ini[1] + "." : "") });
+    const c = dadosContato(), cap = (w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase(), nomeOrc = String(ORC.n || "").trim().split(/\s+/).filter(Boolean).map(cap).join(" ");
+    const nome = c.nome.length >= 2 ? c.nome : (nomeOrc.length >= 2 ? nomeOrc : "Cliente do código " + ORCCOD);
+    let tel = telOk(c.tel) ? c.tel : "", email = emailOk(c.email) ? c.email : "";
+    if (!tel && !email) tel = "(00) 00000-0000";   // a planilha exige telefone ou e-mail para aceitar o registro; o contato verdadeiro já está no atendimento do código
+    const ini = /Valor total (R\$\s?[\d.]+)/.exec(ORCRESUMO0 || ""), atual = $("resumo").textContent, tot = /Valor total (R\$\s?[\d.]+)/.exec(atual), resto = atual.replace(/^Valor total R\$\s?[\d.]+ \(impostos incluídos\)\.\s*/, "");
+    const resumo = "Atualização de orçamento · código " + ORCCOD + ". Valor total " + (tot ? tot[1] : "") + (ini ? " (antes " + ini[1] + ")" : "") + ". " + resto;   // o código vai no começo do texto: o campo canal da planilha corta em 20 letras
+    const corpo = JSON.stringify({ acao: "lead", id: "on-rev" + ORCCOD.toLowerCase() + "euronav2026", nome, tel, email, canal: "Atualização", site: "", link: linkCfg(), resumo });
+    [$("b-atual"), $("b-atual2")].forEach((x) => { if (x) { x.disabled = true; x.textContent = "Enviando…"; } });
+    let ok = false; try { const r = await fetch(API_LEAD, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: corpo, redirect: "follow" }); const j = await r.json(); ok = !!(j && j.ok); } catch (e) { ok = false; }
     if (ok) { ORCENV = orcSig(); orcRevAtual(); aviso("Atualização enviada! O atendente da Euronav recebeu a sua nova configuração e entra em contato."); }
+    else { orcRevAtual(); aviso("Não foi possível enviar agora. Tente de novo em instantes ou fale com o atendente pelo WhatsApp."); }
   }
   function orcMontar() {
     document.body.classList.add("com-precos");
@@ -1932,7 +1939,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
   const API_LEAD = window.EURONAV_API_LEAD || "https://script.google.com/macros/s/AKfycbwGjZAsu5fIpKSEDR63I_cLmiTQWHhoCKJImXoE4C6H_3gWPV4PC6SujvM9zLXTk7_A/exec";
   const dadosContato = () => ({ nome: $("ct-nome").value.trim(), tel: $("ct-tel").value.trim(), email: $("ct-email").value.trim() });
   const telOk = (v) => v.replace(/\D/g, "").length >= 10, emailOk = (v) => /^\S+@\S+\.\S+$/.test(v);
-  const linkCfg = () => location.href.split("#")[0] + hashAtual(false);   // o link do contato não leva a tabela de preços
+  const linkCfg = () => location.href.split("#")[0].split("?")[0] + hashAtual(false);   // o link do contato não leva a tabela de preços
   // Registra o contato como atendimento on-line no CRM. Roda ao clicar em qualquer botão de contato, se os dados estiverem preenchidos.
   let ultimoLead = "";
   function registrarContato(canal, extra) {
@@ -2070,7 +2077,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
 /* marcador de versão e diagnóstico: só aparece quando o endereço tem ?v=NN (o mesmo que a equipe usa para furar o cache); o cliente não vê */
 (function () { try {
   if (!/[?&]v=/.test(location.search)) return;
-  var e = document.createElement("div"); e.id = "versao-cfg"; e.textContent = "Configurador v101 · 26/11";
+  var e = document.createElement("div"); e.id = "versao-cfg"; e.textContent = "Configurador v102 · 26/11";
   e.style.cssText = "position:fixed;left:8px;bottom:6px;z-index:60;max-width:92vw;font:11px/1.35 system-ui,sans-serif;letter-spacing:.03em;color:#c9ccd2;background:rgba(0,0,0,.6);padding:5px 9px;border-radius:12px;pointer-events:none";
   document.body.appendChild(e);
   var nav = (function () { try { var b = (navigator.userAgentData && navigator.userAgentData.brands) || [], nomes = b.map(function (x) { return x.brand; }).join(" "); if (/Edge/i.test(nomes) || /Edg\//.test(navigator.userAgent)) return "Edge"; if (/Chrome/i.test(nomes) || /Chrome\//.test(navigator.userAgent)) return "Chrome"; if (/Safari/.test(navigator.userAgent)) return "Safari"; if (/Firefox/.test(navigator.userAgent)) return "Firefox"; } catch (x) {} return "navegador?"; })();
@@ -2078,7 +2085,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
   var n = 0, lentos = 0, ult = 0, t0 = performance.now(), cv = null;
   (function tick(t) { n++; if (ult && t - ult > 25) lentos++; ult = t;
     if (t - t0 >= 1000) { cv = cv || document.querySelector("#at-3d-v canvas"); var pr = cv && cv.clientWidth ? cv.width / cv.clientWidth : 0;
-      e.innerHTML = "Configurador v101 · 26/11 · " + Math.round(n * 1000 / (t - t0)) + " fps · res " + (pr ? pr.toFixed(2) + "x" : "-") + (window.__b3dOrc ? " (orçamento " + (window.__b3dOrc / 1e6).toFixed(2) + " MP" + (window.__b3dSw ? ", por software" : "") + ")" : "") + " · " + lentos + " quadros lentos/s<br>" + nav + " · " + gpuTxt() + " · tela " + (window.devicePixelRatio || 1) + "x"; n = 0; lentos = 0; t0 = t; }
+      e.innerHTML = "Configurador v102 · 26/11 · " + Math.round(n * 1000 / (t - t0)) + " fps · res " + (pr ? pr.toFixed(2) + "x" : "-") + (window.__b3dOrc ? " (orçamento " + (window.__b3dOrc / 1e6).toFixed(2) + " MP" + (window.__b3dSw ? ", por software" : "") + ")" : "") + " · " + lentos + " quadros lentos/s<br>" + nav + " · " + gpuTxt() + " · tela " + (window.devicePixelRatio || 1) + "x"; n = 0; lentos = 0; t0 = t; }
     requestAnimationFrame(tick); })(performance.now());
 } catch (x) { /* sem marcador */ } })();
 </script>

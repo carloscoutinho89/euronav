@@ -4096,7 +4096,7 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
   const REV_RE = /Atualização de orçamento · código ([2-9A-HJKMNP-Z]{4})/;
   const revCodigo = (d) => { const m = REV_RE.exec(String((d && d.obs) || "")); return m ? m[1] : ""; };
   const revAlvo = (cod) => { for (const [id, a] of st.ats) if (a && a.codigo === cod && !ehLead(a)) return id; return ""; };
-  const revTexto = (d) => String((d && d.obs) || "").replace(/^Contato pelo configurador on-line(\s*\([^)]*\))?\.\s*/, "").replace(/\s*E-mail: \S+\.?$/, "");
+  const revTexto = (d) => String((d && d.obs) || "").replace(/^Contato pelo configurador on-line(\s*\([^)]*\))?\.\s*/, "").replace(/^Atualização de orçamento · código [2-9A-HJKMNP-Z]{4}\.\s*/, "").replace(/\s*E-mail: \S+\.?$/, "");
   function revAplicar(idLead) {
     const d = st.ats.get(idLead), alvo = d ? revAlvo(revCodigo(d)) : ""; if (!d || !alvo || !st.canWrite) return false;
     atOpen(alvo); const q00 = st.at ? atCompute() : null, mg00 = q00 && q00.desc > 0 && q00.margem != null ? q00.margem : null;   // margem do negócio antes de aplicar
@@ -4133,9 +4133,9 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
       leads.forEach(([id, d]) => {
         const rc = revCodigo(d), ra = rc ? revAlvo(rc) : "", row = el("div", "lead-row"), info = el("div", "lead-info");
         info.appendChild(el("b", "", (ra ? "Atualização de orçamento · código " + rc + " · " : "") + (d.nome || "Sem nome")));
-        info.appendChild(el("p", "lead-ct", [d.tel, d.email].filter(Boolean).join(" · ") || "Sem telefone ou e-mail"));
+        const ca = ra ? (st.ats.get(ra) || {}) : d; info.appendChild(el("p", "lead-ct", [ca.tel, ca.email].filter(Boolean).join(" · ") || "Sem telefone ou e-mail"));   // atualização de orçamento: mostra o contato do atendimento, não o do envio automático
         const quando = d.criadoEm ? new Date(d.criadoEm).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "";
-        const resumo = String(d.obs || "").replace(/^Contato pelo configurador on-line(\s*\([^)]*\))?\.\s*/, "").replace(/\s*E-mail: \S+\.?$/, "");
+        const resumo = String(d.obs || "").replace(/^Contato pelo configurador on-line(\s*\([^)]*\))?\.\s*/, "").replace(/^Atualização de orçamento · código [2-9A-HJKMNP-Z]{4}\.\s*/, "").replace(/\s*E-mail: \S+\.?$/, "");
         info.appendChild(el("p", "", (quando ? "Recebido em " + quando + ". " : "") + resumo));
         const ac = el("div", "lead-acoes"), sel = document.createElement("select"); sel.setAttribute("aria-label", "Atendente que vai assumir o contato de " + (d.nome || "cliente"));
         sel.appendChild(new Option("Sem atendente", "")); atendentes().forEach((n) => sel.appendChild(new Option(n, n)));
@@ -5019,7 +5019,7 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
       let dl = null; try { dl = window.claude && window.claude.use ? await window.claude.use("downloads") : null; } catch (e) { dl = null; }
       if (!dl) { msg.textContent = "Não foi possível salvar o arquivo. Tente de novo."; return; }
       await dl.save({ filename: "Proposta Euro Sette - " + String(d.cliente).replace(/[^\p{L}\p{N} ]/gu, "").slice(0, 60) + ".pdf", data: blob });
-      msg.textContent = "Proposta " + d.numero + " salva." + (d.imgs.proa || d.imgs.popa ? "" : " Sem as imagens 3D: não foi possível gerá-las neste aparelho.") + " Modelo v96 (26/11), " + d.paginas + " páginas.";
+      msg.textContent = "Proposta " + d.numero + " salva." + (d.imgs.proa || d.imgs.popa ? "" : " Sem as imagens 3D: não foi possível gerá-las neste aparelho.") + " Modelo v97 (26/11), " + d.paginas + " páginas.";
       const id = st.atId, at = st.ats.get(id);
       if (id && at && st.acol && st.canWrite) {
         const patch = { ultimaProposta: { numero: d.numero, em: nowIso(), total: Math.round(q.total) }, atualizadoEm: nowIso() };
