@@ -4708,7 +4708,7 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
   }
   function buildProposta(q, d, logo, nivel) {
     nivel = nivel || 0;   // níveis de ajuste para a proposta caber em 3 páginas: [quebra fixa antes de Condições, quebra fixa antes de "O que vem", altura da foto grande, das fotos pequenas, escala das imagens 3D, mostra "Por que"]
-    const NV = [[1, 1, 50, 50, 32, 1, 1, 0], [1, 1, 50, 50, 32, 1, 1, 1], [1, 1, 50, 50, 32, 1, 1, 2], [1, 0, 50, 50, 32, 1, 1, 2], [0, 0, 44, 44, 27, 1, 1, 2], [0, 0, 38, 38, 23, 1, 1, 2], [0, 0, 32, 34, 0, 0.8, 1, 2], [0, 0, 32, 30, 0, 0.8, 0, 2]][Math.min(nivel, 7)], CP = NV[7];   // NV: [quebra antes das imagens 3D, quebra antes de "O que vem", altura da foto grande, das 2 fotos da linha 2, das 3 pequenas, escala das imagens 3D, mostra "Por que", compactação leve da pág. 3]
+    const NV = [[1, 1, 67, 27, 24, 1, 1, 0], [1, 1, 67, 27, 24, 1, 1, 1], [1, 1, 67, 27, 24, 1, 1, 2], [1, 0, 67, 27, 24, 1, 1, 2], [0, 0, 62, 25, 22, 1, 1, 2], [0, 0, 57, 23, 20, 1, 1, 2], [0, 0, 52, 0, 0, 1, 1, 2], [0, 0, 52, 0, 0, 1, 0, 2]][Math.min(nivel, 7)], CP = NV[7];   // NV: [quebra antes das imagens 3D, quebra antes de "O que vem", altura de cada imagem 3D, das 3 fotos da fileira 1, das 3 da fileira 2, (livre), mostra "Por que", compactação das páginas 1 e 3]
     const doc = new window.jspdf.jsPDF({ unit: "mm", format: "a4" });
     const W = 210, H = 297, M = 18, CW = W - 2 * M;
     const BLUE = [59, 89, 153], INK = [17, 18, 20], MUT = [95, 99, 107], LINE = [218, 220, 224], SOFT = [242, 243, 245], PALE = [188, 190, 192], WHITE = [255, 255, 255];
@@ -4729,21 +4729,21 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
     const GAP = 12;   // espaçamento único entre seções, igual em todas as páginas
     const head = (t, keep) => { need(GAP + 14 + (keep || 0)); if (y > 30) y += GAP; font(true, 13); color(INK); window.esPdfTxt(doc, t.split("{ES}").flatMap((p, i, a) => (i < a.length - 1 ? [p, null] : [p])), M, y, 5.2, "preto"); fill(BLUE); doc.rect(M, y + 2.4, 16, 1, "F"); y += 9.5; };
 
-    // ---- capa ----
-    bandaFoto(doc, W, 58);
-    fill(BLUE); doc.rect(0, 58, W, 1.8, "F");
-    if (logo) doc.addImage(logo, "PNG", M, 13, lwOf(9), 9, "eurologo"); else { font(true, 18); color(WHITE); doc.text("EURONAV", M, 20); }
-    window.esPdfTxt(doc, [null], M, 37.5, 18, "branco");
-    font(false, 10.5); color(PALE); doc.text("Proposta comercial  |  Bote semirrígido de 7,75 m", M, 48.5);
+    // ---- capa: logo Euro Sette em cima à esquerda; a logo Euronav fica à direita, abaixo da validade ----
     const rx = W - M;
+    font(true, 13); const nomeL = doc.splitTextToSize(d.cliente, 72).slice(0, 2);
+    font(false, 8.5);
+    const infoL = [].concat(d.cnpj ? ["CNPJ " + d.cnpj] : [], d.contato ? [doc.splitTextToSize("A/C " + d.contato, 72)[0]] : [], ["Proposta nº " + d.numero, "Emitida em " + dd(d.hoje), "Válida até " + dd(d.val)]);
+    const ry0 = 21.5 + nomeL.length * 5.4 + 2, ryFim = ry0 + infoL.length * 4.7, lhEN = 6.6, bandH = Math.max(58, ryFim + lhEN + 4);   // a faixa cresce só se o bloco da direita precisar
+    bandaFoto(doc, W, bandH);
+    fill(BLUE); doc.rect(0, bandH, W, 1.8, "F");
+    window.esPdfTxt(doc, [null], M, 32.5, 18, "branco");
+    font(false, 10.5); color(PALE); doc.text("Proposta comercial  |  RIB de 7,75 m", M, 48.5);
     font(false, 8); doc.setTextColor(163, 182, 226); doc.text("Preparada para", rx, 15, { align: "right" });
-    font(true, 13); color(WHITE); const nomeL = doc.splitTextToSize(d.cliente, 72).slice(0, 2); doc.text(nomeL, rx, 21.5, { align: "right" });
-    let ry = 21.5 + nomeL.length * 5.4 + 2;
-    font(false, 8.5); color(PALE);
-    if (d.cnpj) { doc.text("CNPJ " + d.cnpj, rx, ry, { align: "right" }); ry += 4.7; }
-    if (d.contato) { doc.text(doc.splitTextToSize("A/C " + d.contato, 72)[0], rx, ry, { align: "right" }); ry += 4.7; }
-    [["Proposta nº ", d.numero], ["Emitida em ", dd(d.hoje)], ["Válida até ", dd(d.val)]].forEach(([a, b]) => { doc.text(a + b, rx, ry, { align: "right" }); ry += 4.7; });
-    y = 67;
+    font(true, 13); color(WHITE); doc.text(nomeL, rx, 21.5, { align: "right" });
+    font(false, 8.5); color(PALE); infoL.forEach((t, i) => doc.text(t, rx, ry0 + i * 4.7, { align: "right" }));
+    if (logo) doc.addImage(logo, "PNG", rx - lwOf(lhEN), ryFim + 0.5, lwOf(lhEN), lhEN, "eurologo"); else { font(true, 11); color(WHITE); doc.text("EURONAV", rx, ryFim + 5, { align: "right" }); }
+    y = 67 + (bandH - 58);
 
     // ---- números do barco ----
     const specs = FAIXA;
@@ -4816,41 +4816,41 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
     y -= CP ? 1 : 2;
 
     if (NV[0] && y > 30 && doc.getNumberOfPages() === 1) { doc.addPage(); smallBand(); }   // desenho fixo: pág. 1 = configuração, preço e condições; pág. 2 = imagens e fotos; pág. 3 = o que vem, por que e quem faz
-    // ---- imagens 3D finais (proa e popa) com a configuração do cliente: lado a lado, pequenas; encolhem se a proposta passar de 3 páginas ----
-    const im3 = d.imgs ? [["proa", "Vista de proa"], ["popa", "Vista de popa"]].filter(([k]) => d.imgs[k]) : [];
-    if (im3.length) {
-      const gw = 4, fe = NV[5], iw = (CW - gw) / 2 * fe, ih = iw / (d.imgR || 1.6), tw = im3.length * iw + (im3.length - 1) * gw, ix = M + (CW - tw) / 2;
-      head("Seu {ES} configurado", ih + 14);
-      im3.forEach(([k, t], i) => { const x = ix + i * (iw + gw); doc.addImage(d.imgs[k], "JPEG", x, y, iw, ih, "i3d_" + k); font(false, 7.6); color(MUT); doc.text(t, x, y + ih + 4); });
-      font(false, 7.6); color(MUT); doc.text("Imagens ilustrativas do modelo 3D, com as cores e os opcionais da sua configuração.", ix, y + ih + 9); y += ih + 11;
-    }
-
-    // ---- fotos do barco: sempre na largura total; só a altura diminui (recorte) se a proposta passar de 3 páginas ----
-    const fonteFoto = (k) => {
-      if (k.indexOf("v_") === 0) { const v = FOTOS_VISTAS[k.slice(2)]; return v ? { src: v.src, w: v.w || 1450, h: v.h || 906 } : null; }
-      const r = FOTOS.recortes[k]; return r ? { src: FOTO_OVR[k] || r.src, w: r.w, h: r.h } : null;
-    };
-    const fotoCrop = (k, x, yy, w, h) => {   // preenche w x h sem esticar: recorta o excesso, centralizado
-      const r = fonteFoto(k); if (!r || !r.src) return;
-      const sc = Math.max(w / r.w, h / r.h), dw = r.w * sc, dh = r.h * sc;
+    // ---- imagens 3D finais (proa e popa): largura total, uma sobre a outra ----
+    const cropSrc = (src, rw, rh, x, yy, w, h, alias) => {   // preenche w x h sem esticar: recorta o excesso, centralizado
+      const sc = Math.max(w / rw, h / rh), dw = rw * sc, dh = rh * sc;
       doc.saveGraphicsState(); doc.rect(x, yy, w, h, null); doc.clip(); doc.discardPath();
-      doc.addImage(r.src, "JPEG", x - (dw - w) / 2, yy - (dh - h) / 2, dw, dh, "f_" + k + (FOTO_OVR[k] ? "_cor" : ""));
+      doc.addImage(src, "JPEG", x - (dw - w) / 2, yy - (dh - h) / 2, dw, dh, alias);
       doc.restoreGraphicsState();
     };
-    const legenda = (t, x, yy, w) => { font(false, 7.6); color(MUT); doc.text(doc.splitTextToSize(t, w).slice(0, 2), x, yy, { lineHeightFactor: 1.15 }); };
-    const hBig = NV[2], hR2 = NV[3], hSm = NV[4], g3 = 4, sw3 = (CW - 2 * g3) / 3, w2 = (CW - g3) / 2;
-    head("Conheça o seu {ES}", hBig + hR2 + (hSm ? hSm + 22 : 14));
-    fotoCrop("w_lounge", M, y, CW, hBig); y += hBig + g3;
-    [["v_cockpit", "Mesa de popa aberta, com porta-copos em inox"], ["v_proa_sol", "Proa com o solário montado"]].forEach(([k, t], i) => {
-      const x = M + i * (w2 + g3); fotoCrop(k, x, y, w2, hR2); legenda(t, x, y + hR2 + 3.8, w2);
-    });
-    y += hR2 + 9;
-    if (hSm) {
-      [["d_volante", "Volante Savoretti e painel em inox"], ["d_acel", "Manete com a assinatura Euronav"], ["d_motor", "Tubulão com a assinatura Euro Sette"]].forEach(([k, t], i) => {
-        const x = M + i * (sw3 + g3); fotoCrop(k, x, y, sw3, hSm); legenda(t, x, y + hSm + 3.8, sw3);
+    const im3 = d.imgs ? [["proa", "Vista de proa"], ["popa", "Vista de popa"]].filter(([k]) => d.imgs[k]) : [];
+    if (im3.length) {
+      const H3 = NV[2], rw3 = 1100, rh3 = rw3 / (d.imgR || 1.6);
+      head("Seu {ES} configurado", im3.length * (H3 + 6.4) + 4.5);
+      im3.forEach(([k, t]) => { cropSrc(d.imgs[k], rw3, rh3, M, y, CW, H3, "i3d_" + k); font(false, 7.6); color(MUT); doc.text(t, M, y + H3 + 3.8); y += H3 + 6.4; });
+      font(false, 7.6); color(MUT); doc.text("Imagens ilustrativas do modelo 3D, com as cores e os opcionais da sua configuração.", M, y + 1); y += 3.5;
+    }
+
+    // ---- fotos do barco: seis fotos em duas fileiras de três, ocupando a largura total ----
+    const fonteFoto = (k) => {
+      if (k.indexOf("v_") === 0) { const kk = k.slice(2), v = FOTOS_VISTAS[kk], rc = d.fotosV && d.fotosV[kk]; return v ? { src: rc || v.src, w: v.w || 1450, h: v.h || 906, cor: !!rc && rc !== v.src } : null; }
+      const r = FOTOS.recortes[k]; return r ? { src: FOTO_OVR[k] || r.src, w: r.w, h: r.h, cor: !!FOTO_OVR[k] } : null;
+    };
+    const fotoCrop = (k, x, yy, w, h) => { const r = fonteFoto(k); if (!r || !r.src) return false; cropSrc(r.src, r.w, r.h, x, yy, w, h, "f_" + k + (r.cor ? "_cor" : "")); return r.cor; };
+    const notaCor = (x, yy) => { doc.setFont("helvetica", "italic"); doc.setFontSize(6.6); color(MUT); doc.text("Foto real, cor personalizada digitalmente.", x, yy); };
+    const legenda = (t, x, yy, w) => { font(false, 7.4); color(MUT); doc.text(doc.splitTextToSize(t, w)[0], x, yy); };
+    const h1 = NV[3], h2 = NV[4], g3 = 4, sw3 = (CW - 2 * g3) / 3;
+    if (h1 > 0) {
+      head("Conheça o seu {ES}", h1 + h2 + 11);
+      [["v_proa", "Proa com a mesa montada"], ["v_cockpit", "Mesa de popa aberta, com porta-copos"], ["v_proa_sol", "Proa com o solário montado"]].forEach(([k, t], i) => {
+        const x = M + i * (sw3 + g3), cor = fotoCrop(k, x, y, sw3, h1); legenda(t, x, y + h1 + 3.4, sw3); if (cor) notaCor(x, y + h1 + 6.6);
       });
-      y += hSm + 9.5;
-    } else y += 2;
+      y += h1 + 9.5;
+      [["d_volante", "Volante Savoretti e painel em inox"], ["d_acel", "Manete com a assinatura Euronav"], ["d_motor", "Tubulão com a assinatura Euro Sette"]].forEach(([k, t], i) => {
+        const x = M + i * (sw3 + g3); fotoCrop(k, x, y, sw3, h2); legenda(t, x, y + h2 + 3.4, sw3);
+      });
+      y += h2 + 6;
+    }
 
     // ---- o que vem no barco ----
     if (NV[1] && y > 30) { doc.addPage(); smallBand(); }
@@ -4924,7 +4924,6 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
     font(false, 8); color(PALE); doc.text(ENDERECO, W - M - 8, cy + 1.6, { align: "right" });
     if (cpp.length) { font(true, 8); color(WHITE); doc.text(cpp.join("   |   "), M + 8, cy + 6.4); }
     y += ch + (CP ? 4 : 6);
-    font(false, 7.8); color(MUT); doc.text("Proposta sujeita a confirmação por escrito.", M, y);
 
     // ---- rodapé ----
     const n = doc.getNumberOfPages();
@@ -4956,11 +4955,12 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
       msg.textContent = "Gerando a proposta…";
       const fc = await fotoCor("w_lounge", atCores().est, atCores().piso + "/" + atCores().listra);
       if (fc) FOTO_OVR.w_lounge = fc; else delete FOTO_OVR.w_lounge;
+      d.fotosV = {}; { const cr = atCores(); for (const k of ["proa", "cockpit", "proa_sol"]) { try { const u = await cfxFotoCor(k, cr.est, cr.piso + "/" + cr.listra); if (u) d.fotosV[k] = u; } catch (e) { /* fica a foto original */ } } }   // fotos reais com a cor de estofado e de piso do cliente, como no configurador
       let blob; try { const logo = await logoPng(640); for (let nv = 0; nv <= 7; nv++) { blob = buildProposta(q, d, logo, nv); if (d.paginas <= 3) break; } } finally { delete FOTO_OVR.w_lounge; }   // reduz imagens e fotos, por etapas, até caber em 3 páginas
       let dl = null; try { dl = window.claude && window.claude.use ? await window.claude.use("downloads") : null; } catch (e) { dl = null; }
       if (!dl) { msg.textContent = "Não foi possível salvar o arquivo. Tente de novo."; return; }
       await dl.save({ filename: "Proposta Euro Sette - " + String(d.cliente).replace(/[^\p{L}\p{N} ]/gu, "").slice(0, 60) + ".pdf", data: blob });
-      msg.textContent = "Proposta " + d.numero + " salva." + (d.imgs.proa || d.imgs.popa ? "" : " Sem as imagens 3D: não foi possível gerá-las neste aparelho.") + " Modelo v77 (26/11), " + d.paginas + " páginas.";
+      msg.textContent = "Proposta " + d.numero + " salva." + (d.imgs.proa || d.imgs.popa ? "" : " Sem as imagens 3D: não foi possível gerá-las neste aparelho.") + " Modelo v79 (26/11), " + d.paginas + " páginas.";
       const id = st.atId, at = st.ats.get(id);
       if (id && at && st.acol && st.canWrite) {
         const patch = { ultimaProposta: { numero: d.numero, em: nowIso(), total: Math.round(q.total) }, atualizadoEm: nowIso() };
