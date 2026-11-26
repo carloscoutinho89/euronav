@@ -3680,12 +3680,12 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
     x.font = "600 26px Inter, Arial, sans-serif"; x.fillText(l1, 46, H - 86); x.fillText(l2, 46, H - 48);
     x.font = "400 17px Inter, Arial, sans-serif"; x.globalAlpha = 0.6; x.textAlign = "right"; x.fillText("Imagem ilustrativa do modelo 3D", W - 44, H - 48); x.textAlign = "left"; x.globalAlpha = 1;
   }
-  async function afimRender(k, aoProg) {   // devolve a imagem da vista k (gera se faltar); uma geração por vez, em fila
-    const chave = afimCh(k), tema = afimTema(); if (afim.cache.has(chave)) return afim.cache.get(chave);
+  async function afimRender(k, aoProg, limpa) {   // limpa: sem o título e a legenda gravados na imagem (usada na proposta em PDF)   // devolve a imagem da vista k (gera se faltar); uma geração por vez, em fila
+    const chave = afimCh(k) + (limpa ? "|limpa" : ""), tema = afimTema(); if (afim.cache.has(chave)) return afim.cache.get(chave);
     afim.fila = afim.fila.catch(() => {}).then(async () => {
       if (afim.cache.has(chave)) return;
       await afimEsperar3D(); b3dAtualizar(); await new Promise((ok) => setTimeout(ok, 420));   // tempo para as cores e os itens entrarem no modelo
-      const cv = await B3D.foto(Object.assign({ w: 1600, h: 1000, ss: 1.25, tema, amostras: window.__FOTO_AMOSTRAS || 0, aoProgresso: aoProg }, AFIM_ANG.find((a) => a[0] === k)[2])); afimAssinar(cv, tema);
+      const cv = await B3D.foto(Object.assign({ w: 1600, h: 1000, ss: 1.25, tema, amostras: window.__FOTO_AMOSTRAS || 0, aoProgresso: aoProg }, AFIM_ANG.find((a) => a[0] === k)[2])); if (!limpa) afimAssinar(cv, tema);
       const blob = await new Promise((ok) => cv.toBlob(ok, "image/jpeg", 0.93)); afim.cache.set(chave, { url: URL.createObjectURL(blob), blob });
     });
     await afim.fila; return afim.cache.get(chave);
@@ -4708,7 +4708,7 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
   }
   function buildProposta(q, d, logo, nivel) {
     nivel = nivel || 0;   // níveis de ajuste para a proposta caber em 3 páginas: [quebra fixa antes de Condições, quebra fixa antes de "O que vem", altura da foto grande, das fotos pequenas, escala das imagens 3D, mostra "Por que"]
-    const NV = [[1, 1, 67, 27, 24, 1, 1, 0], [1, 1, 67, 27, 24, 1, 1, 1], [1, 1, 67, 27, 24, 1, 1, 2], [1, 0, 67, 27, 24, 1, 1, 2], [0, 0, 62, 25, 22, 1, 1, 2], [0, 0, 57, 23, 20, 1, 1, 2], [0, 0, 52, 0, 0, 1, 1, 2], [0, 0, 52, 0, 0, 1, 0, 2]][Math.min(nivel, 7)], CP = NV[7];   // NV: [quebra antes das imagens 3D, quebra antes de "O que vem", altura de cada imagem 3D, das 3 fotos da fileira 1, das 3 da fileira 2, (livre), mostra "Por que", compactação das páginas 1 e 3]
+    const NV = [[1, 1, 74.3, 26, 22, 1, 1, 0], [1, 1, 74.3, 26, 22, 1, 1, 1], [1, 1, 74.3, 26, 22, 1, 1, 2], [1, 0, 74.3, 26, 22, 1, 1, 2], [0, 0, 74.3, 24, 19, 1, 1, 2], [0, 0, 74.3, 22, 0, 1, 1, 2], [0, 0, 74.3, 0, 0, 0.85, 1, 2], [0, 0, 74.3, 0, 0, 0.85, 0, 2]][Math.min(nivel, 7)], CP = NV[7];   // NV: [quebra antes das imagens 3D, quebra antes de "O que vem", altura de cada imagem 3D (mostra o barco inteiro), das 3 fotos da fileira 1, das 3 da fileira 2, escala das imagens 3D, mostra "Por que", compactação das páginas 1 e 3]
     const doc = new window.jspdf.jsPDF({ unit: "mm", format: "a4" });
     const W = 210, H = 297, M = 18, CW = W - 2 * M;
     const BLUE = [59, 89, 153], INK = [17, 18, 20], MUT = [95, 99, 107], LINE = [218, 220, 224], SOFT = [242, 243, 245], PALE = [188, 190, 192], WHITE = [255, 255, 255];
@@ -4727,7 +4727,7 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
     };
     const need = (h) => { if (y + h > H - 18) { doc.addPage(); smallBand(); } };   // limite de baixo: um pouco mais perto do rodapé
     const GAP = 12;   // espaçamento único entre seções, igual em todas as páginas
-    const head = (t, keep) => { need(GAP + 14 + (keep || 0)); if (y > 30) y += GAP; font(true, 13); color(INK); window.esPdfTxt(doc, t.split("{ES}").flatMap((p, i, a) => (i < a.length - 1 ? [p, null] : [p])), M, y, 5.2, "preto"); fill(BLUE); doc.rect(M, y + 2.4, 16, 1, "F"); y += 9.5; };
+    const head = (t, keep) => { need(GAP + 14 + (keep || 0)); if (y > 30) y += GAP; font(true, 13); color(INK); window.esPdfTxt(doc, t.split("{ES}").flatMap((p, i, a) => (i < a.length - 1 ? [p, null] : [p])), M, y, 5.2, "preto"); const lg = t.indexOf("{ES}") >= 0; fill(BLUE); doc.rect(M, y + (lg ? 3.8 : 2.4), 16, 1, "F"); y += lg ? 10.9 : 9.5; };
 
     // ---- capa: logo Euro Sette em cima à esquerda; a logo Euronav fica à direita, abaixo da validade ----
     const rx = W - M;
@@ -4823,12 +4823,11 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
       doc.addImage(src, "JPEG", x - (dw - w) / 2, yy - (dh - h) / 2, dw, dh, alias);
       doc.restoreGraphicsState();
     };
-    const im3 = d.imgs ? [["proa", "Vista de proa"], ["popa", "Vista de popa"]].filter(([k]) => d.imgs[k]) : [];
+    const im3 = d.imgs ? [["proa", "Vista de proa  ·  imagem ilustrativa do modelo 3D, com as cores e os opcionais da sua configuração"], ["popa", "Vista de popa"]].filter(([k]) => d.imgs[k]) : [];
     if (im3.length) {
-      const H3 = NV[2], rw3 = 1100, rh3 = rw3 / (d.imgR || 1.6);
-      head("Seu {ES} configurado", im3.length * (H3 + 6.4) + 4.5);
-      im3.forEach(([k, t]) => { cropSrc(d.imgs[k], rw3, rh3, M, y, CW, H3, "i3d_" + k); font(false, 7.6); color(MUT); doc.text(t, M, y + H3 + 3.8); y += H3 + 6.4; });
-      font(false, 7.6); color(MUT); doc.text("Imagens ilustrativas do modelo 3D, com as cores e os opcionais da sua configuração.", M, y + 1); y += 3.5;
+      const fe = NV[5], H3 = NV[2] * fe, W3 = CW * fe, x3 = M + (CW - W3) / 2, rw3 = 1100, rh3 = rw3 / (d.imgR || 2.34);
+      head("Seu {ES} configurado", im3.length * (H3 + 3.2) + 2);
+      im3.forEach(([k, t]) => { cropSrc(d.imgs[k], rw3, rh3, x3, y, W3, H3, "i3d_" + k); const [t1, t2] = t.split("  ·  "); font(true, 8); color(MUT); doc.text(t1, x3 + 3, y + 5.4); if (t2) { const w1 = doc.getTextWidth(t1); font(false, 7); doc.text("  ·  " + t2, x3 + 3 + w1, y + 5.4); } y += H3 + 3.2; });
     }
 
     // ---- fotos do barco: seis fotos em duas fileiras de três, ocupando a largura total ----
@@ -4948,8 +4947,8 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
       msg.textContent = "Gerando as imagens 3D de proa e popa…"; d.imgs = {};
       for (const k of ["proa", "popa"]) {   // as mesmas imagens finais do botão "Imagem final" (ficam em cache se já foram geradas)
         try {
-          const it = await afimRender(k, (f) => { msg.textContent = "Gerando a imagem 3D de " + k + "… " + Math.round(f * 100) + "%"; });
-          d.imgs[k] = await new Promise((ok, er) => { const im = new Image(); im.onload = () => { const sy = Math.round(im.height * 0.15), sh = Math.round(im.height * 0.735), cv = document.createElement("canvas"); cv.width = 1100; cv.height = Math.round(1100 * sh / im.width); cv.getContext("2d").drawImage(im, 0, sy, im.width, sh, 0, 0, cv.width, cv.height); d.imgR = cv.width / cv.height; ok(cv.toDataURL("image/jpeg", 0.86)); }; im.onerror = er; im.src = it.url; });   // reduzida para o PDF ficar leve
+          const it = await afimRender(k, (f) => { msg.textContent = "Gerando a imagem 3D de " + k + "… " + Math.round(f * 100) + "%"; }, true);
+          d.imgs[k] = await new Promise((ok, er) => { const im = new Image(); im.onload = () => { const sy = Math.round(im.height * (k === "popa" ? 0.247 : 0.205)), sh = Math.round(im.height * 0.683), cv = document.createElement("canvas"); cv.width = 1100; cv.height = Math.round(1100 * sh / im.width); cv.getContext("2d").drawImage(im, 0, sy, im.width, sh, 0, 0, cv.width, cv.height); d.imgR = cv.width / cv.height; ok(cv.toDataURL("image/jpeg", 0.86)); }; im.onerror = er; im.src = it.url; });   // reduzida para o PDF ficar leve
         } catch (e) { /* segue sem esta imagem */ }
       }
       msg.textContent = "Gerando a proposta…";
@@ -4960,7 +4959,7 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
       let dl = null; try { dl = window.claude && window.claude.use ? await window.claude.use("downloads") : null; } catch (e) { dl = null; }
       if (!dl) { msg.textContent = "Não foi possível salvar o arquivo. Tente de novo."; return; }
       await dl.save({ filename: "Proposta Euro Sette - " + String(d.cliente).replace(/[^\p{L}\p{N} ]/gu, "").slice(0, 60) + ".pdf", data: blob });
-      msg.textContent = "Proposta " + d.numero + " salva." + (d.imgs.proa || d.imgs.popa ? "" : " Sem as imagens 3D: não foi possível gerá-las neste aparelho.") + " Modelo v80 (26/11), " + d.paginas + " páginas.";
+      msg.textContent = "Proposta " + d.numero + " salva." + (d.imgs.proa || d.imgs.popa ? "" : " Sem as imagens 3D: não foi possível gerá-las neste aparelho.") + " Modelo v81 (26/11), " + d.paginas + " páginas.";
       const id = st.atId, at = st.ats.get(id);
       if (id && at && st.acol && st.canWrite) {
         const patch = { ultimaProposta: { numero: d.numero, em: nowIso(), total: Math.round(q.total) }, atualizadoEm: nowIso() };
@@ -5026,7 +5025,7 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
       y = 26;
     };
     const need = (h) => { if (y + h > H - 22) { doc.addPage(); smallBand(); } };
-    const head = (t, keep) => { need(14 + (keep || 0)); font(true, 13); color(INK); window.esPdfTxt(doc, t.split("{ES}").flatMap((p, i, a) => (i < a.length - 1 ? [p, null] : [p])), M, y, 5.2, "preto"); fill(BLUE); doc.rect(M, y + 2.4, 16, 1, "F"); y += 9.5; };
+    const head = (t, keep) => { need(14 + (keep || 0)); font(true, 13); color(INK); window.esPdfTxt(doc, t.split("{ES}").flatMap((p, i, a) => (i < a.length - 1 ? [p, null] : [p])), M, y, 5.2, "preto"); const lg = t.indexOf("{ES}") >= 0; fill(BLUE); doc.rect(M, y + (lg ? 3.8 : 2.4), 16, 1, "F"); y += lg ? 10.9 : 9.5; };
     const grid3 = (its) => {
       const NC = 3, colW = CW / NC, per = Math.ceil(its.length / NC);
       font(false, 8.6);
