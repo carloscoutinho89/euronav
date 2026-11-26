@@ -4973,7 +4973,7 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
       let dl = null; try { dl = window.claude && window.claude.use ? await window.claude.use("downloads") : null; } catch (e) { dl = null; }
       if (!dl) { msg.textContent = "Não foi possível salvar o arquivo. Tente de novo."; return; }
       await dl.save({ filename: "Proposta Euro Sette - " + String(d.cliente).replace(/[^\p{L}\p{N} ]/gu, "").slice(0, 60) + ".pdf", data: blob });
-      msg.textContent = "Proposta " + d.numero + " salva." + (d.imgs.proa || d.imgs.popa ? "" : " Sem as imagens 3D: não foi possível gerá-las neste aparelho.") + " Modelo v91 (26/11), " + d.paginas + " páginas.";
+      msg.textContent = "Proposta " + d.numero + " salva." + (d.imgs.proa || d.imgs.popa ? "" : " Sem as imagens 3D: não foi possível gerá-las neste aparelho.") + " Modelo v92 (26/11), " + d.paginas + " páginas.";
       const id = st.atId, at = st.ats.get(id);
       if (id && at && st.acol && st.canWrite) {
         const patch = { ultimaProposta: { numero: d.numero, em: nowIso(), total: Math.round(q.total) }, atualizadoEm: nowIso() };
@@ -6324,7 +6324,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
       const tb = new T.Color(o.tuboCor || "#ecebe2"); matR.tubo.color.copy(C(tb.getHex()));
       // regra da projetista: acessórios de PVC cinza no tubulão claro (cinza claro ou branco gelo) e brancos nos tubulões de outras cores
       matR.pvc.color.copy(C(["e6eaed", "c9c6b8"].includes(tb.getHexString().toLowerCase()) ? 0x8B8F95 : 0xF4F4F2)); if (matR.nome) matR.nome.color.copy(matR.pvc.color);
-      gR.mesa.visible = !o.solario; gR.sol.visible = !!o.solario; gR.guincho.visible = !!o.guincho; gR.capProa.visible = !!o.capProa && (!B3D.banheiro || B3D.banheiroFixa) && !B3D.fechandoBanheiro && (!B3D.semCapota || B3D.itemVer === "cp" || (B3D.itemPrev === "cp" && Date.now() - (B3D._tPrev || 0) < 4000) || (B3D.explorar && B3D.explorar.cp === true));   /* com as capotas ocultas, só a de proa reaparece quando a pessoa pede para vê-la */ gR.capPopa.visible = !B3D.semCapota && !B3D.popaOculta && (!B3D.banco || (B3D.bancoFixa && !B3D.abrindoBanco)) && !B3D.fechandoBanco; gR.churr.visible = !!o.churr; gR.gps.visible = !!o.gps; gR.mastro.visible = o.mastro !== false;
+      gR.mesa.visible = !o.solario; gR.sol.visible = !!o.solario; gR.guincho.visible = !!o.guincho; gR.capProa.visible = !!(!!o.capProa && (!B3D.banheiro || B3D.banheiroFixa) && !B3D.fechandoBanheiro && (!B3D.semCapota || B3D.itemVer === "cp" || (B3D.itemPrev === "cp" && Date.now() - (B3D._tPrev || 0) < 4000) || (B3D.explorar && B3D.explorar.cp === true)));   /* sempre verdadeiro ou falso: o three.js só esconde com false estrito (antes saía undefined e a capota de proa continuava aparecendo). Com as capotas ocultas, só a de proa reaparece quando a pessoa pede para vê-la */ gR.capPopa.visible = !B3D.semCapota && !B3D.popaOculta && (!B3D.banco || (B3D.bancoFixa && !B3D.abrindoBanco)) && !B3D.fechandoBanco; gR.churr.visible = !!o.churr; gR.gps.visible = !!o.gps; gR.mastro.visible = o.mastro !== false;
     { const nm = String(o.nome || ""); gR.nome.visible = !!nm; if (nm !== nomeAtual) desenhaNome(nm); }
     gR.cozi.visible = !!o.pia; { const on = !!o.pia; if (B3D._corteOn !== on && B3D._matsCorte) { B3D._corteOn = on; B3D._matsCorte.forEach((m) => { m.clippingPlanes = on ? B3D._planosPia : null; m.clipIntersection = on; m.clipShadows = on; m.needsUpdate = true; }); if (on) B3D.atualizaCorte(); } } if (B3D.btBanco) B3D.btBanco.hidden = !o.pia;   // pia e fogão: com o opcional marcado o tampo ganha a abertura
     if (!o.pia && B3D.banco && B3D.verBanco) B3D.verBanco(false, true);
@@ -6628,7 +6628,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
       const tb = new T.Color(o.tuboCor || "#ecebe2"), hx = (c, f) => "#" + c.clone().multiplyScalar(f).getHexString();
       texTubo.desenhar("#" + tb.getHexString(), hx(tb, 0.74), hx(tb, 0.52));
       matPonta.color.copy(C(tb.getHex()));
-      gps.visible = o.gps; capProa.visible = o.capProa && !B3D.semCapota; capPopa.visible = !B3D.semCapota; pia.visible = o.pia; churr.visible = o.churr; guincho.visible = o.guincho; mastro.visible = o.mastro !== false;
+      gps.visible = o.gps; capProa.visible = !!(o.capProa && !B3D.semCapota); capPopa.visible = !B3D.semCapota; pia.visible = o.pia; churr.visible = o.churr; guincho.visible = o.guincho; mastro.visible = o.mastro !== false;
       mat.motor.color.copy(C(o.motorBranco ? 0xF5F5F4 : 0x7E848B));
       texMarca.desenhar(o.marca || "MERCURY"); n150.visible = (o.marca || "MERCURY") === "MERCURY";
       ultimaOp = o; if (realOk) aplicarReal(o);
