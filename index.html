@@ -4708,7 +4708,7 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
   }
   function buildProposta(q, d, logo, nivel) {
     nivel = nivel || 0;   // níveis de ajuste para a proposta caber em 3 páginas: [quebra fixa antes de Condições, quebra fixa antes de "O que vem", altura da foto grande, das fotos pequenas, escala das imagens 3D, mostra "Por que"]
-    const NV = [[1, 1, 74.3, 26, 22, 1, 1, 0], [1, 1, 74.3, 26, 22, 1, 1, 1], [1, 1, 74.3, 26, 22, 1, 1, 2], [1, 0, 74.3, 26, 22, 1, 1, 2], [0, 0, 74.3, 24, 19, 1, 1, 2], [0, 0, 74.3, 22, 0, 1, 1, 2], [0, 0, 74.3, 0, 0, 0.85, 1, 2], [0, 0, 74.3, 0, 0, 0.85, 0, 2]][Math.min(nivel, 7)], CP = NV[7];   // NV: [quebra antes das imagens 3D, quebra antes de "O que vem", altura de cada imagem 3D (mostra o barco inteiro), das 3 fotos da fileira 1, das 3 da fileira 2, escala das imagens 3D, mostra "Por que", compactação das páginas 1 e 3]
+    const NV = [[1, 1, 74.3, 26, 20, 1, 1, 0], [1, 1, 74.3, 26, 20, 1, 1, 1], [1, 1, 74.3, 26, 20, 1, 1, 2], [1, 0, 74.3, 26, 20, 1, 1, 2], [0, 0, 74.3, 24, 18, 1, 1, 2], [0, 0, 74.3, 22, 0, 1, 1, 2], [0, 0, 74.3, 0, 0, 0.85, 1, 2], [0, 0, 74.3, 0, 0, 0.85, 0, 2]][Math.min(nivel, 7)], CP = NV[7];   // NV: [quebra antes das imagens 3D, quebra antes de "O que vem", altura de cada imagem 3D (mostra o barco inteiro), das 3 fotos da fileira 1, das 3 da fileira 2, escala das imagens 3D, mostra "Por que", compactação das páginas 1 e 3]
     const doc = new window.jspdf.jsPDF({ unit: "mm", format: "a4" });
     const W = 210, H = 297, M = 18, CW = W - 2 * M;
     const BLUE = [59, 89, 153], INK = [17, 18, 20], MUT = [95, 99, 107], LINE = [218, 220, 224], SOFT = [242, 243, 245], PALE = [188, 190, 192], WHITE = [255, 255, 255];
@@ -4841,15 +4841,15 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
     const legenda = (t, x, yy, w) => { font(false, 7.4); color(MUT); doc.text(doc.splitTextToSize(t, w)[0], x, yy); };
     const h1 = NV[3], h2 = NV[4], g3 = 4, sw3 = (CW - 2 * g3) / 3;
     if (h1 > 0) {
-      head("Conheça o seu {ES}", h1 + h2 + 11);
+      head("Conheça o seu {ES}", h1 + h2 + 13);
       [["v_proa", "Proa com a mesa montada"], ["v_cockpit", "Mesa de popa aberta, com porta-copos"], ["v_proa_sol", "Proa com o solário montado"]].forEach(([k, t], i) => {
         const x = M + i * (sw3 + g3), cor = fotoCrop(k, x, y, sw3, h1); legenda(t, x, y + h1 + 3.4, sw3); if (cor) notaCor(x, y + h1 + 6.6);
       });
       y += h1 + 9.5;
-      [["d_volante", "Volante Savoretti e painel em inox"], ["d_acel", "Manete com a assinatura Euronav"], ["d_motor", "Tubulão com a assinatura Euro Sette"]].forEach(([k, t], i) => {
-        const x = M + i * (sw3 + g3); fotoCrop(k, x, y, sw3, h2); legenda(t, x, y + h2 + 3.4, sw3);
+      [["d_volante", "Volante Savoretti e painel em inox"], ["d_acel", "Manete com a assinatura Euronav"], [(d.fotosV && d.fotosV.tubo ? "v_tubo" : "d_motor"), "Tubulão com a assinatura Euro Sette"]].forEach(([k, t], i) => {
+        const x = M + i * (sw3 + g3), cor = fotoCrop(k, x, y, sw3, h2); legenda(t, x, y + h2 + 3.4, sw3); if (cor) notaCor(x, y + h2 + 6.6);
       });
-      y += h2 + 6;
+      y += h2 + 8;
     }
 
     // ---- o que vem no barco ----
@@ -4949,18 +4949,18 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
       for (const k of ["proa", "popa"]) {   // as mesmas imagens finais do botão "Imagem final" (ficam em cache se já foram geradas)
         try {
           const it = await afimRender(k, (f) => { msg.textContent = "Gerando a imagem 3D de " + k + "… " + Math.round(f * 100) + "%"; }, true);
-          d.imgs[k] = await new Promise((ok, er) => { const im = new Image(); im.onload = () => { const sy = Math.round(im.height * (k === "popa" ? 0.247 : 0.205)), sh = Math.round(im.height * 0.683), cv = document.createElement("canvas"); cv.width = 1100; cv.height = Math.round(1100 * sh / im.width); cv.getContext("2d").drawImage(im, 0, sy, im.width, sh, 0, 0, cv.width, cv.height); d.imgR = cv.width / cv.height; ok(cv.toDataURL("image/jpeg", 0.86)); }; im.onerror = er; im.src = it.url; });   // reduzida para o PDF ficar leve
+          d.imgs[k] = await new Promise((ok, er) => { const im = new Image(); im.onload = () => { const sy = Math.round(im.height * (k === "popa" ? 0.2545 : 0.205)), sh = Math.round(im.height * 0.683), cv = document.createElement("canvas"); cv.width = 1100; cv.height = Math.round(1100 * sh / im.width); cv.getContext("2d").drawImage(im, 0, sy, im.width, sh, 0, 0, cv.width, cv.height); d.imgR = cv.width / cv.height; ok(cv.toDataURL("image/jpeg", 0.86)); }; im.onerror = er; im.src = it.url; });   // reduzida para o PDF ficar leve
         } catch (e) { /* segue sem esta imagem */ }
       }
       msg.textContent = "Gerando a proposta…";
       const fc = await fotoCor("w_lounge", atCores().est, atCores().piso + "/" + atCores().listra);
       if (fc) FOTO_OVR.w_lounge = fc; else delete FOTO_OVR.w_lounge;
-      d.fotosV = {}; { const cr = atCores(); for (const k of ["proa", "cockpit", "proa_sol"]) { try { const u = await cfxFotoCor(k, cr.est, cr.piso + "/" + cr.listra); if (u) d.fotosV[k] = u; } catch (e) { /* fica a foto original */ } } }   // fotos reais com a cor de estofado e de piso do cliente, como no configurador
+      d.fotosV = {}; { const cr = atCores(); for (const k of ["proa", "cockpit", "proa_sol"]) { try { const u = await cfxFotoCor(k, cr.est, cr.piso + "/" + cr.listra); if (u) d.fotosV[k] = u; } catch (e) { /* fica a foto original */ } } try { const ct = tuboCor(st.at.hyp, st.at.corTubo), ut = await cfxFotoTubo(ct[2]); if (ut) d.fotosV.tubo = ut; } catch (e) { /* fica a foto original */ } }   // fotos reais com a cor de estofado, de piso e de tubulão do cliente, como no configurador
       let blob; try { const logo = await logoPng(640); for (let nv = 0; nv <= 7; nv++) { blob = buildProposta(q, d, logo, nv); if (d.paginas <= 3) break; } } finally { delete FOTO_OVR.w_lounge; }   // reduz imagens e fotos, por etapas, até caber em 3 páginas
       let dl = null; try { dl = window.claude && window.claude.use ? await window.claude.use("downloads") : null; } catch (e) { dl = null; }
       if (!dl) { msg.textContent = "Não foi possível salvar o arquivo. Tente de novo."; return; }
       await dl.save({ filename: "Proposta Euro Sette - " + String(d.cliente).replace(/[^\p{L}\p{N} ]/gu, "").slice(0, 60) + ".pdf", data: blob });
-      msg.textContent = "Proposta " + d.numero + " salva." + (d.imgs.proa || d.imgs.popa ? "" : " Sem as imagens 3D: não foi possível gerá-las neste aparelho.") + " Modelo v82 (26/11), " + d.paginas + " páginas.";
+      msg.textContent = "Proposta " + d.numero + " salva." + (d.imgs.proa || d.imgs.popa ? "" : " Sem as imagens 3D: não foi possível gerá-las neste aparelho.") + " Modelo v84 (26/11), " + d.paginas + " páginas.";
       const id = st.atId, at = st.ats.get(id);
       if (id && at && st.acol && st.canWrite) {
         const patch = { ultimaProposta: { numero: d.numero, em: nowIso(), total: Math.round(q.total) }, atualizadoEm: nowIso() };
