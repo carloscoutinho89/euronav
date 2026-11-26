@@ -4780,6 +4780,15 @@ body.gated { overflow: hidden; }
       y += h + 5;
     }
 
+    // ---- imagens 3D finais (proa e popa) com a configuração do cliente: lado a lado, pequenas ----
+    const im3 = d.imgs ? [["proa", "Vista de proa"], ["popa", "Vista de popa"]].filter(([k]) => d.imgs[k]) : [];
+    if (im3.length) {
+      const gw = 4, iw = (CW - gw) / 2, ih = iw / 1.6;
+      head("Seu Euro Sette configurado", ih + 14);
+      im3.forEach(([k, t], i) => { const x = M + i * (iw + gw); doc.addImage(d.imgs[k], "JPEG", x, y, iw, ih, "i3d_" + k); font(false, 7.6); color(MUT); doc.text(t, x, y + ih + 4); });
+      font(false, 7.6); color(MUT); doc.text("Imagens ilustrativas do modelo 3D, com as cores e os opcionais da sua configuração.", M, y + ih + 9); y += ih + 17;
+    }
+
     // ---- o que vem no barco ----
     const motL = q.lines.find((l) => l.key === "motor");
     const grupos = [["Casco, motor e kit básico de série", (motL ? ["Motor " + String(motL.nome || "").replace(/^motor\s+/i, "")] : []).concat(listaProposta(kitItens("basico")))]];
@@ -4879,13 +4888,21 @@ body.gated { overflow: hidden; }
     btn.disabled = true; msg.textContent = "Gerando a proposta…";
     try {
       const d = propData(q, cur);
+      msg.textContent = "Gerando as imagens 3D de proa e popa…"; d.imgs = {};
+      for (const k of ["proa", "popa"]) {   // as mesmas imagens finais do botão "Imagem final" (ficam em cache se já foram geradas)
+        try {
+          const it = await afimRender(k, (f) => { msg.textContent = "Gerando a imagem 3D de " + k + "… " + Math.round(f * 100) + "%"; });
+          d.imgs[k] = await new Promise((ok, er) => { const im = new Image(); im.onload = () => { const cv = document.createElement("canvas"); cv.width = 1100; cv.height = Math.round(1100 * im.height / im.width); cv.getContext("2d").drawImage(im, 0, 0, cv.width, cv.height); ok(cv.toDataURL("image/jpeg", 0.86)); }; im.onerror = er; im.src = it.url; });   // reduzida para o PDF ficar leve
+        } catch (e) { /* segue sem esta imagem */ }
+      }
+      msg.textContent = "Gerando a proposta…";
       const fc = await fotoCor("w_lounge", atCores().est, atCores().piso + "/" + atCores().listra);
       if (fc) FOTO_OVR.w_lounge = fc; else delete FOTO_OVR.w_lounge;
       let blob; try { blob = buildProposta(q, d, await logoPng(640)); } finally { delete FOTO_OVR.w_lounge; }
       let dl = null; try { dl = window.claude && window.claude.use ? await window.claude.use("downloads") : null; } catch (e) { dl = null; }
       if (!dl) { msg.textContent = "Não foi possível salvar o arquivo. Tente de novo."; return; }
       await dl.save({ filename: "Proposta Euro Sette - " + String(d.cliente).replace(/[^\p{L}\p{N} ]/gu, "").slice(0, 60) + ".pdf", data: blob });
-      msg.textContent = "Proposta " + d.numero + " salva.";
+      msg.textContent = "Proposta " + d.numero + " salva." + (d.imgs.proa || d.imgs.popa ? "" : " Sem as imagens 3D: não foi possível gerá-las neste aparelho.");
       const id = st.atId, at = st.ats.get(id);
       if (id && at && st.acol && st.canWrite) {
         const patch = { ultimaProposta: { numero: d.numero, em: nowIso(), total: Math.round(q.total) }, atualizadoEm: nowIso() };
