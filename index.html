@@ -3661,6 +3661,7 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
     if (A.mg0 != null) {   // margem alvo: o preço mais baixo que mantém a margem líquida do negócio (nunca acima da tabela), arredondado para cima em R$ 100
       const mgOf = (b) => { const tt = b + ipiOn(b); return tt > 0 ? resAt(b) / tt : -1; };
       let preco = S; if (mgOf(S) > A.mg0) { let lo = custo * 0.5, hi = S; for (let i = 0; i < 50; i++) { const md = (lo + hi) / 2; if (mgOf(md) >= A.mg0) hi = md; else lo = md; } preco = Math.min(S, Math.ceil(hi / 100) * 100); }
+      if (A.d0 > 0 && S >= A.s0 - 0.5) { const pf = Math.max(0, Math.floor((S - Math.min(A.d0, S)) / 100) * 100); if (pf < preco) preco = pf; }   // quem aumenta a configuração nunca perde o desconto que já tinha (a margem pode cair); só ganha mais se os itens novos subirem a margem
       return { S: preco, Slista: S, d: S - preco, lines, ipi, mid };
     }
     if (A.soS) return { S, lines, ipi, mid };   // só o preço de tabela: dispensa a busca do desconto máximo
@@ -4101,7 +4102,7 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
     const d = st.ats.get(idLead), alvo = d ? revAlvo(revCodigo(d)) : ""; if (!d || !alvo || !st.canWrite) return false;
     atOpen(alvo); const q00 = st.at ? atCompute() : null, mg00 = q00 && q00.desc > 0 && q00.margem != null ? q00.margem : null;   // margem do negócio antes de aplicar
     if (!st.at || !aplicarLink(d.linkCfg, true)) { setText("at-cfg-msg", "Não foi possível aplicar: o link do cliente veio sem configuração."); return false; }
-    let msgDesc = ""; if (mg00 != null) { const qd = atPrice(Object.assign({}, st.at, { mg0: mg00 })); if (qd) { st.at.desc = qd.d; const q2 = atCompute(); if (q2 && q2.desc < qd.d) st.at.descLib = qd.d; msgDesc = " Condição especial ajustada para R$ " + Math.round(qd.d).toLocaleString("pt-BR") + ", mantendo a margem do negócio."; } }
+    let msgDesc = ""; if (mg00 != null) { const qd = atPrice(Object.assign({}, st.at, { mg0: mg00, d0: q00.desc, s0: q00.S })); if (qd) { st.at.desc = qd.d; let q2 = atCompute(); if (q2 && q2.desc < qd.d) { st.at.descLib = qd.d; q2 = atCompute(); } msgDesc = " Condição especial: R$ " + Math.round(qd.d).toLocaleString("pt-BR") + " (era R$ " + Math.round(q00.desc).toLocaleString("pt-BR") + ")" + (q2 && q2.margem != null ? ", margem do negócio em " + (q2.margem * 100).toFixed(1).replace(".", ",") + "% (era " + (mg00 * 100).toFixed(1).replace(".", ",") + "%)" : "") + "."; } }
     atSave(); st.ats.delete(idLead); atWrite(idLead, () => st.acol.doc(idLead).delete());   // a atualização foi tratada: sai da fila
     renderAtend(); renderLeads(); renderAtHist(); if (typeof renderCRM === "function") renderCRM(); location.hash = "#atendimento";
     setText("at-cfg-msg", "Configuração do cliente aplicada." + msgDesc + " Confira o valor total; os preços do código estão sendo atualizados para o cliente ver o orçamento novo.");
@@ -5020,7 +5021,7 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
       let dl = null; try { dl = window.claude && window.claude.use ? await window.claude.use("downloads") : null; } catch (e) { dl = null; }
       if (!dl) { msg.textContent = "Não foi possível salvar o arquivo. Tente de novo."; return; }
       await dl.save({ filename: "Proposta Euro Sette - " + String(d.cliente).replace(/[^\p{L}\p{N} ]/gu, "").slice(0, 60) + ".pdf", data: blob });
-      msg.textContent = "Proposta " + d.numero + " salva." + (d.imgs.proa || d.imgs.popa ? "" : " Sem as imagens 3D: não foi possível gerá-las neste aparelho.") + " Modelo v98 (26/11), " + d.paginas + " páginas.";
+      msg.textContent = "Proposta " + d.numero + " salva." + (d.imgs.proa || d.imgs.popa ? "" : " Sem as imagens 3D: não foi possível gerá-las neste aparelho.") + " Modelo v99 (26/11), " + d.paginas + " páginas.";
       const id = st.atId, at = st.ats.get(id);
       if (id && at && st.acol && st.canWrite) {
         const patch = { ultimaProposta: { numero: d.numero, em: nowIso(), total: Math.round(q.total) }, atualizadoEm: nowIso() };
@@ -6871,13 +6872,13 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
   async function orcPayload(opts) {
     opts = opts || {};
     const ms = motors(); if (!ms.length || !vScen() || !st.loadedI) return null;
-    const qa = atCompute(), mg0 = qa && qa.desc > 0 && qa.margem != null ? qa.margem : null;   // com condição especial: a margem do negócio vale para qualquer configuração que o cliente montar
+    const qa = atCompute(), mg0 = qa && qa.desc > 0 && qa.margem != null ? qa.margem : null, d0 = qa ? qa.desc : 0, s0 = qa ? qa.S : 0;   // com condição especial: a margem do negócio vale para qualquer configuração que o cliente montar
     const ex = kitItensOrd("extras"), acha = (re) => { const x = ex.find(([, it]) => re.test(String(it.item || ""))); return x ? x[0] : null; };
     const idCap = acha(/capota de proa/i), idCar = acha(/carreta/i);
     const A = (mi, mk) => {
       const kits = {}; ["conforto", "lazer", "fundeio"].forEach((k, i) => { if ((mk >> i) & 1) kits[k] = true; });
       const ids = []; if (((mk >> 3) & 1) && idCap) ids.push(idCap); if (((mk >> 4) & 1) && idCar) ids.push(idCar);
-      return { motor: ms[mi][0], kits, kitItens: ids.length ? { extras: ids } : {}, hyp: !!((mk >> 5) & 1), gps: !!((mk >> 6) & 1), desc: 0, soS: true, mg0 };
+      return { motor: ms[mi][0], kits, kitItens: ids.length ? { extras: ids } : {}, hyp: !!((mk >> 5) & 1), gps: !!((mk >> 6) & 1), desc: 0, soS: true, mg0, d0, s0 };
     };
     const M = ms.length, N = 1 << ORC_N, tab = new Array(M * N);
     atMemo = { sc: vScen(), r: compute(vScen()) };
