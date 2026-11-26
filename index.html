@@ -4675,7 +4675,8 @@ body.gated { overflow: hidden; }
       pagamento, rep: cur.atendente || f.rep
     };
   }
-  function buildProposta(q, d, logo) {
+  function buildProposta(q, d, logo, nivel) {
+    nivel = nivel || 0;   // 0 = tamanho normal; 1 a 4 = imagens e fotos menores (ou sem as fotos gerais), para a proposta caber em 3 páginas
     const doc = new window.jspdf.jsPDF({ unit: "mm", format: "a4" });
     const W = 210, H = 297, M = 18, CW = W - 2 * M;
     const BLUE = [59, 89, 153], INK = [17, 18, 20], MUT = [95, 99, 107], LINE = [218, 220, 224], SOFT = [242, 243, 245], PALE = [188, 190, 192], WHITE = [255, 255, 255];
@@ -4780,13 +4781,13 @@ body.gated { overflow: hidden; }
       y += h + 5;
     }
 
-    // ---- imagens 3D finais (proa e popa) com a configuração do cliente: lado a lado, pequenas ----
+    // ---- imagens 3D finais (proa e popa) com a configuração do cliente: lado a lado, pequenas; encolhem se a proposta passar de 3 páginas ----
     const im3 = d.imgs ? [["proa", "Vista de proa"], ["popa", "Vista de popa"]].filter(([k]) => d.imgs[k]) : [];
     if (im3.length) {
-      const gw = 4, iw = (CW - gw) / 2, ih = iw / 1.6;
+      const gw = 4, fe = [1, 0.82, 0.66, 0.66, 0.66][nivel], iw = (CW - gw) / 2 * fe, ih = iw / 1.6, tw = im3.length * iw + (im3.length - 1) * gw, ix = M + (CW - tw) / 2;
       head("Seu Euro Sette configurado", ih + 14);
-      im3.forEach(([k, t], i) => { const x = M + i * (iw + gw); doc.addImage(d.imgs[k], "JPEG", x, y, iw, ih, "i3d_" + k); font(false, 7.6); color(MUT); doc.text(t, x, y + ih + 4); });
-      font(false, 7.6); color(MUT); doc.text("Imagens ilustrativas do modelo 3D, com as cores e os opcionais da sua configuração.", M, y + ih + 9); y += ih + 17;
+      im3.forEach(([k, t], i) => { const x = ix + i * (iw + gw); doc.addImage(d.imgs[k], "JPEG", x, y, iw, ih, "i3d_" + k); font(false, 7.6); color(MUT); doc.text(t, x, y + ih + 4); });
+      font(false, 7.6); color(MUT); doc.text("Imagens ilustrativas do modelo 3D, com as cores e os opcionais da sua configuração.", ix, y + ih + 9); y += ih + 17;
     }
 
     // ---- o que vem no barco ----
@@ -4825,17 +4826,21 @@ body.gated { overflow: hidden; }
       y += 4.5;
     });
 
-    // ---- fotos do barco ----
-    const wlp = FOTOS.recortes.w_lounge, bigH = CW * wlp.h / wlp.w, g3 = 4, sw3 = (CW - 2 * g3) / 3, smH = sw3 / 1.381;
-    head("Conheça o seu Euro Sette", bigH + smH + 12);
-    fotoPdf(doc, "w_lounge", M, y, CW, bigH); y += bigH + g3;
-    [["d_volante", "Volante Savoretti e painel em inox"], ["d_acel", "Manete com a assinatura Euronav"], ["d_motor", "Tubulão com a assinatura Euro Sette"]].forEach(([k, t], i) => {
-      const x = M + i * (sw3 + g3); fotoPdf(doc, k, x, y, sw3, smH);
-      font(false, 7.6); color(MUT); doc.text(t, x, y + smH + 3.8);
-    });
-    y += smH + 15;
+    // ---- fotos do barco (encolhem ou saem se a proposta passar de 3 páginas) ----
+    const fcf = [1, 0.7, 0.5, 0, 0][nivel];
+    if (fcf > 0) {
+      const wlp = FOTOS.recortes.w_lounge, g3 = 4, bw = CW * fcf, bigH = bw * wlp.h / wlp.w, sw3 = (CW - 2 * g3) / 3 * fcf, smH = sw3 / 1.381, bx = M + (CW - bw) / 2, sx = M + (CW - (3 * sw3 + 2 * g3)) / 2;
+      head("Conheça o seu Euro Sette", bigH + smH + 12);
+      fotoPdf(doc, "w_lounge", bx, y, bw, bigH); y += bigH + g3;
+      [["d_volante", "Volante Savoretti e painel em inox"], ["d_acel", "Manete com a assinatura Euronav"], ["d_motor", "Tubulão com a assinatura Euro Sette"]].forEach(([k, t], i) => {
+        const x = sx + i * (sw3 + g3); fotoPdf(doc, k, x, y, sw3, smH);
+        font(false, 7.6); color(MUT); doc.text(doc.splitTextToSize(t, sw3).slice(0, 2), x, y + smH + 3.8, { lineHeightFactor: 1.15 });
+      });
+      y += smH + 15;
+    }
 
-    // ---- por que o Euro Sette ----
+    // ---- por que o Euro Sette (sai só no último nível de compactação) ----
+    if (nivel < 4) {
     const why = DESTAQUES;
     const ww = (CW - 8) / 3;
     font(false, 8.4); const wl = why.map(([, b]) => doc.splitTextToSize(b, ww - 9));
@@ -4852,6 +4857,7 @@ body.gated { overflow: hidden; }
       y += wh + 4;
     }
     y += 5;
+    }
 
     // ---- quem faz e contato ----
     font(false, 8.6); const sob = doc.splitTextToSize(SOBRE_EURONAV, CW - 16);
@@ -4877,6 +4883,7 @@ body.gated { overflow: hidden; }
       doc.text("Estaleiro Euronav LTDA.  |  CNPJ 65.014.928/0001-70  |  Recife/PE", M, H - 9.5);
       doc.text("Página " + i + " de " + n, W - M, H - 9.5, { align: "right" });
     }
+    d.paginas = n;
     return doc.output("blob");
   }
   async function propGerar() {
@@ -4898,7 +4905,7 @@ body.gated { overflow: hidden; }
       msg.textContent = "Gerando a proposta…";
       const fc = await fotoCor("w_lounge", atCores().est, atCores().piso + "/" + atCores().listra);
       if (fc) FOTO_OVR.w_lounge = fc; else delete FOTO_OVR.w_lounge;
-      let blob; try { blob = buildProposta(q, d, await logoPng(640)); } finally { delete FOTO_OVR.w_lounge; }
+      let blob; try { const logo = await logoPng(640); for (let nv = 0; nv <= 4; nv++) { blob = buildProposta(q, d, logo, nv); if (d.paginas <= 3) break; } } finally { delete FOTO_OVR.w_lounge; }   // reduz imagens e fotos, por etapas, até caber em 3 páginas
       let dl = null; try { dl = window.claude && window.claude.use ? await window.claude.use("downloads") : null; } catch (e) { dl = null; }
       if (!dl) { msg.textContent = "Não foi possível salvar o arquivo. Tente de novo."; return; }
       await dl.save({ filename: "Proposta Euro Sette - " + String(d.cliente).replace(/[^\p{L}\p{N} ]/gu, "").slice(0, 60) + ".pdf", data: blob });
