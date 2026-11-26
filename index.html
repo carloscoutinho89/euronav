@@ -1649,7 +1649,7 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
     </section>
 
     <section class="c-sec" aria-labelledby="h-f-quem">
-      <h2 class="c-h2" id="h-f-quem">Quem faz o <span class="es-logo" role="img" aria-label="Euro Sette"></span></h2>
+      <h2 class="c-h2" id="h-f-quem">Quem faz a Euronav</h2>
       <div class="c-card f-quem"><p id="f-quem-txt"></p></div>
     </section>
 
@@ -4916,7 +4916,7 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
     const ch = (CP ? 16.5 : 18.5) + sob.length * (CP ? 3.3 : 3.5) + (cpp.length ? 5 : 0);
     need(ch + 18); if (y > 30) y += 7.4;
     fill([0, 0, 0]); doc.rect(M, y, CW, ch, "F"); fill(BLUE); doc.rect(M, y, 2.4, ch, "F");
-    font(true, 10); color(WHITE); window.esPdfTxt(doc, ["Quem faz o ", null], M + 8, y + (CP ? 6.4 : 7), 5, "branco");
+    font(true, 10); color(WHITE); doc.text("Quem faz a Euronav", M + 8, y + (CP ? 6.4 : 7));
     font(false, CP ? 7.4 : 7.9); color(PALE); doc.text(sob, M + 8, y + (CP ? 11 : 12), { lineHeightFactor: 1.25 });
     const cy = y + (CP ? 11 : 12) + sob.length * (CP ? 3.3 : 3.5) + 2.2;
     stroke([60, 60, 60], 0.2); doc.line(M + 8, cy - 2.4, W - M - 8, cy - 2.4);
@@ -4960,7 +4960,7 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
       let dl = null; try { dl = window.claude && window.claude.use ? await window.claude.use("downloads") : null; } catch (e) { dl = null; }
       if (!dl) { msg.textContent = "Não foi possível salvar o arquivo. Tente de novo."; return; }
       await dl.save({ filename: "Proposta Euro Sette - " + String(d.cliente).replace(/[^\p{L}\p{N} ]/gu, "").slice(0, 60) + ".pdf", data: blob });
-      msg.textContent = "Proposta " + d.numero + " salva." + (d.imgs.proa || d.imgs.popa ? "" : " Sem as imagens 3D: não foi possível gerá-las neste aparelho.") + " Modelo v79 (26/11), " + d.paginas + " páginas.";
+      msg.textContent = "Proposta " + d.numero + " salva." + (d.imgs.proa || d.imgs.popa ? "" : " Sem as imagens 3D: não foi possível gerá-las neste aparelho.") + " Modelo v80 (26/11), " + d.paginas + " páginas.";
       const id = st.atId, at = st.ats.get(id);
       if (id && at && st.acol && st.canWrite) {
         const patch = { ultimaProposta: { numero: d.numero, em: nowIso(), total: Math.round(q.total) }, atualizadoEm: nowIso() };
@@ -5045,7 +5045,7 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
     window.esPdfTxt(doc, [null], M, 37.5, 18, "branco");
     font(false, 10.5); color(PALE); doc.text((comFotos ? "Ficha técnica com fotos" : "Ficha técnica") + "  |  Bote semirrígido de 7,75 m", M, 48.5);
     const qx = W - M - 78;
-    font(true, 9); doc.setTextColor(163, 182, 226); window.esPdfTxt(doc, ["Quem faz o ", null], qx, 15.5, 4.4, "branco");
+    font(true, 9); doc.setTextColor(163, 182, 226); doc.text("Quem faz a Euronav", qx, 15.5);
     font(false, 7.7); color(PALE); doc.text(doc.splitTextToSize(SOBRE_EURONAV, 78), qx, 21, { lineHeightFactor: 1.32 });
     y = 67;
 
