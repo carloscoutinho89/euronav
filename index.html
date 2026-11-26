@@ -883,6 +883,12 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
 </script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style id="css-acesso">
+.at-acesso { margin: 12px 0 4px; padding: 10px 12px; border: 1px solid var(--line, #dadce0); border-radius: 8px; }
+.at-acesso .c-hint { margin: 0 0 6px; }
+.at-acesso-l { margin: 4px 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+.at-cod { font: 700 1.15rem/1.2 "Saira", ui-monospace, monospace; letter-spacing: .2em; padding: 4px 10px; border-radius: 6px; background: var(--soft, rgba(127, 127, 127, .12)); }
+</style>
 </head>
 <body>
 <header class="band">
@@ -1379,6 +1385,12 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
 <button class="at-img-bt" type="button" id="at-afim-abrir">Gerar imagem final</button>
             <p class="at-3d-cfgp"><a class="at-3d-cfg" id="at-3d-cfg" href="#" target="_blank" rel="noopener">Página pública ↗</a> · <button class="c-link" type="button" id="at-cfg-copiar">Copiar link para o cliente</button> · <button class="c-link" type="button" id="at-cfg-precos">Link com preços para o cliente</button> · <button class="c-link" type="button" id="at-cfg-importar">Importar link do cliente</button></p>
             <p class="c-hint" id="at-cfg-msg" role="status"></p>
+          <div class="at-acesso" id="at-acesso">
+            <p class="c-hint"><b>Código de acesso ao orçamento.</b> O cliente digita este código no botão "Tenho um código de orçamento" do configurador e vê a configuração dele com os preços, sem precisar de link.</p>
+            <p class="at-acesso-l"><code class="at-cod" id="at-cod">------</code> <button class="c-link" type="button" id="at-cod-gerar">Gerar / atualizar preços do código</button> · <button class="c-link" type="button" id="at-cod-copiar">Copiar código</button></p>
+            <p class="at-acesso-l"><button class="c-link" type="button" id="at-cod-zap">Enviar pelo WhatsApp do cliente</button> · <button class="c-link" type="button" id="at-cod-msg">Copiar a mensagem</button></p>
+            <p class="c-hint" id="at-cod-st" role="status"></p>
+          </div>
           </div>
           <h2 class="at-h">Seu <span class="es-logo" role="img" aria-label="Euro Sette"></span></h2>
           <table class="c-comp"><tbody id="at-lines"></tbody></table>
@@ -3998,7 +4010,7 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
     if (!$("at-bar")) return;
     const cur = atCur();
     setText("at-cur-nome", cur ? (cur.nome || "Cliente sem nome") : "Nenhum atendimento aberto");
-    setText("at-cur-meta", cur ? [cur.tel, "aberto em " + dataBR(cur.criadoEm), cur.ultimaProposta ? "proposta " + cur.ultimaProposta.numero + " em " + dataBR(cur.ultimaProposta.em) : ""].filter(Boolean).join(", ") : "Crie ou abra um atendimento para salvar as escolhas e os dados do comprador.");
+    setText("at-cur-meta", cur ? [cur.tel, "aberto em " + dataBR(cur.criadoEm), cur.ultimaProposta ? "proposta " + cur.ultimaProposta.numero + " em " + dataBR(cur.ultimaProposta.em) : ""].filter(Boolean).join(", ") : "Crie ou abra um atendimento para salvar as escolhas e os dados do comprador."); acessoRender();
     const sel = $("at-status");
     sel.hidden = !cur;
     const asel = $("at-atend");
@@ -4065,7 +4077,7 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
     try { localStorage.setItem(AT_KEY, JSON.stringify(st.at)); } catch (e) {}
     const q = atCompute();
     const agora = nowIso();
-    const data = { nome, tel, obs, tipo: (extra && extra.tipo) || "pf", cnpj: (extra && extra.cnpj) || "", contato: (extra && extra.contato) || "", atendente: atendente || "", status: STATUS[0], criadoEm: agora, atualizadoEm: agora, config: atConfig(), total: q ? Math.round(q.total) : 0, desconto: 0, subtotal: q ? Math.round(q.S) : 0, resultado: q ? Math.round(q.resultado) : 0, margem: q && q.margem != null ? Math.round(q.margem * 10000) / 10000 : null, comprador: {} };
+    const data = { nome, tel, obs, tipo: (extra && extra.tipo) || "pf", cnpj: (extra && extra.cnpj) || "", contato: (extra && extra.contato) || "", atendente: atendente || "", status: STATUS[0], criadoEm: agora, atualizadoEm: agora, config: atConfig(), total: q ? Math.round(q.total) : 0, desconto: 0, subtotal: q ? Math.round(q.S) : 0, resultado: q ? Math.round(q.resultado) : 0, margem: q && q.margem != null ? Math.round(q.margem * 10000) / 10000 : null, comprador: {}, codigo: codUnico() };
     st.ats.set(ref.id, data); setAtId(ref.id);
     atWrite(ref.id, () => ref.set(data));
     ctFill(Object.assign({ nome, tel }, extra && extra.tipo === "pj" ? { doc: cnpjFmt(extra.cnpj) } : {}));
@@ -4961,7 +4973,7 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
       let dl = null; try { dl = window.claude && window.claude.use ? await window.claude.use("downloads") : null; } catch (e) { dl = null; }
       if (!dl) { msg.textContent = "Não foi possível salvar o arquivo. Tente de novo."; return; }
       await dl.save({ filename: "Proposta Euro Sette - " + String(d.cliente).replace(/[^\p{L}\p{N} ]/gu, "").slice(0, 60) + ".pdf", data: blob });
-      msg.textContent = "Proposta " + d.numero + " salva." + (d.imgs.proa || d.imgs.popa ? "" : " Sem as imagens 3D: não foi possível gerá-las neste aparelho.") + " Modelo v86 (26/11), " + d.paginas + " páginas.";
+      msg.textContent = "Proposta " + d.numero + " salva." + (d.imgs.proa || d.imgs.popa ? "" : " Sem as imagens 3D: não foi possível gerá-las neste aparelho.") + " Modelo v90 (26/11), " + d.paginas + " páginas.";
       const id = st.atId, at = st.ats.get(id);
       if (id && at && st.acol && st.canWrite) {
         const patch = { ultimaProposta: { numero: d.numero, em: nowIso(), total: Math.round(q.total) }, atualizadoEm: nowIso() };
@@ -5551,26 +5563,8 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
   }
   // ---------- Modelo 3D do barco no Atendimento (ilustrativo) ----------
   const B3D = { estado: "off" };
-  // Resolução dinâmica do 3D: se o aparelho não sustenta a taxa de quadros da tela, o barco passa a ser desenhado com um pouco menos de pixels (o giro fica fluido);
-  // quando sobra folga, a resolução sobe de novo. Em telas de alta densidade e janelas grandes isso evita as "mini travadas".
-  function b3dCtrlRes(prMax0, prMin) {
-    const c = { pr: prMax0, max: prMax0, ema: 0, ult: 0, tAdj: 0, n: 0, teto: 99, tTeto: 0 };
-    c.limite = (m) => { c.max = m; if (c.pr > m) { c.pr = m; return true; } return false; };   // limite pelo tamanho da tela de desenho
-    c.quadro = (t) => {   // chamar a cada quadro desenhado; devolve o novo pixel ratio quando precisa mudar, senão null
-      const dt = c.ult ? t - c.ult : 0; c.ult = t;
-      if (dt > 0 && dt < 100) { c.ema = c.ema ? c.ema * 0.9 + dt * 0.1 : dt; c.n++; }
-      else if (dt >= 100) c.n = Math.max(0, c.n - 3);   // pausas longas (aba em segundo plano, carregamento) não contam
-      if (c.n < 60 || t - c.tAdj < 1500) return null;
-      let novo = null;
-      if (c.ema > 21 && c.pr > prMin + 0.02) { c.teto = c.pr; c.tTeto = t; novo = Math.max(prMin, c.pr * 0.85); }   // abaixo de ~47 quadros por segundo: reduz
-      else if (c.ema < 18.2 && c.pr < c.max - 0.02 && t - c.tAdj > 10000 && (c.pr * 1.12 < c.teto || t - c.tTeto > 90000)) novo = Math.min(c.max, c.pr * 1.12);   // com folga: tenta subir de novo
-      if (novo == null) return null;
-      novo = Math.round(novo * 20) / 20; if (Math.abs(novo - c.pr) < 0.04) return null;
-      c.pr = novo; c.tAdj = t; c.ema = 0; c.ult = 0; c.n = 30; return novo;
-    };
-    return c;
-  }
-  const b3dPrCap = (w, h, disp) => Math.max(0.75, Math.min(disp, Math.floor(Math.sqrt(4.2e6 / Math.max(1, w * h)) * 20) / 20));   // limite de pixels: janelas enormes não passam de ~4 megapixels
+  // Se o navegador desenha o 3D por software (aceleração de hardware desligada), a resolução é reduzida para o 3D continuar usável; nos demais casos o 3D usa a resolução cheia da tela.
+  const b3dSoftware = (gl) => { try { const e = gl.getExtension("WEBGL_debug_renderer_info"), r = e ? String(gl.getParameter(e.UNMASKED_RENDERER_WEBGL)) : ""; window.__b3dGpu = r; if (/swiftshader|llvmpipe|softpipe|basic render|software/i.test(r)) { window.__b3dSw = true; return true; } } catch (x) { /* sem detecção */ } return false; };
   const B3D_EST = { Branco: 0xF1EFEA, Bege: 0xB5835A, Cinza: 0x8C9197 };
   const B3D_PISO = { Branco: ["#E8E6E0", "#B8B5AD"], Bege: ["#C4A77C", "#EFE4CF"], Cinza: ["#8D8E8B", "#E2E1DC"] };
   function b3dVisivel() { const v = $("at-3d-v"); if (!v || !v.offsetParent) return false; return !(typeof cfx !== "undefined" && cfx.aberto && cfx.vista !== "3d"); }
@@ -5625,7 +5619,7 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
     if (!T || !host) { B3D.estado = "erro"; return; }
     let ren;
     try { ren = new T.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" }); } catch (e) { B3D.estado = "erro"; const c = $("at-3d"); if (c) c.hidden = true; return; }
-    const PR_DISP = Math.min(2, window.devicePixelRatio || 1), ctrl = b3dCtrlRes(PR_DISP, Math.min(1, PR_DISP)); B3D.ctrlRes = ctrl; ren.setPixelRatio(ctrl.pr);
+    const PR_DISP = Math.min(2, window.devicePixelRatio || 1), SW = b3dSoftware(ren.getContext()); window.__b3dOrc = SW ? 0.3e6 : 0; ren.setPixelRatio(PR_DISP);
     ren.outputEncoding = T.sRGBEncoding; ren.toneMapping = T.ACESFilmicToneMapping; ren.toneMappingExposure = 0.84;
     ren.shadowMap.enabled = true; ren.shadowMap.type = T.PCFSoftShadowMap;
     host.appendChild(ren.domElement);
@@ -5980,6 +5974,48 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
       txNome.needsUpdate = true;
     };
     try { if (document.fonts && document.fonts.load) document.fonts.load("italic 800 100px Saira").then(() => { if (nomeAtual) desenhaNome(nomeAtual); }).catch(() => {}); } catch (e) { /* segue com a fonte reserva */ }
+    // ---- manete única de motor, como a do barco real (fotos da proposta e da ficha técnica) ----
+    // Carcaça preta em "D" com aro cromado e face branca com a logo euronav, EM PÉ, perpendicular ao painel: a borda reta fica encostada no painel, o arco aponta para o piloto
+    // e a face branca olha para boreste. A alavanca sai do arco, na direção do piloto (paralela à coluna do volante). A chave de ignição fica no painel, acima, ligada à alavanca pelo cordão vermelho espiral.
+    const criaManete = () => {
+      const gM = new T.Group(); gM.name = "manete"; real.add(gM);
+      const EZ = new T.Vector3(0, 0, 1), EUP = new T.Vector3(0.4469, 0.8946, 0), EN = new T.Vector3(-0.8946, 0.4469, 0), XH = EN.clone().negate();   // eixos do painel (inclinado): boreste, para cima pelo painel, para fora do painel (para o piloto)
+      const painelX = (y) => 0.4995 * y + 3.0568;   // o painel é o plano x = 0,4995 y + 3,0568 (medido no modelo)
+      const OH = new T.Vector3(painelX(1.36), 1.36, 0.235).addScaledVector(EN, -0.01);   // origem do "D": meio da borda reta, 1 cm embutida no painel
+      const grupo = (o, bx, by, bz) => { const g = new T.Group(); g.matrixAutoUpdate = false; g.matrix.makeBasis(bx, by, bz); g.matrix.setPosition(o); g.matrixWorldNeedsUpdate = true; gM.add(g); return g; };
+      const gH = grupo(OH, XH, EUP, EZ);   // x do grupo = para fora do painel (o arco do "D" fica em x negativo, a borda reta em x = 0); y = para cima; z = boreste (a face branca)
+      const A = 0.15, BH = 0.088, DEP = 0.075;   // largura do "D", meia altura e espessura da carcaça
+      const dForma = (ins) => { const s = new T.Shape(), xb = -ins, xa = -A + ins, rx = xb - xa, b = BH - ins, N = 32; s.moveTo(xb, -b); s.lineTo(xb, b);
+        for (let i = 1; i <= N; i++) { const t = Math.PI / 2 + Math.PI * i / N; s.lineTo(xb + rx * Math.cos(t), b * Math.sin(t)); } s.closePath(); return s; };
+      const preto = MR(0x0E0F11, { roughness: 0.36, envMapIntensity: 0.4 }), face = MR(0xFBFBFA, { roughness: 0.3, emissive: C(0xF2F2F0), emissiveIntensity: 0.3, envMapIntensity: 0.3 }), vermelho = MR(0xC8101A, { roughness: 0.42 });
+      const add3 = (g, geo, mat, x, y, z, rot) => { const m = new T.Mesh(geo, mat); m.position.set(x || 0, y || 0, z || 0); if (rot) m.rotation.set(rot[0], rot[1], rot[2]); m.castShadow = true; m.receiveShadow = true; g.add(m); return m; };
+      add3(gH, new T.ExtrudeGeometry(dForma(0), { depth: DEP, bevelEnabled: true, bevelThickness: 0.006, bevelSize: 0.006, bevelSegments: 2, curveSegments: 1 }), preto, 0, 0, 0);   // carcaça
+      const anel = dForma(0.011); anel.holes.push(new T.Path(dForma(0.028).getPoints()));
+      add3(gH, new T.ExtrudeGeometry(anel, { depth: 0.008, bevelEnabled: true, bevelThickness: 0.003, bevelSize: 0.003, bevelSegments: 2, curveSegments: 1 }), matR.inox, 0, 0, DEP + 0.006);   // aro cromado
+      add3(gH, new T.ExtrudeGeometry(dForma(0.028), { depth: 0.004, bevelEnabled: false, curveSegments: 1 }), face, 0, 0, DEP + 0.0065);   // face branca
+      const logoTex = tela(256, 640, (g, W, H) => { g.clearRect(0, 0, W, H); g.save(); g.translate(W / 2, H / 2); g.rotate(-Math.PI / 2); g.fillStyle = "#2b2e33"; g.font = "600 150px 'Saira', Arial, sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText("euronav", 0, 22);
+        const wt = g.measureText("euronav").width, we = g.measureText("euro").width, wn = g.measureText("n").width, cx = -wt / 2 + we + wn / 2;
+        g.fillStyle = "#3B5999"; g.beginPath(); g.moveTo(cx, -112); g.lineTo(cx - 30, -62); g.lineTo(cx + 30, -62); g.closePath(); g.fill(); g.restore(); });
+      logoTex.desenhar(); try { if (document.fonts && document.fonts.load) document.fonts.load("600 150px Saira").then(() => logoTex.desenhar()).catch(() => {}); } catch (e) { /* mantém a fonte padrão */ }
+      const lg = new T.Mesh(new T.PlaneGeometry(0.046, 0.12), new T.MeshStandardMaterial({ map: logoTex, transparent: true, depthWrite: false, roughness: 0.3, polygonOffset: true, polygonOffsetFactor: -2 })); lg.position.set(-0.06, 0, DEP + 0.0115); gH.add(lg);
+      // alavanca: pescoço e punho grosso de pontas arredondadas, saindo do arco em direção ao piloto
+      add3(gH, new T.BoxGeometry(0.05, 0.03, 0.034), preto, -A - 0.022, 0.008, DEP / 2);
+      add3(gH, new T.CylinderGeometry(0.026, 0.026, 0.075, 20), preto, -A - 0.0775, 0.012, DEP / 2, [0, 0, Math.PI / 2]);
+      [-A - 0.04, -A - 0.115].forEach((x) => add3(gH, new T.SphereGeometry(0.026, 20, 14), preto, x, 0.012, DEP / 2));
+      // chave de ignição fixada no painel, acima da carcaça (comutador preto com a chave e a argola vermelha)
+      const K0 = new T.Vector3(painelX(1.49), 1.49, 0.27).addScaledVector(EN, -0.008), gK = grupo(K0, EZ, EUP, EN);   // gK: x = boreste, y = para cima pelo painel, z = para fora do painel
+      add3(gK, new T.CylinderGeometry(0.019, 0.019, 0.02, 24), preto, 0, 0, 0.008, [Math.PI / 2, 0, 0]);
+      add3(gK, new T.TorusGeometry(0.019, 0.0028, 8, 28), matR.inox, 0, 0, 0.018);
+      add3(gK, new T.CylinderGeometry(0.0095, 0.0095, 0.012, 20), matR.inox, 0, 0, 0.022, [Math.PI / 2, 0, 0]);
+      add3(gK, new T.BoxGeometry(0.009, 0.044, 0.003), matR.inox, 0, -0.024, 0.03);
+      add3(gK, new T.TorusGeometry(0.0085, 0.0032, 8, 18), vermelho, 0.004, -0.057, 0.032);
+      // cordão vermelho espiral: da argola da chave até a base da alavanca
+      const p0 = K0.clone().addScaledVector(EZ, 0.004).addScaledVector(EUP, -0.066).addScaledVector(EN, 0.034), p1 = OH.clone().addScaledVector(XH, -A - 0.025).addScaledVector(EUP, -0.014).addScaledVector(EZ, DEP / 2 + 0.003);
+      const d = p1.clone().sub(p0), comp = d.length(), dn = d.clone().normalize(), pa = new T.Vector3(0, 0, 1).cross(dn).normalize(), qa = dn.clone().cross(pa).normalize(), pts = [], N = 260, voltas = 15;
+      for (let i = 0; i <= N; i++) { const t = i / N, a = voltas * 2 * Math.PI * t; pts.push(p0.clone().addScaledVector(dn, comp * t).addScaledVector(pa, 0.0085 * Math.cos(a)).addScaledVector(qa, 0.0085 * Math.sin(a))); }
+      add3(gM, new T.TubeGeometry(new T.CatmullRomCurve3(pts), 420, 0.0031, 6, false), vermelho, 0, 0, 0);
+      B3D._manete = gM; return gM;
+    };
     const montarReal = (pt) => {
       const de = { fibra: matR.fibra, tubo: matR.tubo, pvc: matR.pvc, est: matR.est, piso: matR.piso, friso: matR.friso, tampo: matR.acril, preto: matR.preto, branco: matR.branco, luz: matR.luz, inox: matR.inox, logo: matR.logo, motor: matR.motor, helice: matR.helice };
       B3D._matsCorte = [...new Set(Object.values(de).filter((m) => m && m !== matR.est))];
@@ -5996,6 +6032,7 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
   const regMesa = k === "fibra" ? (cx, cy, cz) => cx < 2.84 && cy > 1.12 && cy < 1.26 && Math.abs(cz) < 0.32 : k === "tampo" ? (cx, cy, cz) => cx > 2.3 && cx < 2.9 && cy > 1.19 && cy < 1.25 && Math.abs(cz) < 0.28 : k === "inox" ? (cx, cy, cz) => cx > 2.36 && cx < 2.87 && cy > 1.14 && cy < 1.25 && Math.abs(cz) < 0.22 : null;
   for (let t = 0; t < Ix.length; t += 3) { const a = Ix[t] * 3, b = Ix[t + 1] * 3, c = Ix[t + 2] * 3, cx = (P[a] + P[b] + P[c]) / 3, cy = (P[a + 1] + P[b + 1] + P[c + 1]) / 3, cz = (P[a + 2] + P[b + 2] + P[c + 2]) / 3;
     if (k !== "fibra" && FUROS_RED.some(([hx, hy, hz, nx, ny, nz, rr]) => { const dx = cx - hx, dy = cy - hy, dz = cz - hz; return Math.hypot(dx, dy, dz) < rr * 1.2 + 0.03 && (dx * nx + dy * ny + dz * nz) / Math.hypot(nx, ny, nz) > -0.012; })) continue;   /* anéis e tampas que ficam à frente dos furos redondos, retirados */
+    if ((k === "preto" || k === "inox") && cx > 3.595 && cx < 3.79 && cy > 1.30 && cy < 1.53 && cz > 0.23 && cz < 0.38) continue;   /* manete dupla do modelo (placa preta, dois punhos e duas alavancas cromadas): retirada; o aro do volante (z < 0,17) fica intacto; a manete única é desenhada por criaManete() */
     let up = false; if (k === "fibra") { const ux = P[b] - P[a], uy = P[b + 1] - P[a + 1], uz = P[b + 2] - P[a + 2], vx = P[c] - P[a], vy = P[c + 1] - P[a + 1], vz = P[c + 2] - P[a + 2], n2y = uz * vx - ux * vz, A2 = Math.hypot(uy * vz - uz * vy, n2y, ux * vy - uy * vx); up = A2 > 1e-12 && n2y / A2 > 0.8; }
     if (k === "preto" && cx > 3.0 && cx < 3.32 && Math.abs(cz) > 0.39 && Math.abs(cz) < 0.47 && cy > 0.56 && cy < 1.04) { portas.push(Ix[t], Ix[t + 1], Ix[t + 2]); continue; }   /* portinhas laterais do console (uma de cada lado): vêm pretas no modelo e são pintadas de branco, na cor da fibra */
     if (k === "preto" && cx > 3.96 && cx < 4.22 && Math.abs(cz) > 0.05 && Math.abs(cz) < 0.32 && cy > 1.57 && cy < 1.74) { if (cy < 1.62) lid.push(Ix[t], Ix[t + 1], Ix[t + 2]); continue; }   /* porta-objetos do console: o rebaixo fica, a aba levantada (tampa entreaberta do modelo) sai */
@@ -6275,6 +6312,7 @@ if (pt.est) {   // o estofado do modelo é uma peça só: separa o assento do ni
         const ge = new T.BufferGeometry(); ge.setAttribute("position", new T.Float32BufferAttribute(pos, 3)); ge.setAttribute("normal", new T.Float32BufferAttribute(nor, 3)); ge.setAttribute("uv", new T.Float32BufferAttribute(uv, 2)); ge.setIndex(idx);
         const m = new T.Mesh(ge, matNome); m.renderOrder = 3; gR.nome.add(m);
       }); B3D.nomeDesvio = desvioMax; gR.nome.visible = false; }
+criaManete();
 realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.22; ren.toneMappingExposure = 0.62; B3D.real = real; B3D.realOk = true; if (B3D.btBanheiro && !document.getElementById("sec-banheiro")) B3D.btBanheiro.hidden = false; if (B3D.btMesa) B3D.btMesa.hidden = false;
       if (ultimaOp) aplicarReal(ultimaOp);
     };
@@ -6308,7 +6346,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
     const solta = (e) => { dedos.delete(e.pointerId); if (dedos.size < 2) pinca = null; if (!dedos.size) { arr = null; host.classList.remove("arrastando"); } };
     host.addEventListener("pointerup", solta); host.addEventListener("pointercancel", solta);
     host.addEventListener("wheel", (e) => { if (e.target.closest && e.target.closest(".b3d-tc-painel")) return; if (!(($("at-3d") && $("at-3d").classList.contains("grande")) || host.classList.contains("b3d-tc"))) return; e.preventDefault(); zoom = Math.min(ZMAX, Math.max(ZMIN, zoom * (1 + e.deltaY * 0.0012))); ultimo = performance.now(); posCam(); }, { passive: false });
-    const tamanho = () => { if (B3D.fotografando) return; const w = host.clientWidth || 300, h = host.clientHeight || 260; if (ctrl.limite(b3dPrCap(w, h, PR_DISP))) ren.setPixelRatio(ctrl.pr); ren.setSize(w, h, false); ren.domElement.style.width = "100%"; ren.domElement.style.height = "100%"; cam.aspect = w / h; kAsp = Math.max(1, 1.62 / cam.aspect); if (B3D._tcOffset) cam.setViewOffset(w, h, 0, B3D._tcOffset, w, h); else cam.clearViewOffset(); posCam(); cam.updateProjectionMatrix(); };
+    const tamanho = () => { if (B3D.fotografando) return; const w = host.clientWidth || 300, h = host.clientHeight || 260; if (SW) ren.setPixelRatio(Math.max(0.5, Math.min(PR_DISP, Math.sqrt(0.3e6 / Math.max(1, w * h))))); ren.setSize(w, h, false); ren.domElement.style.width = "100%"; ren.domElement.style.height = "100%"; cam.aspect = w / h; kAsp = Math.max(1, 1.62 / cam.aspect); if (B3D._tcOffset) cam.setViewOffset(w, h, 0, B3D._tcOffset, w, h); else cam.clearViewOffset(); posCam(); cam.updateProjectionMatrix(); };
     if (window.ResizeObserver) new ResizeObserver(tamanho).observe(host); tamanho();
     { // controles da vista: capotas, giro, zoom e foco
       if (!document.getElementById("b3d-css")) { const st3 = document.createElement("style"); st3.id = "b3d-css";
@@ -6570,7 +6608,6 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
     const loop = (t) => {
       requestAnimationFrame(loop);
       if (B3D.fotografando || !b3dVisivel() || document.hidden) return;
-      { const np = ctrl.quadro(t); if (np) ren.setPixelRatio(np); }   // resolução dinâmica
       if (!arr && !B3D.pausa && t - ultimo > 2500) ang += 0.003;
       if (B3D.tweenBanheiro) B3D.tweenBanheiro();
       if (B3D.tweenBanco) B3D.tweenBanco();
@@ -6814,6 +6851,46 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
     if (q && q.mid) pr.set("mi", q.mid);
     return pr;
   }
+  // ---------- código de acesso ao orçamento: o cliente digita no configurador e vê a configuração dele, com os preços, sem link ----------
+  const ACESSO_PUB = "https://carloscoutinho89.github.io/euronav/", COD_ALFA = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";   // sem 0, O, 1, I, L: não se confundem ao digitar
+  function codNovo() { const u = new Uint32Array(8); crypto.getRandomValues(u); let t = ""; for (let i = 0; i < 8; i++) t += COD_ALFA[u[i] % COD_ALFA.length]; return t.slice(0, 4) + "-" + t.slice(4); }
+  function codUnico() { const usados = new Set(Array.from(st.ats.values()).map((d) => String((d && d.codigo) || "").replace(/-/g, ""))); let c, n = 0; do { c = codNovo(); n++; } while (usados.has(c.replace("-", "")) && n < 30); return c; }
+  function acessoRender() {
+    const at = st.atId ? st.ats.get(st.atId) : null, e = $("at-cod"); if (!e) return;
+    e.textContent = at && at.codigo ? at.codigo : "------";
+    const dv = (d) => String(d || "").split("-").reverse().join("/");
+    setText("at-cod-st", !at ? "Abra um atendimento para gerar o código." : !at.codigo ? "Este atendimento ainda não tem código. Toque em \"Gerar / atualizar preços do código\"." : at.orc && at.orc.hash ? "Código ativo. O cliente vê os valores guardados em " + dataBR(at.orc.em) + ", válidos até " + dv(at.orc.val) + ". Mudou algo no atendimento? Toque em \"Gerar / atualizar preços do código\"." : "Código criado, mas os preços ainda não foram guardados. Toque em \"Gerar / atualizar preços do código\".");
+  }
+  async function acessoAtualizar(dizer) {   // monta a tabela de preços de hoje (a mesma do link com preços) e guarda no atendimento, junto do código
+    const id = st.atId, at = id ? st.ats.get(id) : null;
+    if (!at) { dizer("Abra ou crie um atendimento primeiro."); return null; }
+    if (!st.acol || !st.canWrite) { dizer("Sem permissão para salvar neste atendimento."); return null; }
+    if (!at.codigo) { const patch = { codigo: codUnico(), atualizadoEm: nowIso() }; Object.assign(at, patch); atWrite(id, () => st.acol.doc(id).update(patch)); }
+    dizer("Montando o orçamento com os preços de hoje… leva alguns segundos.");
+    const p = await orcPayload({ progresso: (i, n) => dizer("Montando o orçamento… " + Math.round(100 * i / n) + "%") });
+    if (!p) { dizer("Os dados ainda estão carregando. Tente de novo em instantes."); return null; }
+    const pr = orcParams(); pr.set("q", p.q); const orc = { hash: pr.toString(), val: p.obj.val, em: nowIso() }, patch2 = { orc, atualizadoEm: nowIso() };
+    Object.assign(at, patch2); atWrite(id, () => st.acol.doc(id).update(patch2)); acessoRender(); return at;
+  }
+  function acessoMensagem(at) {
+    const nome = String(at.nome || "").trim().split(/\s+/)[0] || "", atend = String(at.atendente || "").trim(), dv = at.orc && at.orc.val ? at.orc.val.split("-").reverse().join("/") : "", cod = at.codigo, url = ACESSO_PUB + "configurador.html";
+    return ["Olá" + (nome ? ", " + nome : "") + "! Aqui é " + (atend ? atend + ", " : "") + "da Euronav.", "", "Segue o seu código para ver a configuração do seu Euro Sette, já com os preços, no nosso simulador:", "", "Código: " + cod, "", "Como acessar:", "1. Abra " + url, "2. Toque em \"Tenho um código de orçamento\"", "3. Digite o código e toque em \"Abrir meu orçamento\"", "", "Se preferir, toque direto neste link, que já abre com o código: " + url + "?c=" + cod.replace("-", ""), "", "Foto de onde digitar o código: " + ACESSO_PUB + "como-acessar-orcamento.png", "", dv ? "Os valores valem até " + dv + "." : "", "Qualquer dúvida, é só chamar!"].filter((l, i, a) => l !== "" || (i > 0 && a[i - 1] !== "")).join("\n");
+  }
+  function acessoTelWa(at) { let d = String(at.tel || (at.comprador && at.comprador.tel) || "").replace(/\D/g, ""); if (d.length === 10 || d.length === 11) d = "55" + d; return d.length >= 12 ? d : ""; }
+  async function acessoCopiar(texto, ok) { try { await navigator.clipboard.writeText(texto); setText("at-cod-st", ok); } catch (e) { window.prompt("Copie:", texto); } }
+  async function acessoAcao(tipo) {
+    const dizer = (t) => setText("at-cod-st", t), botoes = ["at-cod-gerar", "at-cod-copiar", "at-cod-zap", "at-cod-msg"].map((i) => $(i)); botoes.forEach((b) => { if (b) b.disabled = true; });
+    try {
+      const atual = st.atId ? st.ats.get(st.atId) : null;
+      if (tipo === "copiar" && atual && atual.codigo && atual.orc && atual.orc.hash) { await acessoCopiar(atual.codigo, "Código " + atual.codigo + " copiado."); return; }
+      const at = await acessoAtualizar(dizer); if (!at) return;
+      if (tipo === "gerar") { dizer("Pronto. Código " + at.codigo + " ativo, com os valores de hoje, válidos até " + at.orc.val.split("-").reverse().join("/") + "."); return; }
+      if (tipo === "copiar") { await acessoCopiar(at.codigo, "Código " + at.codigo + " copiado."); return; }
+      const msg = acessoMensagem(at);
+      if (tipo === "msg") { await acessoCopiar(msg, "Mensagem copiada. É só colar no WhatsApp do cliente."); return; }
+      if (tipo === "zap") { const tel = acessoTelWa(at); window.open("https://wa.me/" + tel + "?text=" + encodeURIComponent(msg), "_blank"); dizer(tel ? "WhatsApp aberto com a mensagem para o cliente. Revise e envie." : "O atendimento não tem telefone válido: o WhatsApp abriu para você escolher o contato."); }
+    } finally { botoes.forEach((b) => { if (b) b.disabled = false; }); }
+  }
   async function copiarLinkOrcamento() {
     const msg = (t) => setText("at-cfg-msg", t);
     if (!st.atId || !st.at) { msg("Abra ou crie um atendimento primeiro."); return; }
@@ -7017,6 +7094,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && cfx.aberto && !$("at-3d").classList.contains("grande")) cfxFechar(); });
   $("at-cfg-copiar").addEventListener("click", () => copiarLinkCliente("at-cfg-msg")); $("cfx-copiar").addEventListener("click", () => copiarLinkCliente("cfx-resumo"));
   $("at-cfg-importar").addEventListener("click", importarLink); $("at-cfg-precos").addEventListener("click", copiarLinkOrcamento);
+  $("at-cod-gerar").addEventListener("click", () => acessoAcao("gerar")); $("at-cod-copiar").addEventListener("click", () => acessoAcao("copiar")); $("at-cod-zap").addEventListener("click", () => acessoAcao("zap")); $("at-cod-msg").addEventListener("click", () => acessoAcao("msg"));
   buildFotos();
   // ---------- Precificação: estudar um atendimento e senha própria no modo vendas ----------
   const pvHash = async (sal, senha) => { const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(sal + "|" + senha)); return Array.from(new Uint8Array(b)).map((x) => x.toString(16).padStart(2, "0")).join(""); };

@@ -267,6 +267,26 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
 };
 </script>
 
+<style id="css-codigo">
+/* ---- acesso ao orçamento por código (discreto: só faz sentido para quem recebeu um código do atendente) ---- */
+.cod-link { padding: 10px 2px 0; text-align: right; }
+.cod-link button { appearance: none; border: 0; background: none; color: var(--muted); font: inherit; font-size: .74rem; letter-spacing: .03em; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; padding: 4px 0; }
+.cod-link button:hover { color: var(--accent); }
+body.com-precos .cod-link { display: none; }
+.cod { position: fixed; inset: 0; z-index: 90; background: rgba(8, 10, 14, .86); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.cod[hidden] { display: none; }
+.cod-c { position: relative; width: min(420px, 100%); background: var(--bg); color: var(--ink, inherit); border: 1px solid var(--line); border-radius: 10px; padding: 24px 22px 20px; box-shadow: 0 18px 60px rgba(0, 0, 0, .5); }
+.cod-c h2 { margin: 0 0 8px; font-family: "Saira", sans-serif; font-size: 1.05rem; letter-spacing: .12em; text-transform: uppercase; }
+.cod-p { margin: 0 0 14px; font-size: .86rem; line-height: 1.45; color: var(--muted); }
+.cod-x { position: absolute; top: 8px; right: 10px; appearance: none; border: 0; background: none; color: var(--muted); font-size: 1.6rem; line-height: 1; cursor: pointer; padding: 4px 8px; }
+#cod-in { width: 100%; box-sizing: border-box; font: 600 1.5rem/1.2 "Saira", monospace; letter-spacing: .28em; text-align: center; text-transform: uppercase; padding: 12px 10px; margin: 0 0 12px; border: 1px solid var(--line); border-radius: 6px; background: transparent; color: inherit; }
+#cod-in:focus { outline: none; border-color: var(--accent); }
+#cod-ok { width: 100%; justify-content: center; }
+#cod-ok[disabled] { opacity: .55; cursor: default; }
+.cod-msg { min-height: 1.3em; margin: 12px 0 0; font-size: .84rem; line-height: 1.4; }
+.cod-msg.erro { color: #d4574b; }
+.cod-dica { margin: 12px 0 0; font-size: .76rem; color: var(--muted); }
+</style>
 </head>
 <body>
 <header class="top">
@@ -299,6 +319,7 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
     <div class="orc-barra" id="orc-barra"><span>Valor total · impostos incluídos</span><b id="orc-total">–</b></div>
   </section>
   <aside class="painel" aria-label="Personalização">
+    <div class="cod-link" id="cod-link"><button type="button" id="b-codigo">Tenho um código de orçamento</button></div>
     <div class="sec nb" id="sec-nb"><button class="opt nb-bt" type="button" id="nb-bt" aria-pressed="false"><span>Dar o nome ao seu barco<small>Opcional. Batize o seu Euro Sette. O nome aparece nos tubulões, na proa.</small></span><i class="sw"></i></button><div class="nb-campo" id="nb-campo" hidden><input id="nb-in" type="text" maxlength="20" placeholder="Nome do seu barco" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Nome do seu barco"><p class="dica">Até 20 letras.</p></div></div>
     <div class="sec"><h2>Combinações</h2><div class="combos" id="combos"></div></div>
     <div class="sec pers"><h2 class="pers-t">Personalize do seu jeito</h2></div>
@@ -336,6 +357,17 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
     <p class="nota">A vista 360° usa o modelo 3D do projeto do Euro Sette e mostra a cor dos tubulões; capota de proa, churrasqueira, pia e fogão, cristaleira e tela do GPS são representações. As vistas de popa, cockpit e proa são fotos reais do Euro Sette, com as cores de estofado e piso aplicadas digitalmente. A vista do tubulão é uma foto real com a cor dos tubulões aplicada digitalmente. A cor das capotas aparece na vista 3D. Itens e cores sujeitos a confirmação na proposta.</p>
   </aside>
 </main>
+<div class="cod" id="cod" hidden role="dialog" aria-modal="true" aria-label="Abrir meu orçamento com o código">
+  <div class="cod-c">
+    <button class="cod-x" type="button" id="cod-x" aria-label="Fechar">×</button>
+    <h2>Abrir meu orçamento</h2>
+    <p class="cod-p">Digite o código que o atendente da Euronav enviou para você. Ele abre a configuração do seu Euro Sette com os preços.</p>
+    <input id="cod-in" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="9" placeholder="XXXX-XXXX" aria-label="Código do orçamento">
+    <button class="bt forte" type="button" id="cod-ok">Abrir meu orçamento</button>
+    <p class="cod-msg" id="cod-msg" role="status"></p>
+    <p class="cod-dica">Não recebeu um código? Peça ao seu atendente da Euronav.</p>
+  </div>
+</div>
 <div class="fim" id="fim" hidden role="dialog" aria-modal="true" aria-label="Imagem final do seu Euro Sette">
   <div class="fim-c">
     <div class="fim-top"><h2>Seu <span class="es-logo" role="img" aria-label="Euro Sette"></span></h2><button class="fim-x" type="button" id="fim-x" aria-label="Fechar">×</button></div>
@@ -891,43 +923,46 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
       txNome.needsUpdate = true;
     };
     try { if (document.fonts && document.fonts.load) document.fonts.load("italic 800 100px Saira").then(() => { if (nomeAtual) desenhaNome(nomeAtual); }).catch(() => {}); } catch (e) { /* segue com a fonte reserva */ }
-    // ---- manete única de motor, como a do barco real (foto da proposta): carcaça preta em "D" com aro cromado, face branca com a logo euronav, uma alavanca
-    // preta de ponta grossa; fixada na FACE DO PAINEL, à direita do volante, com a alavanca apontando para o volante; chave de ignição acima, ligada à alavanca pelo cordão vermelho espiral ----
+    // ---- manete única de motor, como a do barco real (fotos da proposta e da ficha técnica) ----
+    // Carcaça preta em "D" com aro cromado e face branca com a logo euronav, EM PÉ, perpendicular ao painel: a borda reta fica encostada no painel, o arco aponta para o piloto
+    // e a face branca olha para boreste. A alavanca sai do arco, na direção do piloto (paralela à coluna do volante). A chave de ignição fica no painel, acima, ligada à alavanca pelo cordão vermelho espiral.
     const criaManete = () => {
       const gM = new T.Group(); gM.name = "manete"; real.add(gM);
-      // quadro de eixos do painel (inclinado): u = para boreste (+z), v = subindo pelo painel, w = saindo do painel, para o piloto (medidos no modelo)
-      const EZ = new T.Vector3(0, 0, 1), EUP = new T.Vector3(0.4469, 0.8946, 0), EN = new T.Vector3(-0.8946, 0.4469, 0), ORIG = new T.Vector3(3.736, 1.36, 0.405);
-      gM.matrixAutoUpdate = false; gM.matrix.makeBasis(EZ, EUP, EN); gM.matrix.setPosition(ORIG.clone().addScaledVector(EN, -0.01)); gM.matrixWorldNeedsUpdate = true;
-      const A = 0.15, BH = 0.088;   // A: largura do "D" (borda reta a boreste, arco a bombordo); BH: meia altura
+      const EZ = new T.Vector3(0, 0, 1), EUP = new T.Vector3(0.4469, 0.8946, 0), EN = new T.Vector3(-0.8946, 0.4469, 0), XH = EN.clone().negate();   // eixos do painel (inclinado): boreste, para cima pelo painel, para fora do painel (para o piloto)
+      const painelX = (y) => 0.4995 * y + 3.0568;   // o painel é o plano x = 0,4995 y + 3,0568 (medido no modelo)
+      const OH = new T.Vector3(painelX(1.36), 1.36, 0.235).addScaledVector(EN, -0.01);   // origem do "D": meio da borda reta, 1 cm embutida no painel
+      const grupo = (o, bx, by, bz) => { const g = new T.Group(); g.matrixAutoUpdate = false; g.matrix.makeBasis(bx, by, bz); g.matrix.setPosition(o); g.matrixWorldNeedsUpdate = true; gM.add(g); return g; };
+      const gH = grupo(OH, XH, EUP, EZ);   // x do grupo = para fora do painel (o arco do "D" fica em x negativo, a borda reta em x = 0); y = para cima; z = boreste (a face branca)
+      const A = 0.15, BH = 0.088, DEP = 0.075;   // largura do "D", meia altura e espessura da carcaça
       const dForma = (ins) => { const s = new T.Shape(), xb = -ins, xa = -A + ins, rx = xb - xa, b = BH - ins, N = 32; s.moveTo(xb, -b); s.lineTo(xb, b);
         for (let i = 1; i <= N; i++) { const t = Math.PI / 2 + Math.PI * i / N; s.lineTo(xb + rx * Math.cos(t), b * Math.sin(t)); } s.closePath(); return s; };
       const preto = MR(0x0E0F11, { roughness: 0.36, envMapIntensity: 0.4 }), face = MR(0xFBFBFA, { roughness: 0.3, emissive: C(0xF2F2F0), emissiveIntensity: 0.3, envMapIntensity: 0.3 }), vermelho = MR(0xC8101A, { roughness: 0.42 });
-      const add3 = (geo, mat, x, y, z, rot) => { const m = new T.Mesh(geo, mat); m.position.set(x || 0, y || 0, z || 0); if (rot) m.rotation.set(rot[0], rot[1], rot[2]); m.castShadow = true; m.receiveShadow = true; gM.add(m); return m; };
-      add3(new T.ExtrudeGeometry(dForma(0), { depth: 0.055, bevelEnabled: true, bevelThickness: 0.006, bevelSize: 0.006, bevelSegments: 2, curveSegments: 1 }), preto, 0, 0, 0.006);   // carcaça
+      const add3 = (g, geo, mat, x, y, z, rot) => { const m = new T.Mesh(geo, mat); m.position.set(x || 0, y || 0, z || 0); if (rot) m.rotation.set(rot[0], rot[1], rot[2]); m.castShadow = true; m.receiveShadow = true; g.add(m); return m; };
+      add3(gH, new T.ExtrudeGeometry(dForma(0), { depth: DEP, bevelEnabled: true, bevelThickness: 0.006, bevelSize: 0.006, bevelSegments: 2, curveSegments: 1 }), preto, 0, 0, 0);   // carcaça
       const anel = dForma(0.011); anel.holes.push(new T.Path(dForma(0.028).getPoints()));
-      add3(new T.ExtrudeGeometry(anel, { depth: 0.008, bevelEnabled: true, bevelThickness: 0.003, bevelSize: 0.003, bevelSegments: 2, curveSegments: 1 }), matR.inox, 0, 0, 0.067);   // aro cromado
-      add3(new T.ExtrudeGeometry(dForma(0.028), { depth: 0.004, bevelEnabled: false, curveSegments: 1 }), face, 0, 0, 0.0675 + 0.0);   // face branca
+      add3(gH, new T.ExtrudeGeometry(anel, { depth: 0.008, bevelEnabled: true, bevelThickness: 0.003, bevelSize: 0.003, bevelSegments: 2, curveSegments: 1 }), matR.inox, 0, 0, DEP + 0.006);   // aro cromado
+      add3(gH, new T.ExtrudeGeometry(dForma(0.028), { depth: 0.004, bevelEnabled: false, curveSegments: 1 }), face, 0, 0, DEP + 0.0065);   // face branca
       const logoTex = tela(256, 640, (g, W, H) => { g.clearRect(0, 0, W, H); g.save(); g.translate(W / 2, H / 2); g.rotate(-Math.PI / 2); g.fillStyle = "#2b2e33"; g.font = "600 150px 'Saira', Arial, sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText("euronav", 0, 22);
         const wt = g.measureText("euronav").width, we = g.measureText("euro").width, wn = g.measureText("n").width, cx = -wt / 2 + we + wn / 2;
         g.fillStyle = "#3B5999"; g.beginPath(); g.moveTo(cx, -112); g.lineTo(cx - 30, -62); g.lineTo(cx + 30, -62); g.closePath(); g.fill(); g.restore(); });
       logoTex.desenhar(); try { if (document.fonts && document.fonts.load) document.fonts.load("600 150px Saira").then(() => logoTex.desenhar()).catch(() => {}); } catch (e) { /* mantém a fonte padrão */ }
-      const lg = new T.Mesh(new T.PlaneGeometry(0.046, 0.12), new T.MeshStandardMaterial({ map: logoTex, transparent: true, depthWrite: false, roughness: 0.3, polygonOffset: true, polygonOffsetFactor: -2 })); lg.position.set(-0.06, 0, 0.0725); gM.add(lg);
-      // alavanca: pescoço e punho grosso de pontas arredondadas, saindo do lado do volante
-      add3(new T.BoxGeometry(0.05, 0.03, 0.034), preto, -0.172, 0.008, 0.032);
-      add3(new T.CylinderGeometry(0.026, 0.026, 0.075, 20), preto, -0.2275, 0.012, 0.032, [0, 0, Math.PI / 2]);
-      [-0.19, -0.265].forEach((x) => add3(new T.SphereGeometry(0.026, 20, 14), preto, x, 0.012, 0.032));
-      // chave de ignição no painel, acima da alavanca (comutador preto com a chave e a argola vermelha)
-      const KX = -0.125, KY = 0.145;
-      add3(new T.CylinderGeometry(0.019, 0.019, 0.02, 24), preto, KX, KY, 0.008, [Math.PI / 2, 0, 0]);
-      add3(new T.TorusGeometry(0.019, 0.0028, 8, 28), matR.inox, KX, KY, 0.018);
-      add3(new T.CylinderGeometry(0.0095, 0.0095, 0.012, 20), matR.inox, KX, KY, 0.022, [Math.PI / 2, 0, 0]);
-      add3(new T.BoxGeometry(0.009, 0.044, 0.003), matR.inox, KX, KY - 0.024, 0.03);
-      add3(new T.TorusGeometry(0.0085, 0.0032, 8, 18), vermelho, KX + 0.004, KY - 0.057, 0.032);
+      const lg = new T.Mesh(new T.PlaneGeometry(0.046, 0.12), new T.MeshStandardMaterial({ map: logoTex, transparent: true, depthWrite: false, roughness: 0.3, polygonOffset: true, polygonOffsetFactor: -2 })); lg.position.set(-0.06, 0, DEP + 0.0115); gH.add(lg);
+      // alavanca: pescoço e punho grosso de pontas arredondadas, saindo do arco em direção ao piloto
+      add3(gH, new T.BoxGeometry(0.05, 0.03, 0.034), preto, -A - 0.022, 0.008, DEP / 2);
+      add3(gH, new T.CylinderGeometry(0.026, 0.026, 0.075, 20), preto, -A - 0.0775, 0.012, DEP / 2, [0, 0, Math.PI / 2]);
+      [-A - 0.04, -A - 0.115].forEach((x) => add3(gH, new T.SphereGeometry(0.026, 20, 14), preto, x, 0.012, DEP / 2));
+      // chave de ignição fixada no painel, acima da carcaça (comutador preto com a chave e a argola vermelha)
+      const K0 = new T.Vector3(painelX(1.49), 1.49, 0.27).addScaledVector(EN, -0.008), gK = grupo(K0, EZ, EUP, EN);   // gK: x = boreste, y = para cima pelo painel, z = para fora do painel
+      add3(gK, new T.CylinderGeometry(0.019, 0.019, 0.02, 24), preto, 0, 0, 0.008, [Math.PI / 2, 0, 0]);
+      add3(gK, new T.TorusGeometry(0.019, 0.0028, 8, 28), matR.inox, 0, 0, 0.018);
+      add3(gK, new T.CylinderGeometry(0.0095, 0.0095, 0.012, 20), matR.inox, 0, 0, 0.022, [Math.PI / 2, 0, 0]);
+      add3(gK, new T.BoxGeometry(0.009, 0.044, 0.003), matR.inox, 0, -0.024, 0.03);
+      add3(gK, new T.TorusGeometry(0.0085, 0.0032, 8, 18), vermelho, 0.004, -0.057, 0.032);
       // cordão vermelho espiral: da argola da chave até a base da alavanca
-      const p0 = new T.Vector3(KX + 0.004, KY - 0.066, 0.034), p1 = new T.Vector3(-0.205, -0.012, 0.034), d = p1.clone().sub(p0), comp = d.length(), dn = d.clone().normalize();
-      const pa = new T.Vector3(0, 0, 1).cross(dn).normalize(), qa = dn.clone().cross(pa).normalize(), pts = [], N = 260, voltas = 15;
+      const p0 = K0.clone().addScaledVector(EZ, 0.004).addScaledVector(EUP, -0.066).addScaledVector(EN, 0.034), p1 = OH.clone().addScaledVector(XH, -A - 0.025).addScaledVector(EUP, -0.014).addScaledVector(EZ, DEP / 2 + 0.003);
+      const d = p1.clone().sub(p0), comp = d.length(), dn = d.clone().normalize(), pa = new T.Vector3(0, 0, 1).cross(dn).normalize(), qa = dn.clone().cross(pa).normalize(), pts = [], N = 260, voltas = 15;
       for (let i = 0; i <= N; i++) { const t = i / N, a = voltas * 2 * Math.PI * t; pts.push(p0.clone().addScaledVector(dn, comp * t).addScaledVector(pa, 0.0085 * Math.cos(a)).addScaledVector(qa, 0.0085 * Math.sin(a))); }
-      add3(new T.TubeGeometry(new T.CatmullRomCurve3(pts), 420, 0.0031, 6, false), vermelho, 0, 0, 0);
+      add3(gM, new T.TubeGeometry(new T.CatmullRomCurve3(pts), 420, 0.0031, 6, false), vermelho, 0, 0, 0);
       B3D._manete = gM; return gM;
     };
     const montarReal = (pt) => {
@@ -1999,6 +2034,48 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
       e.innerHTML = "Configurador v91 · 26/11 · " + Math.round(n * 1000 / (t - t0)) + " fps · res " + (pr ? pr.toFixed(2) + "x" : "-") + (window.__b3dOrc ? " (orçamento " + (window.__b3dOrc / 1e6).toFixed(2) + " MP" + (window.__b3dSw ? ", por software" : "") + ")" : "") + " · " + lentos + " quadros lentos/s<br>" + nav + " · " + gpuTxt() + " · tela " + (window.devicePixelRatio || 1) + "x"; n = 0; lentos = 0; t0 = t; }
     requestAnimationFrame(tick); })(performance.now());
 } catch (x) { /* sem marcador */ } })();
+</script>
+<script>
+/* acesso ao orçamento com preços por código: o cliente digita o código que o atendente enviou; o configurador troca o código pela tabela de preços e abre o orçamento */
+(function () { try {
+  var API = window.EURONAV_API_LEAD || "https://script.google.com/macros/s/AKfycbwGjZAsu5fIpKSEDR63I_cLmiTQWHhoCKJImXoE4C6H_3gWPV4PC6SujvM9zLXTk7_A/exec";
+  var box = document.getElementById("cod"), inp = document.getElementById("cod-in"), ok = document.getElementById("cod-ok"), msg = document.getElementById("cod-msg"), abre = document.getElementById("b-codigo");
+  if (!box || !inp || !ok || !abre) return;
+  var falhas = 0, bloqueioAte = 0;
+  var fmt = function (v) { v = String(v || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8); return v.length > 4 ? v.slice(0, 4) + "-" + v.slice(4) : v; };
+  var dizer = function (t, erro) { msg.textContent = t || ""; msg.className = "cod-msg" + (erro ? " erro" : ""); };
+  var abrir = function (c) { box.hidden = false; dizer(""); if (c) inp.value = fmt(c); setTimeout(function () { try { inp.focus(); } catch (e) {} }, 60); };
+  var fechar = function () { box.hidden = true; };
+  var enviar = function () {
+    var cod = fmt(inp.value).replace("-", "");
+    if (Date.now() < bloqueioAte) { dizer("Muitas tentativas. Aguarde alguns segundos e tente de novo.", true); return; }
+    if (cod.length < 8) { dizer("O código tem 8 letras e números (por exemplo, K7M4-9QPX).", true); return; }
+    ok.disabled = true; dizer("Verificando o código…");
+    var ctl = window.AbortController ? new AbortController() : null, tm = setTimeout(function () { if (ctl) ctl.abort(); }, 15000);
+    fetch(API + (API.indexOf("?") < 0 ? "?" : "&") + "acao=codigo&c=" + encodeURIComponent(cod), ctl ? { signal: ctl.signal } : {})
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        clearTimeout(tm);
+        if (j && j.ok && j.hash) { dizer("Código confirmado. Abrindo o seu orçamento…"); try { location.hash = "#" + j.hash; } catch (e) {} setTimeout(function () { location.reload(); }, 120); return; }
+        ok.disabled = false;
+        if (j && j.ok && j.pendente) { dizer("Seu orçamento ainda está sendo preparado. Fale com o seu atendente da Euronav."); return; }
+        if (j && j.expirado) { dizer("Este orçamento expirou. Peça ao seu atendente da Euronav uma atualização.", true); return; }
+        if (j && j.espere) { dizer("Muitas tentativas em pouco tempo. Aguarde um minuto e tente de novo.", true); return; }
+        falhas++; if (falhas >= 5) { bloqueioAte = Date.now() + 30000; falhas = 0; }
+        dizer("Código não encontrado. Confira as letras e os números ou peça ao seu atendente da Euronav.", true);
+      })
+      .catch(function () { clearTimeout(tm); ok.disabled = false; dizer("Não foi possível verificar agora. Confira a sua internet e tente de novo.", true); });
+  };
+  abre.addEventListener("click", function () { abrir(""); });
+  document.getElementById("cod-x").addEventListener("click", fechar);
+  box.addEventListener("click", function (e) { if (e.target === box) fechar(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !box.hidden) fechar(); });
+  inp.addEventListener("input", function () { var p = fmt(inp.value); if (inp.value !== p) inp.value = p; });
+  inp.addEventListener("keydown", function (e) { if (e.key === "Enter") enviar(); });
+  ok.addEventListener("click", enviar);
+  var m = /[?&]c=([A-Za-z0-9-]{8,9})(?:&|$)/.exec(location.search);   // link direto com o código (?c=...): abre a janela já preenchida e confirma
+  if (m) { abrir(m[1]); setTimeout(enviar, 400); }
+} catch (x) { /* sem acesso por código */ } })();
 </script>
 </body>
 </html>
