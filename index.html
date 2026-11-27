@@ -886,6 +886,10 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
 <style id="css-acesso">
 .at-acesso { margin: 12px 0 4px; padding: 10px 12px; border: 1px solid var(--line, #dadce0); border-radius: 8px; }
 .at-acesso .c-hint { margin: 0 0 6px; }
+.at-hcli { margin: 8px 0; padding: 8px 10px; border: 1px solid var(--line, #dadce0); border-radius: 8px; font-size: .92em; }
+.at-hcli-l { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; padding: 6px 0; border-top: 1px solid var(--line, #e6e8eb); margin-top: 6px; }
+.at-hcli-d { font-weight: 600; }
+.at-hcli-t { flex-basis: 100%; color: var(--mut, #5f636b); font-size: .88em; line-height: 1.35; }
 .at-acesso-l { margin: 4px 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
 .at-cod { font: 700 1.15rem/1.2 "Saira", ui-monospace, monospace; letter-spacing: .2em; padding: 4px 10px; border-radius: 6px; background: var(--soft, rgba(127, 127, 127, .12)); }
 </style>
@@ -4126,16 +4130,85 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
   const revCodigo = (d) => { const m = REV_RE.exec(String((d && d.obs) || "")); return m ? m[1] : ""; };
   const revAlvo = (cod) => { for (const [id, a] of st.ats) if (a && a.codigo === cod && !ehLead(a)) return id; return ""; };
   const revTexto = (d) => String((d && d.obs) || "").replace(/^Contato pelo configurador on-line(\s*\([^)]*\))?\.\s*/, "").replace(/^Atualização de orçamento · código [2-9A-HJKMNP-Z]{4}\.\s*/, "").replace(/\s*E-mail: \S+\.?$/, "");
-  function revAplicar(idLead) {
+  // ---------- Atualização do cliente aplicada sozinha, com histórico ----------
+  // Quando o cliente manda a configuração nova pelo código, o sistema aplica no atendimento sem pedir aceite e guarda cada versão no histórico
+  // (com a data e a hora do envio). O atendente recupera qualquer versão com um clique. Vale para qualquer atendimento, aberto ou não, sem mexer na tela.
+  const HIST_MAX = 20, histEm = (iso) => { const dt = new Date(iso); return isNaN(dt.getTime()) ? "" : dt.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }); };
+  function comAt(A, id, fn) { const a0 = st.at, i0 = st.atId; st.at = A; st.atId = id; try { return fn(); } finally { st.at = a0; st.atId = i0; } }   // troca o atendimento só durante uma conta síncrona
+  function atDeDoc(d) {   // a mesma montagem do atOpen, sem mexer na tela
+    const c = (d && d.config) || {};
+    return Object.assign(JSON.parse(JSON.stringify(AT_DEF)), { motor: c.motor || "", kits: Object.assign({}, AT_DEF.kits, c.kits || {}), kitItens: JSON.parse(JSON.stringify(c.kitItens || {})), hyp: !!c.hyp, gps: !!c.gps, semKit: !!c.semKit, nb: String(c.nb || ""), desc: num(c.desc), descLib: num(c.descLib), corEst: c.corEst || AT_DEF.corEst, corPiso: c.corPiso || AT_DEF.corPiso, corListra: c.corListra || "", corCapota: c.corCapota || AT_DEF.corCapota, corTubo: c.corTubo || "gelo" });
+  }
+  const histTrim = (h) => { while (h.length > HIST_MAX) h.splice(1, 1); return h; };   // guarda a versão original e as mais recentes
+  const patchTotais = (q) => (q ? { total: Math.round(q.total), desconto: Math.round(q.desc), subtotal: Math.round(q.S), resultado: Math.round(q.resultado), margem: q.margem == null ? null : Math.round(q.margem * 10000) / 10000 } : {});
+  let revFila = Promise.resolve(), revTent = 0; const revVistos = new Set();
+  async function revProcessar(idLead, opts) {
+    opts = opts || {};
+    const d = st.ats.get(idLead), cod = d ? revCodigo(d) : "", alvo = cod ? revAlvo(cod) : "", a = alvo ? st.ats.get(alvo) : null;
+    if (!d || !a || !d.linkCfg) return false;
+    if (!st.canWrite || !st.acol || !st.loadedI || !vScen()) return "adiar";
+    const chave = idLead + "@" + String(d.atualizadoEm || d.criadoEm || ""), hist = Array.isArray(a.historico) ? a.historico.slice() : [];
+    const tiraDaFila = () => { st.ats.delete(idLead); atWrite(idLead, () => st.acol.doc(idLead).delete()); };
+    if (hist.some((h) => h && h.id === chave)) { tiraDaFila(); renderLeads(); revRender(); return true; }   // outro painel já aplicou esta versão: só sai da fila
+    const aberto = st.atId === alvo, A = aberto ? JSON.parse(JSON.stringify(st.at)) : atDeDoc(a);
+    const q00 = comAt(A, alvo, atCompute), cfgAntes = comAt(A, alvo, atConfig);
+    const mg00 = q00 && q00.desc > 0 && q00.margem != null ? q00.margem : null, mgn00 = mg00 != null ? (atPrice(Object.assign({}, A, { calcMgN: true, dsc: q00.desc })) || {}).mgn : null, mgT = mgn00 != null && isFinite(mgn00) ? mgn00 : mg00, dn00 = mgT != null ? (atPrice(Object.assign({}, A, { mg0: mgT })) || {}).d : null;   // margem do negócio antes de aplicar
+    if (!aplicarLinkEm(A, d.linkCfg, true)) { if (opts.manual) setText("at-cfg-msg", "Não foi possível aplicar: o link do cliente veio sem configuração."); return false; }
+    let dNovo = null; if (mg00 != null) { const qd = atPrice(Object.assign({}, A, { mg0: mgT, d0: q00.desc, s0: q00.S, dn0: dn00 })); if (qd) { dNovo = qd.d; A.desc = qd.d; const qx = comAt(A, alvo, atCompute); if (qx && qx.desc < qd.d) A.descLib = qd.d; } }   // a regra do desconto (margem e trava de valor) é a mesma da tabela do cliente
+    const q2 = comAt(A, alvo, atCompute), cfg = comAt(A, alvo, atConfig), agora = nowIso(), quando = String(d.atualizadoEm || d.criadoEm || agora);
+    const pct = (x) => (x * 100).toFixed(1).replace(".", ",") + "%";
+    const msgDesc = dNovo != null ? " Condição especial: R$ " + Math.round(dNovo).toLocaleString("pt-BR") + " (era R$ " + Math.round(q00.desc).toLocaleString("pt-BR") + ")" + (q2 && q2.margem != null ? ", margem do negócio em " + pct(q2.margem) + " (era " + pct(mg00) + ")" : "") + "." : "";
+    if (!hist.length) hist.push({ id: "base", em: String(a.atualizadoEm || a.criadoEm || agora), t: "base", txt: "Configuração antes das atualizações do cliente", total: q00 ? Math.round(q00.total) : 0, desc: q00 ? Math.round(q00.desc) : 0, cfg: cfgAntes });
+    hist.push({ id: chave, em: quando, t: "cliente", txt: revTexto(d).slice(0, 220), total: q2 ? Math.round(q2.total) : 0, desc: q2 ? Math.round(q2.desc) : 0, cfg });
+    histTrim(hist);
+    const patch = Object.assign({ config: cfg, historico: hist, atualizadoEm: agora }, patchTotais(q2));
+    Object.assign(a, patch); atWrite(alvo, () => st.acol.doc(alvo).update(patch));
+    tiraDaFila();
+    if (aberto) { Object.assign(st.at, A); try { localStorage.setItem(AT_KEY, JSON.stringify(st.at)); } catch (e) {} renderAtend(); }
+    renderLeads(); renderAtHist(); if (typeof renderCRM === "function") renderCRM();
+    if (aberto && !opts.manual) toast("O cliente atualizou a configuração (" + histEm(quando) + "). A versão anterior está no histórico.", () => histRecuperar(hist.length - 2, true));
+    acessoAtualizar(aberto ? (t) => setText("at-cod-st", t) : () => {}, alvo, aberto ? null : A).catch(() => {});   // os preços do código acompanham a configuração nova
+    opts.saida = { msgDesc }; return true;
+  }
+  function revAuto() {   // chamada a cada dado novo: aplica sozinha as atualizações de cliente que estiverem na fila
+    const pend = []; st.ats.forEach((d, id) => { if (ehLead(d) && d.linkCfg && revCodigo(d) && revAlvo(revCodigo(d))) pend.push(id); });
+    if (!pend.length) { revTent = 0; return; }
+    pend.forEach((id) => {
+      const d = st.ats.get(id), k = id + "@" + String((d && (d.atualizadoEm || d.criadoEm)) || ""), al = st.ats.get(revAlvo(revCodigo(d))), jaNoHist = !!(al && Array.isArray(al.historico) && al.historico.some((h) => h && h.id === k)); if (revVistos.has(k) && !jaNoHist) return; revVistos.add(k);   // já aplicada e ainda na fila (outro painel): só limpa a fila
+      revFila = revFila.then(() => revProcessar(id, { auto: true })).then((r) => { if (r === "adiar") { revVistos.delete(k); if (revTent++ < 20) setTimeout(revAuto, 2500); } }).catch((e) => { console.error(e); });   // falha de verdade: fica na fila, com o botão Aplicar
+    });
+  }
+  async function revAplicar(idLead) {   // botão "Aplicar ao atendimento": só aparece se a aplicação sozinha não foi possível
     const d = st.ats.get(idLead), alvo = d ? revAlvo(revCodigo(d)) : ""; if (!d || !alvo || !st.canWrite) return false;
-    atOpen(alvo); const q00 = st.at ? atCompute() : null, mg00 = q00 && q00.desc > 0 && q00.margem != null ? q00.margem : null, mgn00 = mg00 != null ? (atPrice(Object.assign({}, st.at, { calcMgN: true, dsc: q00.desc })) || {}).mgn : null, mgT = mgn00 != null && isFinite(mgn00) ? mgn00 : mg00, dn00 = mgT != null ? (atPrice(Object.assign({}, st.at, { mg0: mgT })) || {}).d : null;   // margem do negócio antes de aplicar
-    if (!st.at || !aplicarLink(d.linkCfg, true)) { setText("at-cfg-msg", "Não foi possível aplicar: o link do cliente veio sem configuração."); return false; }
-    let msgDesc = ""; if (mg00 != null) { const qd = atPrice(Object.assign({}, st.at, { mg0: mgT, d0: q00.desc, s0: q00.S, dn0: dn00 })); if (qd) { st.at.desc = qd.d; let q2 = atCompute(); if (q2 && q2.desc < qd.d) { st.at.descLib = qd.d; q2 = atCompute(); } msgDesc = " Condição especial: R$ " + Math.round(qd.d).toLocaleString("pt-BR") + " (era R$ " + Math.round(q00.desc).toLocaleString("pt-BR") + ")" + (q2 && q2.margem != null ? ", margem do negócio em " + (q2.margem * 100).toFixed(1).replace(".", ",") + "% (era " + (mg00 * 100).toFixed(1).replace(".", ",") + "%)" : "") + "."; } }
-    atSave(); st.ats.delete(idLead); atWrite(idLead, () => st.acol.doc(idLead).delete());   // a atualização foi tratada: sai da fila
-    renderAtend(); renderLeads(); renderAtHist(); if (typeof renderCRM === "function") renderCRM(); location.hash = "#atendimento";
-    setText("at-cfg-msg", "Configuração do cliente aplicada." + msgDesc + " Confira o valor total; os preços do código estão sendo atualizados para o cliente ver o orçamento novo.");
-    acessoAtualizar((t) => setText("at-cod-st", t)).catch(() => {});
+    const o = { manual: true }, r = await revProcessar(idLead, o); if (r !== true) return false;
+    atOpen(alvo); location.hash = "#atendimento";
+    setText("at-cfg-msg", "Configuração do cliente aplicada." + ((o.saida && o.saida.msgDesc) || "") + " Confira o valor total; os preços do código estão sendo atualizados para o cliente ver o orçamento novo.");
     return true;
+  }
+  function histRecuperar(idx, direto) {   // volta o atendimento aberto para uma versão do histórico
+    const id = st.atId, a = id ? st.ats.get(id) : null, h = a && Array.isArray(a.historico) ? a.historico[idx] : null;
+    if (!h || !h.cfg || !st.canWrite || !st.acol) return;
+    if (!direto && !window.confirm("Voltar o atendimento para a versão de " + histEm(h.em) + "? A versão de agora fica guardada no histórico.")) return;
+    const agora = nowIso(), hist = a.historico.slice(), atual = atConfig(), q0 = atCompute(), ult = hist[hist.length - 1];
+    if (!ult || JSON.stringify(ult.cfg) !== JSON.stringify(atual)) hist.push({ id: "ant@" + agora, em: agora, t: "atendente", txt: "Versão do atendente antes de recuperar", total: q0 ? Math.round(q0.total) : 0, desc: q0 ? Math.round(q0.desc) : 0, cfg: atual });   // nada se perde
+    Object.assign(st.at, atDeDoc({ config: h.cfg })); try { localStorage.setItem(AT_KEY, JSON.stringify(st.at)); } catch (e) {}
+    const q1 = atCompute();
+    hist.push({ id: "rec@" + agora, em: agora, t: "rec", txt: "Versão de " + histEm(h.em) + " recuperada", total: q1 ? Math.round(q1.total) : 0, desc: q1 ? Math.round(q1.desc) : 0, cfg: JSON.parse(JSON.stringify(h.cfg)) });
+    histTrim(hist); renderAtend(); atPersistNow(id, { historico: hist });
+    acessoAtualizar((t) => setText("at-cod-st", t)).catch(() => {});
+  }
+  function histRender() {   // lista das versões, dentro do atendimento
+    const ref = $("at-rev"); if (!ref) return; let box = $("at-hcli"); if (!box) { box = el("div", "at-hcli"); box.id = "at-hcli"; ref.parentNode.insertBefore(box, ref.nextSibling); }
+    box.replaceChildren(); const at = st.atId ? st.ats.get(st.atId) : null, h = at && Array.isArray(at.historico) ? at.historico : []; box.hidden = !h.length; if (!h.length) return;
+    box.append(el("b", "", "Versões do atendimento"), el("span", "c-hint", " Toque em Recuperar para voltar a uma versão. A versão de agora fica guardada."));
+    const atual = JSON.stringify(atConfig()), nomes = { base: "Antes das atualizações", cliente: "Cliente atualizou", rec: "Versão recuperada", atendente: "Versão do atendente" }; let marcou = false;
+    for (let i = h.length - 1; i >= 0; i--) {   // da mais nova para a mais antiga
+      const x = h[i]; if (!x) continue; const eAtual = !marcou && JSON.stringify(x.cfg) === atual; if (eAtual) marcou = true;
+      const lin = el("div", "at-hcli-l"); lin.append(el("span", "at-hcli-d", histEm(x.em)), el("span", "", nomes[x.t] || "Versão"), el("span", "", money(x.total) + (x.desc > 0 ? ", desconto " + money(x.desc) : "")));
+      if (eAtual) lin.append(el("span", "c-hint", "(versão de agora)")); else { const b = el("button", "mv-bt", "Recuperar"); b.type = "button"; b.disabled = !st.canWrite; b.addEventListener("click", () => histRecuperar(i)); lin.append(b); }
+      if (x.txt) lin.append(el("span", "at-hcli-t", x.txt));
+      box.append(lin);
+    }
   }
   function revRender() {   // aviso dentro do atendimento do código
     const ref = $("at-cod-st"); if (!ref) return; let box = $("at-rev"); if (!box) { box = el("div", "c-hint"); box.id = "at-rev"; ref.parentNode.insertBefore(box, ref.nextSibling); }
@@ -4149,6 +4222,7 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
       ds.addEventListener("click", () => { if (window.confirm("Descartar a atualização enviada pelo cliente?")) { st.ats.delete(id); atWrite(id, () => st.acol.doc(id).delete()); renderLeads(); revRender(); if (typeof renderCRM === "function") renderCRM(); } });
       box.append(ap, " ", ds);
     });
+    histRender();
   }
   function renderLeads() {
     const leads = Array.from(st.ats.entries()).filter(([, d]) => ehLead(d)).sort((x, y) => String(y[1].atualizadoEm || "").localeCompare(String(x[1].atualizadoEm || "")));
@@ -4231,7 +4305,7 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
     st.atsLoaded = true;
     if (st.atId && !st.ats.has(st.atId) && !atPending.has(st.atId)) setAtId(null);
     if (!ctFilled && atCur()) ctFill(atCur().comprador);
-    renderAtHist(); atSyncTexto();
+    renderAtHist(); atSyncTexto(); revAuto();
   }
   // ---- pessoa jurídica: CNPJ (inclusive o alfanumérico, emitido desde julho de 2026) e consulta pública da razão social ----
   const cnpjLimpo = (v) => String(v || "").toUpperCase().replace(/[^0-9A-Z]/g, "").slice(0, 14);
@@ -5075,7 +5149,7 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
       let dl = null; try { dl = window.claude && window.claude.use ? await window.claude.use("downloads") : null; } catch (e) { dl = null; }
       if (!dl) { msg.textContent = "Não foi possível salvar o arquivo. Tente de novo."; return; }
       await dl.save({ filename: "Proposta Euro Sette - " + String(d.cliente).replace(/[^\p{L}\p{N} ]/gu, "").slice(0, 60) + ".pdf", data: blob });
-      msg.textContent = "Proposta " + d.numero + " salva." + (d.imgs.proa || d.imgs.popa ? "" : " Sem as imagens 3D: não foi possível gerá-las neste aparelho.") + " Modelo v107 (26/11), " + d.paginas + " páginas.";
+      msg.textContent = "Proposta " + d.numero + " salva." + (d.imgs.proa || d.imgs.popa ? "" : " Sem as imagens 3D: não foi possível gerá-las neste aparelho.") + " Modelo v108 (26/11), " + d.paginas + " páginas.";
       const id = st.atId, at = st.ats.get(id);
       if (id && at && st.acol && st.canWrite) {
         const patch = { ultimaProposta: { numero: d.numero, em: nowIso(), total: Math.round(q.total) }, atualizadoEm: nowIso() };
@@ -6885,42 +6959,43 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
     atSave(); renderAtend(); setText("at-cfg-msg", "Configuração do cliente aplicada. Confira o orçamento abaixo.");
   }
   // Aplica ao atendimento aberto a configuração de um link do configurador (cores, tubulões, motor e opcionais).
-  function aplicarLink(txt, subst) {
-    const i = String(txt || "").indexOf("#"); if (i < 0 || !st.at) return false;
+  function aplicarLinkEm(A, txt, subst) {
+    const i = String(txt || "").indexOf("#"); if (i < 0 || !A) return false;
     const h = new URLSearchParams(txt.slice(i + 1));
     if (subst) {   // atualização enviada pelo cliente: o que ele desmarcou sai também (só o que o configurador dele controla; o resto do atendimento fica como está)
       const kt0 = (h.get("kt") || "").split("."), o0 = (h.get("o") || "").split(".").filter(Boolean);
-      ["conforto", "lazer", "fundeio"].forEach((k) => { if (!kt0.includes(k) && st.at.kits && st.at.kits[k]) st.at.kits = Object.assign({}, st.at.kits, { [k]: false }); });
-      [["cp", /capota de proa/i], ["ca", /carreta/i]].forEach(([k, re]) => { if (o0.includes(k)) return; st.items.forEach((it, id) => { if (it.grupo !== "acessorios" || !re.test(it.item || "")) return; const kit = kitOf(it); if (kit && kitSepara(kit) && st.at.kitItens && st.at.kitItens[kit]) st.at.kitItens = Object.assign({}, st.at.kitItens, { [kit]: st.at.kitItens[kit].filter((x) => x !== id) }); }); });
-      if (!h.has("nb")) st.at.nb = "";
-      st.at.gps = false; st.at.gpsAuto = false;   // o GPS volta se o motor ou a lista do cliente o incluírem
+      ["conforto", "lazer", "fundeio"].forEach((k) => { if (!kt0.includes(k) && A.kits && A.kits[k]) A.kits = Object.assign({}, A.kits, { [k]: false }); });
+      [["cp", /capota de proa/i], ["ca", /carreta/i]].forEach(([k, re]) => { if (o0.includes(k)) return; st.items.forEach((it, id) => { if (it.grupo !== "acessorios" || !re.test(it.item || "")) return; const kit = kitOf(it); if (kit && kitSepara(kit) && A.kitItens && A.kitItens[kit]) A.kitItens = Object.assign({}, A.kitItens, { [kit]: A.kitItens[kit].filter((x) => x !== id) }); }); });
+      if (!h.has("nb")) A.nb = "";
+      A.gps = false; A.gpsAuto = false;   // o GPS volta se o motor ou a lista do cliente o incluírem
     }
-    if (h.get("e")) st.at.corEst = catEst(h.get("e"))[0];
-    if (h.get("p")) st.at.corPiso = catPiso(h.get("p"))[0];
-    st.at.corListra = catListra(st.at.corPiso, h.get("li") || st.at.corListra); if (h.get("k")) st.at.corCapota = catCap(h.get("k"))[0];
-    if (h.get("t")) st.at.hyp = h.get("t") === "hyp";
-    st.at.corTubo = tuboCor(st.at.hyp, h.get("c") || st.at.corTubo)[0];
+    if (h.get("e")) A.corEst = catEst(h.get("e"))[0];
+    if (h.get("p")) A.corPiso = catPiso(h.get("p"))[0];
+    A.corListra = catListra(A.corPiso, h.get("li") || A.corListra); if (h.get("k")) A.corCapota = catCap(h.get("k"))[0];
+    if (h.get("t")) A.hyp = h.get("t") === "hyp";
+    A.corTubo = tuboCor(A.hyp, h.get("c") || A.corTubo)[0];
     const marca = h.get("m"), ms = motors();
     if (marca) {
       const cat = ms.map(([id, it], ord) => ({ id, ord, marca: motorMarca(it.item), hp: motorHp(it.item), vv: !!it.incluiGps || /vessel/i.test(it.item || ""), dest: it.destaque ? 1 : 0 })), mk = marca === "yamaha" ? "Yamaha" : "Mercury", daMarca = cat.filter((m) => m.marca === mk);
-      if (daMarca.length) { const hps = [...new Set(daMarca.map((m) => m.hp))].sort((a, b) => a - b), hpL = +h.get("hp") || 0, hp = hps.includes(hpL) ? hpL : hps[0]; st.at.motor = motorEscolha(cat, daMarca[0], { marca: mk, hp, vv: h.get("vv") === "1" }); if (motorGps(st.at.motor)) { st.at.gps = true; st.at.gpsAuto = true; } }
+      if (daMarca.length) { const hps = [...new Set(daMarca.map((m) => m.hp))].sort((a, b) => a - b), hpL = +h.get("hp") || 0, hp = hps.includes(hpL) ? hpL : hps[0]; A.motor = motorEscolha(cat, daMarca[0], { marca: mk, hp, vv: h.get("vv") === "1" }); if (motorGps(A.motor)) { A.gps = true; A.gpsAuto = true; } }
     }
-    if (h.has("nb")) st.at.nb = nbLimpo(h.get("nb"));
-    const mi = h.get("mi"); if (mi && ms.some(([id]) => id === mi)) { st.at.motor = mi; if (motorGps(mi)) { st.at.gps = true; st.at.gpsAuto = true; } }   // link com preços: o motor exato que o cliente escolheu
-    (h.get("kt") || "").split(".").filter((k) => KIT_KEYS.includes(k) && k !== "basico").forEach((k) => { st.at.kits = Object.assign({}, st.at.kits, { [k]: true }); });   // kits completos escolhidos
+    if (h.has("nb")) A.nb = nbLimpo(h.get("nb"));
+    const mi = h.get("mi"); if (mi && ms.some(([id]) => id === mi)) { A.motor = mi; if (motorGps(mi)) { A.gps = true; A.gpsAuto = true; } }   // link com preços: o motor exato que o cliente escolheu
+    (h.get("kt") || "").split(".").filter((k) => KIT_KEYS.includes(k) && k !== "basico").forEach((k) => { A.kits = Object.assign({}, A.kits, { [k]: true }); });   // kits completos escolhidos
     const o = (h.get("o") || "").split(".").filter(Boolean);
     [["cp", /capota de proa/i], ["ch", /churrasqueira/i], ["gu", /guincho/i], ["ca", /carreta/i]].forEach(([k, re]) => {
       if (!o.includes(k)) return; let achado = null;
       st.items.forEach((it, id) => { if (!achado && it.grupo === "acessorios" && re.test(it.item || "")) achado = [id, kitOf(it)]; });
       if (!achado || achado[1] === "basico") return;
       const [id, kit] = achado;
-      if (st.at.kits && st.at.kits[kit]) return;
-      if (kitSepara(kit)) { const arr = new Set((st.at.kitItens && st.at.kitItens[kit]) || []); arr.add(id); st.at.kitItens = Object.assign({}, st.at.kitItens, { [kit]: [...arr] }); }
-      else st.at.kits = Object.assign({}, st.at.kits, { [kit]: true });
+      if (A.kits && A.kits[kit]) return;
+      if (kitSepara(kit)) { const arr = new Set((A.kitItens && A.kitItens[kit]) || []); arr.add(id); A.kitItens = Object.assign({}, A.kitItens, { [kit]: [...arr] }); }
+      else A.kits = Object.assign({}, A.kits, { [kit]: true });
     });
-    if (o.includes("gps")) st.at.gps = true;
+    if (o.includes("gps")) A.gps = true;
     return true;
   }
+  function aplicarLink(txt, subst) { return aplicarLinkEm(st.at, txt, subst); }
   // ---------- Orçamento com preços para o cliente ----------
   // O link leva uma tabela só com PREÇOS DE VENDA: nenhum custo e nenhuma margem. A tabela cobre todas as combinações de
   // motor, kits, capota de proa, carreta, Hypalon e GPS. O preço de cada combinação é a soma dos acréscimos mais um
@@ -6931,7 +7006,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
   async function orcPayload(opts) {
     opts = opts || {};
     const ms = motors(); if (!ms.length || !vScen() || !st.loadedI) return null;
-    const qa = atCompute(), mgReal = qa && qa.desc > 0 && qa.margem != null ? qa.margem : null, mgN = mgReal != null ? (atPrice(Object.assign({}, st.at, { calcMgN: true, dsc: qa.desc })) || {}).mgn : null, mg0 = mgN != null && isFinite(mgN) ? mgN : mgReal, d0 = qa ? qa.desc : 0, s0 = qa ? qa.S : 0, dn0 = mg0 != null ? (atPrice(Object.assign({}, st.at, { mg0 })) || {}).d : null;   // com condição especial: a margem do negócio vale para qualquer configuração que o cliente montar
+    const AT = opts.at || st.at, qa = atPrice(AT), mgReal = qa && qa.desc > 0 && qa.margem != null ? qa.margem : null, mgN = mgReal != null ? (atPrice(Object.assign({}, AT, { calcMgN: true, dsc: qa.desc })) || {}).mgn : null, mg0 = mgN != null && isFinite(mgN) ? mgN : mgReal, d0 = qa ? qa.desc : 0, s0 = qa ? qa.S : 0, dn0 = mg0 != null ? (atPrice(Object.assign({}, AT, { mg0 })) || {}).d : null;   // com condição especial: a margem do negócio vale para qualquer configuração que o cliente montar
     const ex = kitItensOrd("extras"), acha = (re) => { const x = ex.find(([, it]) => re.test(String(it.item || ""))); return x ? x[0] : null; };
     const idCap = acha(/capota de proa/i), idCar = acha(/carreta/i);
     const A = (mi, mk) => {
@@ -6961,7 +7036,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
       ["hyp", "Tubos em Hypalon", [], tlin[5], dt[5]], ["gps", "GPS", ["Navegação no console"], tlin[6], dt[6]]];
     atMemo = null;
     const q0 = atPrice(A(r0, 0)), dias = Math.max(1, Math.round(num(st.v.propValidade) || 15)), val = isoOk(opts.val) ? opts.val : new Date(Date.now() + dias * 86400000).toISOString().slice(0, 10);
-    const nome = String(((st.ats.get(st.atId) || {}).nome) || "").slice(0, 60);
+    const nome = String(opts.nome != null ? opts.nome : (((st.ats.get(st.atId) || {}).nome) || "")).slice(0, 60);
     const obj = { v: 1, n: nome, val, ip: Math.round(q0.ipi * 1000) / 10, u, s0: S0, ri: r0, m: ms.map(([id, it], i) => [id, String(it.item || ""), String(it.spec || ""), mlin[i], it.incluiGps ? 1 : 0, dm[i], it.destaque ? 1 : 0]), t, r: res };
     if (mg0 != null) { obj.d = 1; obj.cs = linha(q0, "casco"); }
     if (opts.retrato) obj.p = opts.retrato;   // retrato da proposta (textos prontos e dados do cliente) para o PDF atualizado no configurador   // d: preços já com a condição especial; cs: casco de tabela (a linha "Condição especial" é a diferença)
@@ -7002,15 +7077,15 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
     if (at && st.canWrite && st.acol) { const id = st.atId, patch = { propVal: val, propDe: "proposta", atualizadoEm: nowIso() }; Object.assign(at, patch); atWrite(id, () => st.acol.doc(id).update(patch)); }
     return { val, nova: true, dias };
   }
-  async function acessoAtualizar(dizer) {   // monta a tabela de preços de hoje (a mesma do link com preços) e guarda no atendimento, junto do código
-    const id = st.atId, at = id ? st.ats.get(id) : null;
+  async function acessoAtualizar(dizer, alvoId, Aext) {   // monta a tabela de preços de hoje (a mesma do link com preços) e guarda no atendimento, junto do código
+    const id = alvoId || st.atId, at = id ? st.ats.get(id) : null;
     if (!at) { dizer("Abra ou crie um atendimento primeiro."); return null; }
     if (!st.acol || !st.canWrite) { dizer("Sem permissão para salvar neste atendimento."); return null; }
     if (!/^[2-9A-HJKMNP-Z]{4}$/.test(String(at.codigo || ""))) { const patch = { codigo: codUnico(), atualizadoEm: nowIso() };   /* código ausente ou do formato antigo (8 caracteres): gera o de 4 */ Object.assign(at, patch); atWrite(id, () => st.acol.doc(id).update(patch)); }
     dizer("Montando o orçamento com os preços de hoje… leva alguns segundos.");
-    const p = await orcPayload({ val: validadeCodigo(at), retrato: at.propSnap, progresso: (i, n) => dizer("Montando o orçamento… " + Math.round(100 * i / n) + "%") });
+    const p = await orcPayload({ val: validadeCodigo(at), retrato: at.propSnap, at: Aext || null, nome: at.nome, progresso: (i, n) => dizer("Montando o orçamento… " + Math.round(100 * i / n) + "%") });
     if (!p) { dizer("Os dados ainda estão carregando. Tente de novo em instantes."); return null; }
-    const pr = orcParams(); pr.set("q", p.q); const orc = { hash: pr.toString(), val: p.obj.val, em: nowIso(), pdf: !!(at.propSnap && !at.propSnap.sk) }, patch2 = { orc, propVal: p.obj.val, propDe: at.propDe || "codigo", atualizadoEm: nowIso() };
+    const pr = Aext ? comAt(Aext, id, orcParams) : orcParams(); pr.set("q", p.q); const orc = { hash: pr.toString(), val: p.obj.val, em: nowIso(), pdf: !!(at.propSnap && !at.propSnap.sk) }, patch2 = { orc, propVal: p.obj.val, propDe: at.propDe || "codigo", atualizadoEm: nowIso() };
     Object.assign(at, patch2); atWrite(id, () => st.acol.doc(id).update(patch2)); acessoRender(); return at;
   }
   function acessoMensagem(at) {
