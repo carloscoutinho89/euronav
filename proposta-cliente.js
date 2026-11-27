@@ -335,7 +335,7 @@
     const ext = [3, 4].filter(bit); if (ext.length) { const av = []; let pe = 0; ext.forEach((j) => { (T[j][2] && T[j][2].length ? T[j][2] : [T[j][1]]).forEach((x) => av.push(x)); pe += T[j][3]; }); extra.push({ key: "extras", nome: "Extras (itens avulsos)", parcial: true, avulsos: av, preco: pe }); soma += pe; }
     const hyp = bit(5); if (hyp) { extra.push({ key: "hyp", nome: "Tubos em Hypalon", preco: T[5][3] }); soma += T[5][3]; }
     if (mI[4]) extra.push({ key: "gps", nome: "GPS, incluído no motor", preco: 0, incluso: true }); else if (bit(6)) { extra.push({ key: "gps", nome: "GPS", preco: T[6][3] }); soma += T[6][3]; }
-    const S = ctx.S, cond = O.d && O.cs ? S - (O.cs + soma) : 0, casco = cond < -0.5 ? O.cs : S - soma, Slista = casco + soma, desc = Math.max(0, Slista - S);
+    const S = ctx.S, D = O.dd ? (O.dd[ctx.mi * 128 + ctx.mk] || 0) * O.u : null, cond = D != null ? (D > 0.5 ? -D : 0) : (O.d && O.cs ? S - (O.cs + soma) : 0), casco = D != null ? S + D - soma : (cond < -0.5 ? O.cs : S - soma), Slista = casco + soma, desc = Math.max(0, Slista - S);
     const ipiV = S * O.ip / 100, total = S + ipiV;
     linhas.push({ key: "casco", nome: "Casco Euro Sette com kit básico", preco: casco }, { key: "motor", nome: mI[1], preco: mI[3] }); extra.forEach((l) => linhas.push(l));
     const q = { lines: linhas, mid: "motor", S: Slista, desc, base: S, ipi: O.ip / 100, ipiV, total };

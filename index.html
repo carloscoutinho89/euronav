@@ -400,7 +400,7 @@ details.c-group[open] > summary::after { content: "\2212"; }
 .tc-bt { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; appearance: none; border: 1px solid var(--line-strong); background: transparent; color: inherit; font: inherit; font-size: .86rem; padding: 8px 14px; border-radius: 999px; cursor: pointer; }
 .cfx-painel .tc-bt { margin-top: 14px; }
 .at-desc-lib { color: var(--muted); font-size: .78rem; flex-basis: 100%; }
-.at-sair { position: fixed; right: 12px; bottom: calc(env(safe-area-inset-bottom, 0px) + 12px); z-index: 20; font: inherit; font-size: .86rem; font-weight: 500; color: #FFFFFF; background: #1C1C1E; border: 1px solid #5B5E63; border-radius: 999px; padding: 10px 18px; box-shadow: 0 2px 10px rgba(0,0,0,.35); cursor: pointer; }
+.at-sair { position: fixed; right: 12px; bottom: calc(env(safe-area-inset-bottom, 0px) + 26px); z-index: 20; font: inherit; font-size: .86rem; font-weight: 500; color: #FFFFFF; background: #1C1C1E; border: 1px solid #5B5E63; border-radius: 999px; padding: 10px 18px; box-shadow: 0 2px 10px rgba(0,0,0,.35); cursor: pointer; }
 body.cliente { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 72px); }
 body.cliente .tabs, body.cliente .band .save-state, body.cliente .at-actions, body.cliente .at-semkit { display: none; }
 .ct { margin-top: 16px; }
@@ -894,7 +894,7 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
 .at-cod { font: 700 1.15rem/1.2 "Saira", ui-monospace, monospace; letter-spacing: .2em; padding: 4px 10px; border-radius: 6px; background: var(--soft, rgba(127, 127, 127, .12)); }
 </style>
 </head>
-<body>
+<body><style>#versao-painel{position:fixed;right:8px;bottom:calc(5px + env(safe-area-inset-bottom,0px));z-index:5;font:10px/1 system-ui,-apple-system,sans-serif;letter-spacing:.04em;color:rgba(150,155,165,.65);pointer-events:none;user-select:none}</style><div id="versao-painel" aria-hidden="true">v111</div>
 <header class="band">
   <div class="band-in">
     <svg class="logo" viewBox="169.87 251.16 502.02 92.63" role="img" aria-label="Euronav"><path class="w" d="M 185.03 327.74 L 229.56 327.74 C 232.53 327.74 234.85 327.06 236.49 325.70 C 237.94 324.19 238.76 322.36 238.96 320.21 L 240.79 300.62 L 190.23 300.62 C 186.73 300.62 183.42 301.40 180.30 302.97 C 176.35 304.96 174.01 307.65 173.27 311.04 L 170.86 336.83 C 172.16 340.80 176.08 342.79 182.61 342.79 L 238.66 342.71 L 239.22 335.89 L 190.15 335.89 C 186.78 335.58 184.93 334.45 184.59 332.52 Z M 194.44 306.81 L 227.98 306.81 L 227.08 316.53 C 226.94 318 226.35 319.30 225.30 320.45 C 224.19 321.18 222.37 321.55 219.87 321.55 L 185.61 321.55 L 186.42 312.92 C 186.60 311.04 187.52 309.53 189.19 308.38 C 190.70 307.33 192.45 306.81 194.44 306.81 Z M 300.33 300.62 L 296.98 336.60 L 263.74 336.60 C 261.70 336.60 260.05 336.10 258.78 335.11 C 257.32 333.96 256.69 332.42 256.87 330.48 L 259.66 300.62 L 245.55 300.62 L 242.62 331.97 C 242.66 335.42 244.62 338.19 248.50 340.28 C 251.64 341.95 254.93 342.79 258.38 342.79 L 310.58 342.79 L 314.52 300.62 Z M 358.94 300.62 L 319.28 300.62 L 315.34 342.79 L 329.68 342.79 L 333.05 306.81 L 353.58 306.81 C 355.62 306.81 357.30 307.31 358.62 308.30 C 360.07 309.45 360.71 310.99 360.53 312.92 L 360.13 317.24 L 374.40 317.24 L 374.95 311.28 C 374.86 307.83 372.84 305.08 368.90 303.05 C 365.76 301.43 362.44 300.62 358.94 300.62 Z M 433.07 300.62 L 380.71 300.62 L 377.78 331.97 C 377.82 335.42 379.78 338.19 383.66 340.28 C 386.80 341.95 390.09 342.79 393.54 342.79 L 445.74 342.79 L 448.69 311.28 C 448.59 307.83 446.65 305.08 442.87 303.05 C 439.83 301.43 436.57 300.62 433.07 300.62 Z M 431.98 336.60 L 398.90 336.60 C 396.86 336.60 395.21 336.10 393.94 335.11 C 392.48 333.96 391.84 332.42 392.02 330.48 L 394.24 306.81 L 427.63 306.81 C 429.66 306.81 431.26 307.31 432.42 308.30 C 433.78 309.45 434.37 310.99 434.19 312.92 Z M 506.80 300.62 L 454.44 300.62 L 450.50 342.79 L 465.08 342.79 L 468.44 306.81 L 501.36 306.81 C 503.40 306.81 505.11 307.33 506.50 308.38 C 507.89 309.42 508.50 310.94 508.31 312.92 L 505.52 342.79 L 519.87 342.79 L 522.81 311.28 C 522.71 307.83 520.70 305.08 516.76 303.05 C 513.62 301.43 510.30 300.62 506.80 300.62 Z M 580.37 300.62 L 528.56 300.62 L 527.98 306.81 L 574.93 306.81 C 576.97 306.81 578.71 307.36 580.15 308.46 C 581.59 309.55 582.22 311.07 582.04 313.00 L 581.82 315.35 L 537.92 315.35 C 531.29 315.35 527.48 317.78 526.50 322.64 L 525.35 334.95 C 526.07 340.17 530.26 342.79 537.95 342.79 L 593.28 342.79 L 596.21 311.44 C 596.11 308.04 594.12 305.30 590.24 303.21 C 587.01 301.48 583.72 300.62 580.37 300.62 Z M 545.42 335.81 C 542.16 335.50 540.35 334.37 540.01 332.44 L 540.67 325.39 C 540.84 323.56 541.63 322.41 543.03 321.94 C 543.79 321.68 545.39 321.55 547.85 321.55 L 581.24 321.55 L 579.91 335.81 Z M 656.61 300.62 L 653.25 336.60 L 634.67 336.60 L 614.06 321.55 L 616.01 300.62 L 601.98 300.62 L 600.03 321.55 L 629.47 342.79 L 666.94 342.79 L 670.88 300.62 Z M 656.61 300.62 "/><path class="a" d="M 487.59 252.16 L 471.12 274.21 L 454.65 296.25 L 483.80 287.72 L 487.59 282.64 L 491.38 287.72 L 520.53 296.25 L 504.06 274.21 Z M 487.59 252.16 "/></svg>
@@ -4106,6 +4106,7 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
     $("at-hist-btn").setAttribute("aria-expanded", "false");
     renderAtend(); renderAtBar();
     window.scrollTo({ top: 0, behavior: "smooth" });
+    setTimeout(() => acessoAuto(id), 1500);
   }
   function atCreate(nome, tel, obs, atendente, extra) {
     if (!st.acol || !st.canWrite) return;
@@ -4298,6 +4299,15 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
     const msg = !ok ? "Não foi possível falar com a planilha agora. Tente de novo em instantes." : rv.length ? "Chegou atualização de orçamento do código " + revCodigo(st.ats.get(rv[0])) + (rv.length > 1 ? " e mais " + (rv.length - 1) : "") + "." : ld.length ? "Chegou contato on-line novo." : mud.length ? "Chegaram " + mud.length + " alterações da equipe." : "Nada novo: já estava atualizado.";
     setText("at-sync-msg", msg); atSyncTexto(); b.disabled = false; b.textContent = "Atualizar"; setTimeout(() => { if ($("at-sync-msg").textContent === msg) setText("at-sync-msg", ""); }, 9000);
   }
+  // Código gerado antes da correção do desconto (sem a marca rg = 2): ao abrir o atendimento, o painel refaz a tabela sozinho. Só se a validade da proposta e do código
+  // ainda valem: aqui a validade nunca é renovada; código com prazo vencido (ou sem proposta) continua exigindo o botão Gerar / atualizar preços do código.
+  const regenVistos = new Set();
+  function acessoAuto(id) {
+    const a = id ? st.ats.get(id) : null; if (!a || !a.orc || !a.orc.hash || a.orc.rg === 2 || regenVistos.has(id)) return;
+    if (!st.canWrite || !st.acol || !st.loadedI || !vScen() || st.atId !== id) return;
+    if (!isoOk(a.propVal) || a.propVal < hojeIso() || !isoOk(a.orc.val) || a.orc.val < hojeIso()) return;
+    regenVistos.add(id); acessoAtualizar((t) => setText("at-cod-st", t)).catch(() => {});
+  }
   function snapAts(snap) {
     const seen = new Set();
     snap.docs.forEach((ds) => { if (!ds.exists) return; seen.add(ds.id); if (!atPending.has(ds.id)) st.ats.set(ds.id, Object.assign({}, ds.data())); });
@@ -4305,7 +4315,7 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
     st.atsLoaded = true;
     if (st.atId && !st.ats.has(st.atId) && !atPending.has(st.atId)) setAtId(null);
     if (!ctFilled && atCur()) ctFill(atCur().comprador);
-    renderAtHist(); atSyncTexto(); revAuto();
+    renderAtHist(); atSyncTexto(); revAuto(); if (st.atId) setTimeout(() => acessoAuto(st.atId), 1500);
   }
   // ---- pessoa jurídica: CNPJ (inclusive o alfanumérico, emitido desde julho de 2026) e consulta pública da razão social ----
   const cnpjLimpo = (v) => String(v || "").toUpperCase().replace(/[^0-9A-Z]/g, "").slice(0, 14);
@@ -5149,7 +5159,7 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
       let dl = null; try { dl = window.claude && window.claude.use ? await window.claude.use("downloads") : null; } catch (e) { dl = null; }
       if (!dl) { msg.textContent = "Não foi possível salvar o arquivo. Tente de novo."; return; }
       await dl.save({ filename: "Proposta Euro Sette - " + String(d.cliente).replace(/[^\p{L}\p{N} ]/gu, "").slice(0, 60) + ".pdf", data: blob });
-      msg.textContent = "Proposta " + d.numero + " salva." + (d.imgs.proa || d.imgs.popa ? "" : " Sem as imagens 3D: não foi possível gerá-las neste aparelho.") + " Modelo v108 (26/11), " + d.paginas + " páginas.";
+      msg.textContent = "Proposta " + d.numero + " salva." + (d.imgs.proa || d.imgs.popa ? "" : " Sem as imagens 3D: não foi possível gerá-las neste aparelho.") + " Modelo v111 (26/11), " + d.paginas + " páginas.";
       const id = st.atId, at = st.ats.get(id);
       if (id && at && st.acol && st.canWrite) {
         const patch = { ultimaProposta: { numero: d.numero, em: nowIso(), total: Math.round(q.total) }, atualizadoEm: nowIso() };
@@ -7014,11 +7024,11 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
       const ids = []; if (((mk >> 3) & 1) && idCap) ids.push(idCap); if (((mk >> 4) & 1) && idCar) ids.push(idCar);
       return { motor: ms[mi][0], kits, kitItens: ids.length ? { extras: ids } : {}, hyp: !!((mk >> 5) & 1), gps: !!((mk >> 6) & 1), desc: 0, soS: true, mg0, d0, s0, dn0 };
     };
-    const M = ms.length, N = 1 << ORC_N, tab = new Array(M * N);
+    const M = ms.length, N = 1 << ORC_N, tab = new Array(M * N), dtab = new Array(M * N);
     atMemo = { sc: vScen(), r: compute(vScen()) };
     try {
     for (let i = 0; i < M; i++) {
-      for (let mk = 0; mk < N; mk++) { const q = atPrice(A(i, mk)); if (!q) return null; tab[i * N + mk] = Math.round(q.S); }
+      for (let mk = 0; mk < N; mk++) { const q = atPrice(A(i, mk)); if (!q) return null; tab[i * N + mk] = Math.round(q.S); dtab[i * N + mk] = Math.round(q.d || 0); }
       if (opts.progresso) opts.progresso(i + 1, M);
       if (!opts.rapido && i % 6 === 5) await new Promise((ok) => setTimeout(ok, 0));   // respira de vez em quando para a tela não travar
     }
@@ -7038,7 +7048,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
     const q0 = atPrice(A(r0, 0)), dias = Math.max(1, Math.round(num(st.v.propValidade) || 15)), val = isoOk(opts.val) ? opts.val : new Date(Date.now() + dias * 86400000).toISOString().slice(0, 10);
     const nome = String(opts.nome != null ? opts.nome : (((st.ats.get(st.atId) || {}).nome) || "")).slice(0, 60);
     const obj = { v: 1, n: nome, val, ip: Math.round(q0.ipi * 1000) / 10, u, s0: S0, ri: r0, m: ms.map(([id, it], i) => [id, String(it.item || ""), String(it.spec || ""), mlin[i], it.incluiGps ? 1 : 0, dm[i], it.destaque ? 1 : 0]), t, r: res };
-    if (mg0 != null) { obj.d = 1; obj.cs = linha(q0, "casco"); }
+    if (mg0 != null) { obj.d = 1; obj.cs = linha(q0, "casco"); obj.dd = dtab.map((x) => Math.round(x / u)); }   // dd: o desconto exato de cada combinação; a tela do cliente mostra esse valor em vez de deduzi-lo por subtração
     if (opts.retrato) obj.p = opts.retrato;   // retrato da proposta (textos prontos e dados do cliente) para o PDF atualizado no configurador   // d: preços já com a condição especial; cs: casco de tabela (a linha "Condição especial" é a diferença)
     const json = JSON.stringify(obj), z = await deflateRaw(json), out = { obj, q: b64url(z), bytes: z.length, json: json.length };
     if (opts.amostras) { out.amostras = []; for (let k = 0; k < opts.amostras; k++) { const i = Math.floor(Math.random() * M), mk = Math.floor(Math.random() * N); out.amostras.push({ i, mk, S: tab[i * N + mk] }); } }
@@ -7063,7 +7073,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
     const at = st.atId ? st.ats.get(st.atId) : null, e = $("at-cod"); if (!e) return;
     e.textContent = at && at.codigo ? at.codigo : "------";
     const dv = (d) => String(d || "").split("-").reverse().join("/");
-    setText("at-cod-st", !at ? "Abra um atendimento para gerar o código." : !at.codigo ? "Este atendimento ainda não tem código. Toque em \"Gerar / atualizar preços do código\"." : at.orc && at.orc.hash ? "Código ativo. O cliente vê os valores guardados em " + dataBR(at.orc.em) + ", válidos até " + dv(at.orc.val) + ". Mudou algo no atendimento? Toque em \"Gerar / atualizar preços do código\"." + (at.orc.pdf === true ? " O cliente poderá baixar a proposta atualizada em PDF depois de enviar a atualização." : at.propSnap && at.propSnap.sk ? " Atendimento marcado sem kit: o cliente não recebe o PDF automático." : " Este código ainda não libera o PDF atualizado para o cliente: gere a proposta em PDF de novo (a validade original é mantida) e o código se atualiza sozinho.") : "Código criado, mas os preços ainda não foram guardados. Toque em \"Gerar / atualizar preços do código\"."); revRender();
+    setText("at-cod-st", !at ? "Abra um atendimento para gerar o código." : !at.codigo ? "Este atendimento ainda não tem código. Toque em \"Gerar / atualizar preços do código\"." : at.orc && at.orc.hash ? "Código ativo. O cliente vê os valores guardados em " + dataBR(at.orc.em) + ", válidos até " + dv(at.orc.val) + ". Mudou algo no atendimento? Toque em \"Gerar / atualizar preços do código\"." + (at.orc.pdf === true ? " O cliente poderá baixar a proposta atualizada em PDF depois de enviar a atualização." : at.propSnap && at.propSnap.sk ? " Atendimento marcado sem kit: o cliente não recebe o PDF automático." : " Este código ainda não libera o PDF atualizado para o cliente: gere a proposta em PDF de novo (a validade original é mantida) e o código se atualiza sozinho.") + (at.orc.rg === 2 ? "" : " Estes preços foram gerados antes da correção do desconto mostrado ao cliente: toque em Gerar / atualizar preços do código.") : "Código criado, mas os preços ainda não foram guardados. Toque em \"Gerar / atualizar preços do código\"."); revRender();
   }
   const hojeIso = () => { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
   const isoOk = (v) => /^\d{4}-\d{2}-\d{2}$/.test(String(v || ""));
@@ -7085,7 +7095,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
     dizer("Montando o orçamento com os preços de hoje… leva alguns segundos.");
     const p = await orcPayload({ val: validadeCodigo(at), retrato: at.propSnap, at: Aext || null, nome: at.nome, progresso: (i, n) => dizer("Montando o orçamento… " + Math.round(100 * i / n) + "%") });
     if (!p) { dizer("Os dados ainda estão carregando. Tente de novo em instantes."); return null; }
-    const pr = Aext ? comAt(Aext, id, orcParams) : orcParams(); pr.set("q", p.q); const orc = { hash: pr.toString(), val: p.obj.val, em: nowIso(), pdf: !!(at.propSnap && !at.propSnap.sk) }, patch2 = { orc, propVal: p.obj.val, propDe: at.propDe || "codigo", atualizadoEm: nowIso() };
+    const pr = Aext ? comAt(Aext, id, orcParams) : orcParams(); pr.set("q", p.q); const orc = { hash: pr.toString(), val: p.obj.val, em: nowIso(), pdf: !!(at.propSnap && !at.propSnap.sk), rg: 2 }, patch2 = { orc, propVal: p.obj.val, propDe: at.propDe || "codigo", atualizadoEm: nowIso() };
     Object.assign(at, patch2); atWrite(id, () => st.acol.doc(id).update(patch2)); acessoRender(); return at;
   }
   function acessoMensagem(at) {
