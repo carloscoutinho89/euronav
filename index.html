@@ -3685,7 +3685,9 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
       let preco = S; if (mgOf(S) > A.mg0) { let lo = custo * 0.5, hi = S; for (let i = 0; i < 50; i++) { const md = (lo + hi) / 2; if (mgOf(md) >= A.mg0) hi = md; else lo = md; } preco = Math.min(S, Math.ceil(hi / 100) * 100); }
       const dn = S - preco; let d = dn;   // dn: o desconto que só a margem justifica, nesta configuração
       if (A.d0 > 0 && A.dn0 != null) {   // parte do desconto que o cliente já tinha e anda junto com o que mudou na margem dos itens com custo na composição
-        d = A.d0 + (dn - A.dn0); if (S >= A.s0 - 0.5) d = Math.max(d, A.d0);   // quem aumenta a configuração nunca perde o desconto que já tinha (a margem pode cair)
+        d = A.d0 + (dn - A.dn0);
+        if (S >= A.s0 - 0.5) d = Math.max(d, A.d0);   // quem aumenta a configuração nunca perde o desconto que já tinha (a margem pode cair)
+        else d = Math.min(d, A.d0);   // quem diminui o valor do barco (motor menor, menos itens) nunca ganha desconto em reais, mesmo que a margem do negócio suba; o desconto só pode ficar igual ou cair
         d = Math.max(0, Math.min(d, S)); preco = Math.max(0, Math.floor((S - d) / 100) * 100);
       }
       return { S: preco, Slista: S, d: S - preco, dn, lines, ipi, mid };
@@ -5073,7 +5075,7 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
       let dl = null; try { dl = window.claude && window.claude.use ? await window.claude.use("downloads") : null; } catch (e) { dl = null; }
       if (!dl) { msg.textContent = "Não foi possível salvar o arquivo. Tente de novo."; return; }
       await dl.save({ filename: "Proposta Euro Sette - " + String(d.cliente).replace(/[^\p{L}\p{N} ]/gu, "").slice(0, 60) + ".pdf", data: blob });
-      msg.textContent = "Proposta " + d.numero + " salva." + (d.imgs.proa || d.imgs.popa ? "" : " Sem as imagens 3D: não foi possível gerá-las neste aparelho.") + " Modelo v106 (26/11), " + d.paginas + " páginas.";
+      msg.textContent = "Proposta " + d.numero + " salva." + (d.imgs.proa || d.imgs.popa ? "" : " Sem as imagens 3D: não foi possível gerá-las neste aparelho.") + " Modelo v107 (26/11), " + d.paginas + " páginas.";
       const id = st.atId, at = st.ats.get(id);
       if (id && at && st.acol && st.canWrite) {
         const patch = { ultimaProposta: { numero: d.numero, em: nowIso(), total: Math.round(q.total) }, atualizadoEm: nowIso() };
