@@ -5073,7 +5073,7 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
       let dl = null; try { dl = window.claude && window.claude.use ? await window.claude.use("downloads") : null; } catch (e) { dl = null; }
       if (!dl) { msg.textContent = "Não foi possível salvar o arquivo. Tente de novo."; return; }
       await dl.save({ filename: "Proposta Euro Sette - " + String(d.cliente).replace(/[^\p{L}\p{N} ]/gu, "").slice(0, 60) + ".pdf", data: blob });
-      msg.textContent = "Proposta " + d.numero + " salva." + (d.imgs.proa || d.imgs.popa ? "" : " Sem as imagens 3D: não foi possível gerá-las neste aparelho.") + " Modelo v105 (26/11), " + d.paginas + " páginas.";
+      msg.textContent = "Proposta " + d.numero + " salva." + (d.imgs.proa || d.imgs.popa ? "" : " Sem as imagens 3D: não foi possível gerá-las neste aparelho.") + " Modelo v106 (26/11), " + d.paginas + " páginas.";
       const id = st.atId, at = st.ats.get(id);
       if (id && at && st.acol && st.canWrite) {
         const patch = { ultimaProposta: { numero: d.numero, em: nowIso(), total: Math.round(q.total) }, atualizadoEm: nowIso() };
@@ -5154,12 +5154,16 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
 
     // capa
     bandaFoto(doc, W, 58); fill(BLUE); doc.rect(0, 58, W, 1.8, "F");
-    if (logo) doc.addImage(logo, "PNG", M, 13, lwOf(9), 9, "eurologo"); else { font(true, 18); color(WHITE); doc.text("EURONAV", M, 20); }
-    window.esPdfTxt(doc, [null], M, 37.5, 18, "branco");
-    font(false, 10.5); color(PALE); doc.text((comFotos ? "Ficha técnica com fotos" : "Ficha técnica") + "  |  Bote semirrígido de 7,75 m", M, 48.5);
-    const qx = W - M - 78;
-    font(true, 9); doc.setTextColor(163, 182, 226); doc.text("Quem faz a Euronav", qx, 15.5);
-    font(false, 7.7); color(PALE); doc.text(doc.splitTextToSize(SOBRE_EURONAV, 78), qx, 21, { lineHeightFactor: 1.32 });
+    // capa: só a logo Euro Sette em cima à esquerda (mesmas medidas da capa da proposta); a logo Euronav vai para o canto direito, acima do texto "Quem faz a Euronav".
+    // O texto desce e a última linha dele fica na mesma linha do subtítulo; o corpo encolhe um pouco, se preciso, para nunca passar de 6 linhas e a logo não ficar apertada.
+    const rx = W - M, qw = 76, qx = rx - qw, lhEN = 6.6, ult = 48.5, MAXL = 6;
+    window.esPdfTxt(doc, [null], M, 32.5, 18, "branco");
+    font(false, 10.5); color(PALE); doc.text((comFotos ? "Ficha técnica com fotos" : "Ficha técnica") + "  |  Bote semirrígido de 7,75 m", M, ult);
+    let fsQ = 7.7, sobre = []; for (; fsQ >= 6.9; fsQ -= 0.1) { font(false, fsQ); sobre = doc.splitTextToSize(SOBRE_EURONAV, qw); if (sobre.length <= MAXL) break; }
+    const lhQ = fsQ * 0.352778 * 1.32, ySob = ult - (sobre.length - 1) * lhQ;
+    if (logo) doc.addImage(logo, "PNG", rx - lwOf(lhEN), 11, lwOf(lhEN), lhEN, "eurologo"); else { font(true, 11); color(WHITE); doc.text("EURONAV", rx, 17, { align: "right" }); }
+    font(true, 9); doc.setTextColor(163, 182, 226); doc.text("Quem faz a Euronav", qx, ySob - 5.4);
+    font(false, fsQ); color(PALE); doc.text(sobre, qx, ySob, { lineHeightFactor: 1.32 });
     y = 67;
 
     const specs = FAIXA;
