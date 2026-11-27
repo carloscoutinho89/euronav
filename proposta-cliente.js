@@ -6,6 +6,7 @@
   // ---------- trechos copiados do painel, sem alteração ----------
   const ACESSO_OFICIAL = "https://euronav.com.br";
   const ENDERECO = "Rua Dr. George William Butler, 569, Galpão 35, Curado, Recife/PE";
+  const IG_PNG = "data:image/png;base64,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";   // logo colorido do Instagram, em miniatura, para o rodapé da proposta
   const SOBRE_EURONAV = "A Euronav une mais de 15 anos de experiência da Eurocontainers Brasil em processos industriais e materiais à tecnologia de compósitos da Extreme Wind, uma das três maiores empresas de reparo de pás eólicas do Brasil. O projeto arquitetônico e os estudos hidrodinâmicos são da engenharia naval da Euronav com a Ferragni Progetti, renomado escritório italiano de design naval.";
   const FAIXA = [["7,75 m", "Comprimento"], ["3,05 m", "Boca"], ["11 pessoas", "A bordo"], ["1.438 kg", "Carga útil"], ["200 L", "Combustível"], ["150 a 225 hp", "Motorização"]];
   const DESTAQUES = [
@@ -64,7 +65,11 @@
     }
   function buildProposta(q, d, logo, nivel) {
       nivel = nivel || 0;   // níveis de ajuste para a proposta caber em 3 páginas: [quebra fixa antes de Condições, quebra fixa antes de "O que vem", altura da foto grande, das fotos pequenas, escala das imagens 3D, mostra "Por que"]
-      const NV = [[1, 1, 74.3, 26, 20, 1, 1, 0], [1, 1, 74.3, 26, 20, 1, 1, 1], [1, 1, 74.3, 26, 20, 1, 1, 2], [1, 0, 74.3, 26, 20, 1, 1, 2], [0, 0, 74.3, 24, 18, 1, 1, 2], [0, 0, 74.3, 22, 0, 1, 1, 2], [0, 0, 74.3, 0, 0, 0.85, 1, 2], [0, 0, 74.3, 0, 0, 0.85, 0, 2]][Math.min(nivel, 7)], CP = NV[7];   // NV: [quebra antes das imagens 3D, quebra antes de "O que vem", altura de cada imagem 3D (mostra o barco inteiro), das 3 fotos da fileira 1, das 3 da fileira 2, escala das imagens 3D, mostra "Por que", compactação das páginas 1 e 3]
+      const NV = [[1, 1, 74.3, 26, 20, 1, 1, 0], [1, 1, 74.3, 26, 20, 1, 1, 1], [1, 1, 74.3, 26, 20, 1, 1, 2], [1, 0, 74.3, 26, 20, 1, 1, 2],
+        [1, 1, 74.3, 26, 20, 1, 1, 3], [1, 0, 74.3, 26, 20, 1, 1, 3],   // espaçamento mais justo (3), ainda com o "Por que" e as fotos inteiras
+        [1, 1, 74.3, 26, 20, 1, 0, 2], [1, 0, 74.3, 26, 20, 1, 0, 2],   // sem o quadro "Por que", mas com as fotos inteiras: as fotos só encolhem depois disso
+        [0, 0, 74.3, 24, 18, 1, 1, 2], [0, 0, 74.3, 24, 18, 1, 0, 2], [0, 0, 74.3, 22, 0, 1, 1, 2], [0, 0, 74.3, 22, 0, 1, 0, 2],
+        [0, 0, 74.3, 0, 0, 0.85, 1, 2], [0, 0, 74.3, 0, 0, 0.85, 0, 2]][Math.min(nivel, 13)], CP = NV[7];   // NV: [quebra antes das imagens 3D, quebra antes de "O que vem", altura de cada imagem 3D (mostra o barco inteiro), das 3 fotos da fileira 1, das 3 da fileira 2, escala das imagens 3D, mostra "Por que", compactação das páginas 1 e 3]
       const doc = new window.jspdf.jsPDF({ unit: "mm", format: "a4" });
       const W = 210, H = 297, M = 18, CW = W - 2 * M;
       const BLUE = [59, 89, 153], INK = [17, 18, 20], MUT = [95, 99, 107], LINE = [218, 220, 224], SOFT = [242, 243, 245], PALE = [188, 190, 192], WHITE = [255, 255, 255];
@@ -82,7 +87,7 @@
         y = 26;
       };
       const need = (h) => { if (y + h > H - 18) { doc.addPage(); smallBand(); } };   // limite de baixo: um pouco mais perto do rodapé
-      const GAP = CP > 1 ? 10 : 12;   // espaçamento único entre seções, igual em todas as páginas
+      const GAP = CP > 2 ? 8.5 : CP > 1 ? 10 : 12;   // espaçamento único entre seções, igual em todas as páginas
       const head = (t, keep) => { need(GAP + 14 + (keep || 0)); if (y > 30) y += GAP; font(true, 13); color(INK); window.esPdfTxt(doc, t.split("{ES}").flatMap((p, i, a) => (i < a.length - 1 ? [p, null] : [p])), M, y, 5.2, "preto"); const lg = t.indexOf("{ES}") >= 0; fill(BLUE); doc.rect(M, y + (lg ? 3.8 : 2.4), 16, 1, "F"); y += lg ? 10.9 : 9.5; };
   
       // ---- capa: logo Euro Sette em cima à esquerda; a logo Euronav fica à direita, abaixo da validade ----
@@ -217,7 +222,7 @@
       if (q.lines.some((l) => l.key === "hyp")) opc.push("Tubos em Hypalon Orca no lugar do PVC Sansuy");
       if (q.lines.some((l) => l.key === "gps")) opc.push("GPS instalado no console");
       if (opc.length) grupos.push(["Opcionais", opc]);
-      const NC = 3, colW = CW / NC, IL = CP ? 3.55 : 3.9;
+      const NC = 3, colW = CW / NC, IL = CP > 2 ? 3.35 : CP ? 3.55 : 3.9;
       const blocos = grupos.filter(([, its]) => its.length).map(([t, its]) => {
         const per = Math.ceil(its.length / NC), rows = [];
         font(false, 8.6);
@@ -231,7 +236,7 @@
       head("O que vem no seu {ES}", bh0);
       blocos.forEach(({ t, rows }) => {
         need(7 + rows.slice(0, 2).reduce((s, r) => s + r.h, 0));
-        font(true, 10.5); color(BLUE); doc.text(t, M, y); y += 5.6;
+        font(true, 10.5); color(BLUE); doc.text(t, M, y); y += CP > 2 ? 5 : 5.6;
         rows.forEach((r) => {
           need(r.h);
           r.cells.forEach((cl, j) => {
@@ -242,24 +247,24 @@
           });
           y += r.h;
         });
-        y += CP ? 3.2 : 4.5;
+        y += CP > 2 ? 2.4 : CP ? 3.2 : 4.5;
       });
   
-      y -= (CP ? 3.2 : 4.5) - 2;
+      y -= (CP > 2 ? 2.4 : CP ? 3.2 : 4.5) - 2;
       // ---- por que o Euro Sette (quadros compactos; sai só no último nível de compactação) ----
       if (NV[6]) {
       const why = DESTAQUES;
       const ww = (CW - 8) / 3;
       font(false, CP ? 7.4 : 7.9); const wl = why.map(([, b]) => doc.splitTextToSize(b, ww - 8));
-      const wh = (CP ? 10 : 12) + Math.max.apply(null, wl.map((x) => x.length)) * (CP ? 3.15 : 3.4);
+      const wh = (CP > 2 ? 9.2 : CP ? 10 : 12) + Math.max.apply(null, wl.map((x) => x.length)) * (CP > 2 ? 3.0 : CP ? 3.15 : 3.4);
       head("Por que o {ES}", wh * 2 + 6);
       for (let r = 0; r < 2; r++) {
         need(wh + 3);
         for (let c = 0; c < 3; c++) {
           const i = r * 3 + c, x = M + c * (ww + 4);
           fill(SOFT); doc.rect(x, y, ww, wh, "F"); fill(BLUE); doc.rect(x, y, ww, 1.2, "F");
-          font(true, CP ? 8.6 : 9.2); color(INK); doc.text(why[i][0], x + 4, y + (CP ? 6.4 : 7));
-          font(false, CP ? 7.4 : 7.9); color(MUT); doc.text(wl[i], x + 4, y + (CP ? 10.4 : 11.4), { lineHeightFactor: 1.22 });
+          font(true, CP ? 8.6 : 9.2); color(INK); doc.text(why[i][0], x + 4, y + (CP > 2 ? 5.9 : CP ? 6.4 : 7));
+          font(false, CP ? 7.4 : 7.9); color(MUT); doc.text(wl[i], x + 4, y + (CP > 2 ? 9.5 : CP ? 10.4 : 11.4), { lineHeightFactor: 1.22 });
         }
         y += wh + 3;
       }
@@ -269,17 +274,11 @@
       const nd = !!(q && q.desc > 0), rh = d.codigo ? (CP ? 12 : 13.5) + (nd ? 3 : 0) : 0;   // linha do código de acesso dentro do quadro preto
       // ---- quem faz e contato (quadro preto compacto) ----
       font(false, CP ? 7.4 : 7.9); const sob = doc.splitTextToSize(SOBRE_EURONAV, CW - 16);
-      const cpp = contatoPartes();
-      const ch = (CP ? 16.5 : 18.5) + sob.length * (CP ? 3.3 : 3.5) + (cpp.length ? 5 : 0) + rh;
-      need(ch + 18); if (y > 30) y += 7.4;
+      const ch = (CP ? 12.4 : 13.6) + sob.length * (CP ? 3.3 : 3.5) + rh;   // atendente, contatos e endereço foram para o rodapé: o quadro preto fica só com "Quem faz" e o código de acesso
+      const gapQ = CP > 2 ? 5.4 : 7.4; need(ch + gapQ + 6); if (y > 30) y += gapQ;   // o quadro preto pode chegar mais perto do rodapé (a folga era de 18 mm)
       fill([0, 0, 0]); doc.rect(M, y, CW, ch, "F"); fill(BLUE); doc.rect(M, y, 2.4, ch, "F");
       font(true, 10); color(WHITE); doc.text("Quem faz a Euronav", M + 8, y + (CP ? 6.4 : 7));
       font(false, CP ? 7.4 : 7.9); color(PALE); doc.text(sob, M + 8, y + (CP ? 11 : 12), { lineHeightFactor: 1.25 });
-      const cy = y + (CP ? 11 : 12) + sob.length * (CP ? 3.3 : 3.5) + 2.2;
-      stroke([60, 60, 60], 0.2); doc.line(M + 8, cy - 2.4, W - M - 8, cy - 2.4);
-      font(true, 8.4); color(WHITE); doc.text(d.rep ? "Atendente: " + d.rep : "Estaleiro Euronav LTDA.", M + 8, cy + 1.6);
-      font(false, 8); color(PALE); doc.text(ENDERECO, W - M - 8, cy + 1.6, { align: "right" });
-      if (cpp.length) { font(true, 8); color(WHITE); doc.text(cpp.join("   |   "), M + 8, cy + 6.4); }
       if (d.codigo) {   // código de acesso ao orçamento, com botão clicável no PDF
         const ry = y + ch - rh, url = ACESSO_OFICIAL + "/?c=" + d.codigo, bw = 62, bx = W - M - 8 - bw;
         stroke([60, 60, 60], 0.2); doc.line(M + 8, ry + 0.4, W - M - 8, ry + 0.4);
@@ -292,11 +291,21 @@
   
       // ---- rodapé ----
       const n = doc.getNumberOfPages();
+      // segunda linha do rodapé, discreta: atendente, Instagram (com o logo colorido), WhatsApp e endereço, que antes ficavam no quadro preto; a faixa do rodapé não cresce
+      const rodape2 = [d.rep ? "Atendente: " + d.rep : ""].concat(contatoPartes(), [ENDERECO]).filter(Boolean), sepR = "   |   ";
+      const medirR = (f) => { font(false, f); let w = doc.getTextWidth(sepR) * (rodape2.length - 1); rodape2.forEach((t) => { w += t.indexOf("Instagram ") === 0 ? f * 0.3528 * 1.25 + 0.9 + doc.getTextWidth(t.slice(10)) : doc.getTextWidth(t); }); return w; };
       for (let i = 1; i <= n; i++) {
         doc.setPage(i); stroke(LINE, 0.2); doc.line(M, H - 14, W - M, H - 14);
         font(false, 7.2); color(MUT);
-        doc.text("Estaleiro Euronav LTDA.  |  CNPJ 65.014.928/0001-70  |  Recife/PE", M, H - 9.5);
-        doc.text("Página " + i + " de " + n, W - M, H - 9.5, { align: "right" });
+        doc.text("Estaleiro Euronav LTDA.  |  CNPJ 65.014.928/0001-70  |  Recife/PE", M, H - 10.8);
+        doc.text("Página " + i + " de " + n, W - M, H - 10.8, { align: "right" });
+        let fsR = 6.4; while (fsR > 5.4 && medirR(fsR) > CW) fsR -= 0.2;
+        font(false, fsR); color(MUT); let xR = M; const yR = H - 7.3;
+        rodape2.forEach((t, k) => {
+          if (k) { doc.text(sepR, xR, yR); xR += doc.getTextWidth(sepR); }
+          if (t.indexOf("Instagram ") === 0) { const ig = fsR * 0.3528 * 1.25; doc.addImage(IG_PNG, "PNG", xR, yR - ig * 0.82, ig, ig, "iglogo"); xR += ig + 0.9; t = t.slice(10); }
+          doc.text(t, xR, yR); xR += doc.getTextWidth(t);
+        });
       }
       d.paginas = n;
       return doc.output("blob");
@@ -341,7 +350,7 @@
     const q = { lines: linhas, mid: "motor", S: Slista, desc, base: S, ipi: O.ip / 100, ipiV, total };
     const dd = (iso) => new Date(iso + "T12:00:00");
     const d = { cliente: RET.cl, cnpj: RET.cn, contato: RET.co, hoje: dd(RET.em), validade: 0, val: dd(O.val), numero: RET.n + " (atualizada)", entrega: RET.ent, pagamento: pagamentoTxt(total, RET.pl || {}), rep: RET.rep, codigo: ctx.cod || "", imgs: ctx.imgs || {}, imgR: ctx.imgR, fotosV: ctx.fotosV || {}, hyp };
-    let blob; try { for (let nv = 0; nv <= 7; nv++) { blob = buildProposta(q, d, ctx.logo, nv); if (d.paginas <= 3) break; } } finally { delete FOTO_OVR.w_lounge; }
+    let blob; try { for (let nv = 0; nv <= 13; nv++) { blob = buildProposta(q, d, ctx.logo, nv); if (d.paginas <= 3) break; } } finally { delete FOTO_OVR.w_lounge; }
     return { blob, paginas: d.paginas, numero: d.numero, cliente: d.cliente, total, q, d };
   }
   window.PROP_CLIENTE = { gerar, lounge: { src: ASSETS.recortes.w_lounge.src, mask: ASSETS.mascaras.w_lounge } };

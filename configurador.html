@@ -1777,7 +1777,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
     try {
       dizer("Preparando o gerador de PDF…");
       await carregaScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js", () => window.jspdf && window.jspdf.jsPDF);
-      await carregaScript(new URL("proposta-cliente.js?v=2", location.href).href, () => window.PROP_CLIENTE);
+      await carregaScript(new URL("proposta-cliente.js?v=5", location.href).href, () => window.PROP_CLIENTE);
       const PC = window.PROP_CLIENTE, imgs = {}; let imgR = 0;
       for (const k of ["proa", "popa"]) {   // as mesmas imagens 3D, sem legenda gravada, da proposta do atendente
         try {
@@ -2124,7 +2124,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
 /* marcador de versão e diagnóstico: só aparece quando o endereço tem ?v=NN (o mesmo que a equipe usa para furar o cache); o cliente não vê */
 (function () { try {
   if (!/[?&]v=/.test(location.search)) return;
-  var e = document.createElement("div"); e.id = "versao-cfg"; e.textContent = "Configurador v108 · 26/11";
+  var e = document.createElement("div"); e.id = "versao-cfg"; e.textContent = "Configurador v111 · 26/11";
   e.style.cssText = "position:fixed;left:8px;bottom:6px;z-index:60;max-width:92vw;font:11px/1.35 system-ui,sans-serif;letter-spacing:.03em;color:#c9ccd2;background:rgba(0,0,0,.6);padding:5px 9px;border-radius:12px;pointer-events:none";
   document.body.appendChild(e);
   var nav = (function () { try { var b = (navigator.userAgentData && navigator.userAgentData.brands) || [], nomes = b.map(function (x) { return x.brand; }).join(" "); if (/Edge/i.test(nomes) || /Edg\//.test(navigator.userAgent)) return "Edge"; if (/Chrome/i.test(nomes) || /Chrome\//.test(navigator.userAgent)) return "Chrome"; if (/Safari/.test(navigator.userAgent)) return "Safari"; if (/Firefox/.test(navigator.userAgent)) return "Firefox"; } catch (x) {} return "navegador?"; })();
@@ -2132,7 +2132,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
   var n = 0, lentos = 0, ult = 0, t0 = performance.now(), cv = null;
   (function tick(t) { n++; if (ult && t - ult > 25) lentos++; ult = t;
     if (t - t0 >= 1000) { cv = cv || document.querySelector("#at-3d-v canvas"); var pr = cv && cv.clientWidth ? cv.width / cv.clientWidth : 0;
-      e.innerHTML = "Configurador v108 · 26/11 · " + Math.round(n * 1000 / (t - t0)) + " fps · res " + (pr ? pr.toFixed(2) + "x" : "-") + (window.__b3dOrc ? " (orçamento " + (window.__b3dOrc / 1e6).toFixed(2) + " MP" + (window.__b3dSw ? ", por software" : "") + ")" : "") + " · " + lentos + " quadros lentos/s<br>" + nav + " · " + gpuTxt() + " · tela " + (window.devicePixelRatio || 1) + "x"; n = 0; lentos = 0; t0 = t; }
+      e.innerHTML = "Configurador v111 · 26/11 · " + Math.round(n * 1000 / (t - t0)) + " fps · res " + (pr ? pr.toFixed(2) + "x" : "-") + (window.__b3dOrc ? " (orçamento " + (window.__b3dOrc / 1e6).toFixed(2) + " MP" + (window.__b3dSw ? ", por software" : "") + ")" : "") + " · " + lentos + " quadros lentos/s<br>" + nav + " · " + gpuTxt() + " · tela " + (window.devicePixelRatio || 1) + "x"; n = 0; lentos = 0; t0 = t; }
     requestAnimationFrame(tick); })(performance.now());
 } catch (x) { /* sem marcador */ } })();
 </script>
@@ -2178,6 +2178,6 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
   if (m) { abrir(m[1]); setTimeout(enviar, 400); }
 } catch (x) { /* sem acesso por código */ } })();
 </script>
-<style>#versao-fixa{position:fixed;right:8px;bottom:calc(5px + env(safe-area-inset-bottom,0px));z-index:5;font:10px/1 system-ui,-apple-system,sans-serif;letter-spacing:.04em;color:rgba(150,155,165,.55);pointer-events:none;user-select:none}</style><div id="versao-fixa" aria-hidden="true">v108</div>
+<style>#versao-fixa{position:fixed;right:8px;bottom:calc(5px + env(safe-area-inset-bottom,0px));z-index:5;font:10px/1 system-ui,-apple-system,sans-serif;letter-spacing:.04em;color:rgba(150,155,165,.55);pointer-events:none;user-select:none}</style><div id="versao-fixa" aria-hidden="true">v111</div>
 </body>
 </html>
