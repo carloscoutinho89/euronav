@@ -345,7 +345,7 @@ body.com-precos .cod-link { display: none; }
     <div class="sec" id="sec-motor"><h2>Motor <b id="n-motor"></b></h2><div id="d-motor"></div></div>
     <div class="sec orc-sec" id="sec-orc-motor"><h2>Motor <b id="n-orc-motor"></b></h2><div id="orc-motores"></div></div>
     <div class="sec orc-sec" id="sec-orc-kits"><h2>Kits e opcionais</h2><div id="orc-kits"></div></div>
-    <div class="sec orc-sec" id="sec-orc-res"><h2>Seu orçamento</h2><table class="orc-tab" id="orc-tab"></table><p class="orc-nota" id="orc-nota"></p><div class="orc-atual" id="orc-atual" hidden><button class="bt forte" type="button" id="b-atual2">Enviar minha configuração atualizada</button><p class="dica" id="orc-atual-d"></p><button class="bt" type="button" id="b-pdf" hidden>Baixar proposta atualizada (PDF)</button><p class="dica" id="orc-pdf-st" role="status"></p></div></div>
+    <div class="sec orc-sec" id="sec-orc-res"><h2>Seu orçamento</h2><table class="orc-tab" id="orc-tab"></table><p class="orc-nota" id="orc-nota"></p><div class="orc-atual" id="orc-atual" hidden><button class="bt forte" type="button" id="b-atual2">Enviar minha configuração atualizada</button><p class="dica" id="orc-atual-d"></p></div></div>
     <p class="resumo" id="resumo"></p>
     <div class="final">
       <button class="bt forte" type="button" id="b-final">Gerar imagem final</button>
@@ -477,7 +477,7 @@ body.com-precos .cod-link { display: none; }
   const opcNomes = () => { const out = []; KITS_PUB.forEach((kit) => { if (kitTodos(kit)) out.push(kit.nome.toLowerCase().replace(/^kit /, "kit ")); else kit.itens.forEach(([k, t]) => { if (E[k]) out.push(t.toLowerCase()); }); }); if (E.gps) out.push("GPS"); return out; };
   const PADRAO = { est: "Cinza Arizona", piso: "Cinza", li: "Branco", cap: "Cinza", tubo: "pvc", ct: "cinza", cp: false, ch: false, gu: false, pia: false, cx: false, ca: false, kc: false, gps: false, motor: "mercury", hp: 150, vv: false, nb: "", vista: "360", proa: "mesa" };
   const E = Object.assign({}, PADRAO);
-  let ORCCOD = "", ORCHASH0 = "", ORCENV = "", ORCRESUMO0 = "", pdfOcupado = false; let ORC = null, ORCQ = "", ORCERRO = false; const ORCS = { mi: 0, mk: 0 };   // modo orçamento com preços (tabela vinda do link)
+  let ORCCOD = "", ORCHASH0 = "", ORCENV = "", ORCRESUMO0 = ""; let ORC = null, ORCQ = "", ORCERRO = false; const ORCS = { mi: 0, mk: 0 };   // modo orçamento com preços (tabela vinda do link)
   const nomeCor = (c) => c.toLowerCase();
   const nomeLimpo = (v) => String(v || "").replace(/[^\p{L}\p{N} .'&-]/gu, "").replace(/\s+/g, " ").trim().slice(0, 20);   // nome do barco (opcional)
   // ---------- motor em passos: fabricante, potência e, no Mercury 200, o VesselView ----------
@@ -1755,49 +1755,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
   function orcRevAtual() {
     const b = $("b-atual"), b2 = $("b-atual2"); if (!b || !ORC || !ORCCOD) return; const agora = orcSig(), mudou = agora !== ORCHASH0, enviado = !!ORCENV && agora === ORCENV, venc = orcVencido();
     [b, b2].forEach((x) => { if (!x) return; x.disabled = enviado || (!venc && !mudou); x.textContent = venc ? (enviado ? "Pedido enviado ✓" : "Solicitar novo orçamento") : (enviado ? "Atualização enviada ✓" : "Enviar minha configuração atualizada"); x.title = venc || mudou ? "" : "Mude alguma opção para poder enviar uma atualização."; });
-    const dd = $("orc-atual-d"); if (dd) dd.textContent = venc ? (enviado ? "O atendente da Euronav recebeu o seu pedido e vai atualizar o orçamento." : "A proposta venceu em " + orcDataBR(ORC.val) + ". Toque para pedir ao atendente um novo orçamento com a sua configuração. A proposta em PDF é emitida pelo atendente.") : enviado ? "O atendente da Euronav já recebeu esta versão. Se mudar mais alguma coisa, é só enviar de novo." : mudou ? "Quando terminar de ajustar, envie para o atendente da Euronav conferir." : "Mude alguma opção acima (cores, motor, kits...) para poder enviar a sua atualização.";
-    const pb = $("b-pdf"); if (pb) { const ok = enviado && !venc && !!ORC.p && !ORC.p.sk; pb.hidden = !ok; if (!ok && !pdfOcupado) { const ps = $("orc-pdf-st"); if (ps) ps.textContent = ""; } }   // o PDF só aparece depois de enviar, para a proposta bater com o que o atendente recebeu
-  }
-  const carregaScript = (src, pronto) => new Promise((res, rej) => { if (pronto()) return res(); const sc = document.createElement("script"); sc.src = src; sc.onload = () => (pronto() ? res() : rej(new Error("script"))); sc.onerror = () => rej(new Error("rede")); document.head.appendChild(sc); });
-  async function logoPngCfg(w) {   // o mesmo logotipo do cabeçalho, em PNG, para o PDF
-    w = w || 640; const h = Math.round(w * 185 / 1004);
-    try {
-      const svg = document.querySelector("svg.logo"); if (!svg) return null; const c = svg.cloneNode(true);
-      c.querySelectorAll("*").forEach((p) => { if (p.classList && p.classList.contains("a")) p.setAttribute("fill", "#3B5999"); else if (p.classList && p.classList.contains("w")) p.setAttribute("fill", "#FFFFFF"); });
-      c.setAttribute("xmlns", "http://www.w3.org/2000/svg"); c.setAttribute("width", String(w)); c.setAttribute("height", String(h)); c.removeAttribute("class");
-      const img = new Image(); await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(new XMLSerializer().serializeToString(c)); });
-      const cv = document.createElement("canvas"); cv.width = w; cv.height = h; cv.getContext("2d").drawImage(img, 0, 0, w, h); return cv.toDataURL("image/png");
-    } catch (e) { return null; }
-  }
-  // Proposta atualizada em PDF, no próprio aparelho do cliente: a mesma montagem da proposta do atendente, com a validade da proposta original. Vencida, só o atendente emite.
-  async function baixarPdf() {
-    if (pdfOcupado || !ORC || !ORC.p || ORC.p.sk || orcVencido()) return;
-    const b = $("b-pdf"), ps = $("orc-pdf-st"), dizer = (t) => { ps.textContent = t; }; pdfOcupado = true; b.disabled = true;
-    try {
-      dizer("Preparando o gerador de PDF…");
-      await carregaScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js", () => window.jspdf && window.jspdf.jsPDF);
-      await carregaScript(new URL("proposta-cliente.js?v=1", location.href).href, () => window.PROP_CLIENTE);
-      const PC = window.PROP_CLIENTE, imgs = {}; let imgR = 0;
-      for (const k of ["proa", "popa"]) {   // as mesmas imagens 3D, sem legenda gravada, da proposta do atendente
-        try {
-          dizer("Gerando a imagem 3D de " + k + "… leva alguns segundos."); const it = await fimRender(k, (f) => dizer("Gerando a imagem 3D de " + k + "… " + Math.round(f * 100) + "%"), true);
-          imgs[k] = await new Promise((ok, er) => { const im = new Image(); im.onload = () => { const sy = Math.round(im.height * (k === "popa" ? 0.2545 : 0.205)), sh = Math.round(im.height * 0.683), cv = document.createElement("canvas"); cv.width = 1100; cv.height = Math.round(1100 * sh / im.width); cv.getContext("2d").drawImage(im, 0, sy, im.width, sh, 0, 0, cv.width, cv.height); imgR = cv.width / cv.height; ok(cv.toDataURL("image/jpeg", 0.86)); }; im.onerror = er; im.src = it.url; });
-        } catch (e) { /* segue sem esta imagem */ }
-      }
-      dizer("Aplicando as cores nas fotos…");
-      const pl = E.piso + "/" + E.li, fotosV = {}, vistas = {};
-      for (const k of ["proa", "cockpit", "proa_sol"]) { try { const u = await fotoCor(k, E.est, pl); if (u) fotosV[k] = u; } catch (e) { /* fica a foto original */ } }
-      try { const u = await fotoTubo(corTubo(E.tubo, E.ct)[2]); if (u) fotosV.tubo = u; } catch (e) { /* fica a foto original */ }
-      Object.keys(FOTOS).forEach((k) => { if (FOTOS[k] && FOTOS[k].src) vistas[k] = { src: FOTOS[k].src }; });
-      let fotoLounge = null; try { FOTOS.w_lounge = { src: PC.lounge.src, mask: PC.lounge.mask }; fotoLounge = await fotoCor("w_lounge", E.est, pl); } catch (e) { fotoLounge = null; } finally { delete FOTOS.w_lounge; }
-      dizer("Montando o PDF…");
-      const mk = orcMk(ORCS.mi, ORCS.mk), S = orcCalcS(ORCS.mi, ORCS.mk, E.tubo === "hyp");
-      const cores = "estofado " + nomeCor(E.est) + ", piso em EVA " + nomeCor(E.piso) + " com listras brancas, capotas em " + nomeCor(E.cap) + " e tubulões " + corTubo(E.tubo, E.ct)[1].toLowerCase();
-      const logo = await logoPngCfg(640), res = await PC.gerar({ ORC, mi: ORCS.mi, mk, S, cod: ORCCOD, cores, imgs, imgR, fotosV, vistas, fotoLounge, logo });
-      const url = URL.createObjectURL(res.blob), a = document.createElement("a"); a.href = url; a.download = "Proposta Euro Sette atualizada - " + String(res.cliente).replace(/[^\p{L}\p{N} ]/gu, "").slice(0, 60) + ".pdf"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 120000);
-      dizer("Proposta atualizada baixada." + (imgs.proa || imgs.popa ? "" : " Sem as imagens 3D: não foi possível gerá-las neste aparelho.") + " A validade é a da proposta original (" + orcDataBR(ORC.val) + ").");
-    } catch (e) { dizer("Não foi possível gerar o PDF agora. Tente de novo em instantes ou peça a proposta ao atendente."); }
-    finally { pdfOcupado = false; b.disabled = false; }
+    const dd = $("orc-atual-d"); if (dd) dd.textContent = venc ? (enviado ? "O atendente da Euronav recebeu o seu pedido e vai atualizar o orçamento." : "A proposta venceu em " + orcDataBR(ORC.val) + ". Toque para pedir ao atendente um novo orçamento com a sua configuração.") : enviado ? "O atendente da Euronav já recebeu esta versão. Se mudar mais alguma coisa, é só enviar de novo." : mudou ? "Quando terminar de ajustar, envie para o atendente da Euronav conferir." : "Mude alguma opção acima (cores, motor, kits...) para poder enviar a sua atualização.";
   }
   async function enviarAtualizacao() {   // envio direto: o atendimento já existe e o código identifica o cliente, então não pede nome nem telefone
     if (!ORC || !ORCCOD) { aviso("Para enviar a atualização, abra o orçamento pelo seu código."); return; }
@@ -1815,7 +1773,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
   }
   function orcMontar() {
     document.body.classList.add("com-precos");
-    orcOla(); { const ba = $("b-atual"); if (ORCCOD) { ba.hidden = false; ba.addEventListener("click", enviarAtualizacao); $("orc-atual").hidden = false; $("b-atual2").addEventListener("click", enviarAtualizacao); $("b-pdf").addEventListener("click", baixarPdf); $("b-quero").classList.remove("forte"); } const cn = $("ct-nome"); if (cn && !cn.value && ORC.n) cn.value = String(ORC.n).trim().split(/\s+/).map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ").slice(0, 60); }
+    orcOla(); { const ba = $("b-atual"); if (ORCCOD) { ba.hidden = false; ba.addEventListener("click", enviarAtualizacao); $("orc-atual").hidden = false; $("b-atual2").addEventListener("click", enviarAtualizacao); $("b-quero").classList.remove("forte"); } const cn = $("ct-nome"); if (cn && !cn.value && ORC.n) cn.value = String(ORC.n).trim().split(/\s+/).map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ").slice(0, 60); }
     document.title = "Euro Sette · Orçamento"; document.querySelector(".marca span").innerHTML = '· Orçamento';
     document.querySelector(".titulo p").textContent = ORC.n ? "Orçamento para " + ORC.n : "Orçamento";
     document.querySelector(".contato .ct-p").textContent = "Confirme seu nome e telefone. O atendente da Euronav recebe a sua escolha e o valor, e entra em contato para fechar os detalhes.";
@@ -2047,12 +2005,12 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
   }
   const fimTema = () => (document.documentElement.dataset.theme === "light" ? "light" : "dark");
   const fimCh = (k) => k + "|" + fimTema() + "|" + hashAtual();
-  async function fimRender(k, aoProg, limpa) {   // limpa: sem o título e a legenda gravados na imagem (usada na proposta em PDF)   // devolve a imagem da vista k (gera se faltar); uma geração por vez, em fila
-    const chave = fimCh(k) + (limpa ? "|limpa|claro" : ""), tema = limpa ? "light" : fimTema();   /* a imagem da proposta sai sempre com fundo claro, como a do atendente */ if (fim.cache.has(chave)) return fim.cache.get(chave);
+  async function fimRender(k, aoProg) {   // devolve a imagem da vista k (gera se faltar); uma geração por vez, em fila
+    const chave = fimCh(k), tema = fimTema(); if (fim.cache.has(chave)) return fim.cache.get(chave);
     fim.fila = fim.fila.catch(() => {}).then(async () => {
       if (fim.cache.has(chave)) return;
       await esperar3D(); previaExtra = null; B3D.itemPrev = null; b3dAtualizar(); await new Promise((ok) => setTimeout(ok, 420));   // tempo para as cores e os itens entrarem no modelo
-      const cv = await B3D.foto(Object.assign({ w: 1600, h: 1000, ss: 1.25, tema, amostras: window.__FOTO_AMOSTRAS || 0, aoProgresso: aoProg }, ANGULOS.find((a) => a[0] === k)[2])); if (!limpa) fimAssinar(cv, tema);
+      const cv = await B3D.foto(Object.assign({ w: 1600, h: 1000, ss: 1.25, tema, amostras: window.__FOTO_AMOSTRAS || 0, aoProgresso: aoProg }, ANGULOS.find((a) => a[0] === k)[2])); fimAssinar(cv, tema);
       const blob = await new Promise((ok) => cv.toBlob(ok, "image/jpeg", 0.93)); fim.cache.set(chave, { url: URL.createObjectURL(blob), blob });
     });
     await fim.fila; return fim.cache.get(chave);
@@ -2123,7 +2081,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
 /* marcador de versão e diagnóstico: só aparece quando o endereço tem ?v=NN (o mesmo que a equipe usa para furar o cache); o cliente não vê */
 (function () { try {
   if (!/[?&]v=/.test(location.search)) return;
-  var e = document.createElement("div"); e.id = "versao-cfg"; e.textContent = "Configurador v104 · 26/11";
+  var e = document.createElement("div"); e.id = "versao-cfg"; e.textContent = "Configurador v103 · 26/11";
   e.style.cssText = "position:fixed;left:8px;bottom:6px;z-index:60;max-width:92vw;font:11px/1.35 system-ui,sans-serif;letter-spacing:.03em;color:#c9ccd2;background:rgba(0,0,0,.6);padding:5px 9px;border-radius:12px;pointer-events:none";
   document.body.appendChild(e);
   var nav = (function () { try { var b = (navigator.userAgentData && navigator.userAgentData.brands) || [], nomes = b.map(function (x) { return x.brand; }).join(" "); if (/Edge/i.test(nomes) || /Edg\//.test(navigator.userAgent)) return "Edge"; if (/Chrome/i.test(nomes) || /Chrome\//.test(navigator.userAgent)) return "Chrome"; if (/Safari/.test(navigator.userAgent)) return "Safari"; if (/Firefox/.test(navigator.userAgent)) return "Firefox"; } catch (x) {} return "navegador?"; })();
@@ -2131,7 +2089,7 @@ realOk = true; barco.visible = false; real.visible = true; chao.position.y = -1.
   var n = 0, lentos = 0, ult = 0, t0 = performance.now(), cv = null;
   (function tick(t) { n++; if (ult && t - ult > 25) lentos++; ult = t;
     if (t - t0 >= 1000) { cv = cv || document.querySelector("#at-3d-v canvas"); var pr = cv && cv.clientWidth ? cv.width / cv.clientWidth : 0;
-      e.innerHTML = "Configurador v104 · 26/11 · " + Math.round(n * 1000 / (t - t0)) + " fps · res " + (pr ? pr.toFixed(2) + "x" : "-") + (window.__b3dOrc ? " (orçamento " + (window.__b3dOrc / 1e6).toFixed(2) + " MP" + (window.__b3dSw ? ", por software" : "") + ")" : "") + " · " + lentos + " quadros lentos/s<br>" + nav + " · " + gpuTxt() + " · tela " + (window.devicePixelRatio || 1) + "x"; n = 0; lentos = 0; t0 = t; }
+      e.innerHTML = "Configurador v103 · 26/11 · " + Math.round(n * 1000 / (t - t0)) + " fps · res " + (pr ? pr.toFixed(2) + "x" : "-") + (window.__b3dOrc ? " (orçamento " + (window.__b3dOrc / 1e6).toFixed(2) + " MP" + (window.__b3dSw ? ", por software" : "") + ")" : "") + " · " + lentos + " quadros lentos/s<br>" + nav + " · " + gpuTxt() + " · tela " + (window.devicePixelRatio || 1) + "x"; n = 0; lentos = 0; t0 = t; }
     requestAnimationFrame(tick); })(performance.now());
 } catch (x) { /* sem marcador */ } })();
 </script>
