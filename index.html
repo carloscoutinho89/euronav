@@ -5073,7 +5073,7 @@ window.esPdfTxt = function (doc, partes, x, y, hh, cor, ali) {   // texto com o 
       let dl = null; try { dl = window.claude && window.claude.use ? await window.claude.use("downloads") : null; } catch (e) { dl = null; }
       if (!dl) { msg.textContent = "Não foi possível salvar o arquivo. Tente de novo."; return; }
       await dl.save({ filename: "Proposta Euro Sette - " + String(d.cliente).replace(/[^\p{L}\p{N} ]/gu, "").slice(0, 60) + ".pdf", data: blob });
-      msg.textContent = "Proposta " + d.numero + " salva." + (d.imgs.proa || d.imgs.popa ? "" : " Sem as imagens 3D: não foi possível gerá-las neste aparelho.") + " Modelo v104 (26/11), " + d.paginas + " páginas.";
+      msg.textContent = "Proposta " + d.numero + " salva." + (d.imgs.proa || d.imgs.popa ? "" : " Sem as imagens 3D: não foi possível gerá-las neste aparelho.") + " Modelo v105 (26/11), " + d.paginas + " páginas.";
       const id = st.atId, at = st.ats.get(id);
       if (id && at && st.acol && st.canWrite) {
         const patch = { ultimaProposta: { numero: d.numero, em: nowIso(), total: Math.round(q.total) }, atualizadoEm: nowIso() };
@@ -6363,9 +6363,9 @@ if (pt.est) {   // o estofado do modelo é uma peça só: separa o assento do ni
           const dk = new T.Mesh(geoD, new T.MeshBasicMaterial({ color: 0x2D9CFF, transparent: true, opacity: 0, depthWrite: false, side: T.DoubleSide, toneMapped: false })); dk.quaternion.copy(q); dk.position.set(x, y, z).addScaledVector(n, 0.006); dk.renderOrder = 19; ondas.add(dk); discos.push(dk); });
         B3D._ondas = { ondas, aneis };
         B3D.tweenOndas = () => { const lig = !!B3D.somLigado && !B3D.fotografando; ondas.visible = lig; if (!lig) return; const t = performance.now() / 1000; aneis.forEach((a) => { const k = (t / 1.4 + a.fase) % 1; a.m.scale.setScalar(0.09 + 0.33 * k); a.m.position.copy(a.p).addScaledVector(a.n, 0.01 + 0.3 * k); a.m.material.opacity = Math.min(1, k * 6) * Math.pow(1 - k, 1.1) * 0.95; }); const pulso = 0.5 + 0.5 * Math.sin(t * 2 * Math.PI / 1.4 * 3); discos.forEach((d) => { d.material.opacity = 0.35 + 0.35 * pulso; d.scale.setScalar(0.92 + 0.16 * pulso); }); }; }
-      // mastro curto com a luz de navegação no topo e a bandeira: a boreste, na plataforma de popa, entre a ponta do tubulão e o motor, ao lado do rebaixo redondo do convés (posição do barco real, conferida na foto).
-      // Medido no modelo: o convés fica em y = 0,62, a ponta do tubulão começa em x = 0,52 e o motor ocupa x de 0 a 0,3; o mastro real tem cerca de 45 cm com a luz (haste de uns 35 cm e a luz de uns 10 cm).
-      const MX = 0.44, MY = 0.62, MZ = 1.14, MH = 0.34;
+      // mastro curto com a luz de navegação no topo e a bandeira: a boreste, sobre o tubulão, uns 55 cm à frente da tampa traseira dele e junto ao sofá de popa (posição marcada pelo Carlos num desenho sobre a captura do celular).
+      // Medido no modelo, com a câmera calibrada sobre a captura: o desenho cai em x = 1,08, y = 1,02 (topo do tubulão) e z = 1,11; o mastro real tem cerca de 45 cm com a luz (haste de uns 35 cm e a luz de uns 10 cm).
+      const MX = 1.085, MY = 1.02, MZ = 1.12, MH = 0.34;
       { const m = new T.Mesh(new T.CylinderGeometry(0.012, 0.015, MH, 10), matR.inox); m.position.set(MX, MY + MH / 2, MZ); gR.mastro.add(m);
         const tb = tela(96, 64, (g, w, h) => { g.fillStyle = "#009739"; g.fillRect(0, 0, w, h); g.fillStyle = "#FEDD00"; g.beginPath(); g.moveTo(w / 2, 6); g.lineTo(w - 8, h / 2); g.lineTo(w / 2, h - 6); g.lineTo(8, h / 2); g.closePath(); g.fill(); g.fillStyle = "#012169"; g.beginPath(); g.arc(w / 2, h / 2, 12, 0, Math.PI * 2); g.fill(); }); tb.desenhar();
         const f = new T.Mesh(new T.PlaneGeometry(0.2, 0.14), new T.MeshStandardMaterial({ map: tb, side: T.DoubleSide, roughness: 0.8 })); f.position.set(MX - 0.115, MY + 0.23, MZ); gR.mastro.add(f); sombra(gR.mastro);
